@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'serif-title': ['Crimson Text', 'serif'], // Roller Coaster Serif alternative
+				'sans': ['Inter', 'sans-serif'], // Glacial Indifference alternative
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -51,6 +55,11 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				artistic: {
+					yellow: 'hsl(var(--artistic-yellow))',
+					orange: 'hsl(var(--artistic-orange))',
+					'warm-orange': 'hsl(var(--artistic-warm-orange))',
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
