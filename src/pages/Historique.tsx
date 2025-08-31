@@ -62,30 +62,22 @@ const Historique = () => {
             Nos Présidents
           </h2>
           
-          <div className="space-y-6">
-            {pastPresidents.map((president, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-serif-title text-xl font-semibold text-primary mb-2">
-                        {president.name}
-                      </h3>
-                      <p className="font-sans text-muted-foreground mb-2">
-                        {president.period}
-                      </p>
-                      <p className="font-sans text-foreground">
-                        {president.description}
-                      </p>
-                    </div>
-                    <div className="mt-4 md:mt-0 md:ml-4">
-                      <div className="w-2 h-2 bg-accent rounded-full"></div>
-                    </div>
+          <Card>
+            <CardContent className="p-8">
+              <div className="space-y-3">
+                {pastPresidents.map((president, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-muted last:border-0">
+                    <span className="font-serif-title text-lg text-primary font-medium">
+                      {president.name}
+                    </span>
+                    <span className="font-sans text-muted-foreground">
+                      {president.period}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </section>
       </div>
     </div>

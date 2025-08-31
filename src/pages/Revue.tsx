@@ -4,14 +4,21 @@ import { Badge } from "@/components/ui/badge";
 import { Download, BookOpen, Users, Calendar } from "lucide-react";
 
 const Revue = () => {
-  const notableContributors = [
-    { name: "Jean-Pierre Siméon", role: "Poète et dramaturge", description: "Ancien directeur artistique du Printemps des Poètes" },
-    { name: "Marie-Claire Bancquart", role: "Poétesse et critique", description: "Prix Goncourt de la Poésie 2009" },
-    { name: "James Sacré", role: "Poète", description: "Grand Prix de Poésie de l'Académie française" },
-    { name: "Véronique Pittolo", role: "Poétesse et traductrice", description: "Prix Apollinaire 2018" },
-    { name: "Christian Bobin", role: "Écrivain et poète", description: "Prix des Deux Magots 1993" },
-    { name: "Alain Borer", role: "Poète et essayiste", description: "Spécialiste de Rimbaud" },
-  ];
+  const contributors = [
+    "Alain Borer", "André Velter", "Anne Perrier", "Antoine Emaz", "Bernard Noël", 
+    "Brigitte Gyr", "Catherine Pozzi", "Charles Dobzynski", "Christian Bobin", "Claude Esteban",
+    "Daniel Boulanger", "Dominique Fourcade", "Edith Azam", "Emmanuel Hocquard", "Eva Rachele Antonelli",
+    "François Cheng", "Geneviève Huttin", "Georges Schehadé", "Gilles Ortlieb", "Guy Goffette",
+    "Hédi Kaddour", "Henri Deluy", "Hervé Micolet", "Hubert Haddad", "Jacques Réda",
+    "James Sacré", "Jean-Baptiste Para", "Jean-Claude Pinson", "Jean-Luc Sarré", "Jean-Marie Barnaud",
+    "Jean-Michel Maulpoix", "Jean-Pierre Lemaire", "Jean-Pierre Siméon", "Jude Stéfan", "Laurence Breysse-Chanet",
+    "Louis-René des Forêts", "Lorand Gaspar", "Ludovic Janvier", "Marc Alyn", "Marie-Claire Bancquart",
+    "Marie-Claire Blais", "Marie Étienne", "Mathieu Bénézet", "Michel Deguy", "Michel Host",
+    "Nathalie Quintane", "Olivier Barbarant", "Pascal Commère", "Patrick Beurard-Valdoye", "Paul de Roux",
+    "Philippe Beck", "Philippe Denis", "Philippe Jaccottet", "Pierre Chappuis", "Pierre Dhainaut",
+    "Raoul Hausmann", "René Char", "Rémy Ricordeau", "Robert Marteau", "Salah Stétié",
+    "Serge Pey", "Sylvain Trudel", "Tristan Cabral", "Valérie Rouzeau", "Véronique Pittolo"
+  ].sort();
 
   return (
     <div className="min-h-screen py-12 px-4">
@@ -127,25 +134,17 @@ const Revue = () => {
               </Badge>
             </div>
             <CardTitle className="font-serif-title text-2xl text-primary">
-              Nos Contributeurs de Renom
+              Nos Contributeurs
             </CardTitle>
             <CardDescription className="font-sans">
-              Découvrez quelques-unes des plumes prestigieuses qui ont enrichi nos pages
+              Quelques-unes des plumes qui ont enrichi nos pages au fil des années
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {notableContributors.map((contributor, index) => (
-                <div key={index} className="border-l-4 border-artistic-yellow pl-4">
-                  <h4 className="font-serif-title text-lg font-semibold text-primary">
-                    {contributor.name}
-                  </h4>
-                  <p className="font-sans text-secondary font-medium mb-1">
-                    {contributor.role}
-                  </p>
-                  <p className="font-sans text-sm text-muted-foreground">
-                    {contributor.description}
-                  </p>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
+              {contributors.map((name, index) => (
+                <div key={index} className="font-sans text-foreground py-1">
+                  {name}
                 </div>
               ))}
             </div>

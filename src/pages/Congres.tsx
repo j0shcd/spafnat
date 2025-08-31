@@ -31,38 +31,6 @@ const Congres = () => {
           </p>
         </header>
 
-        {/* Next Congress Info */}
-        <Card className="mb-12 bg-gradient-to-r from-accent/5 to-artistic-yellow/5 border-accent/20">
-          <CardHeader>
-            <div className="flex items-center space-x-2 mb-2">
-              <Calendar className="h-5 w-5 text-accent" />
-              <Badge variant="secondary" className="bg-accent text-accent-foreground">
-                Prochain événement
-              </Badge>
-            </div>
-            <CardTitle className="font-serif-title text-2xl text-primary">
-              Congrès National 2025
-            </CardTitle>
-            <CardDescription className="font-sans text-lg">
-              L'événement phare de l'année artistique française
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="font-sans space-y-4">
-            <div className="flex items-center space-x-2 text-foreground">
-              <MapPin className="h-4 w-4 text-accent" />
-              <span>Lyon - Palais des Congrès</span>
-            </div>
-            <div className="flex items-center space-x-2 text-foreground">
-              <Calendar className="h-4 w-4 text-accent" />
-              <span>15-17 Mai 2025</span>
-            </div>
-            <p className="text-muted-foreground">
-              Trois jours de rencontres, d'ateliers, de lectures publiques et de remises de prix. 
-              Plus d'informations seront communiquées prochainement aux membres.
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Awards Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Palmarès Poétique */}
@@ -129,6 +97,38 @@ const Congres = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Next Congress Info */}
+        <Card className="mb-12 bg-gradient-to-r from-accent/5 to-artistic-yellow/5 border-accent/20">
+          <CardHeader>
+            <div className="flex items-center space-x-2 mb-2">
+              <Calendar className="h-5 w-5 text-accent" />
+              <Badge variant="secondary" className="bg-accent text-accent-foreground">
+                Prochain événement
+              </Badge>
+            </div>
+            <CardTitle className="font-serif-title text-2xl text-primary">
+              Congrès National 2025
+            </CardTitle>
+            <CardDescription className="font-sans text-lg">
+              L'événement phare de l'année artistique française
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="font-sans space-y-4">
+            <div className="flex items-center space-x-2 text-foreground">
+              <MapPin className="h-4 w-4 text-accent" />
+              <span>Lyon - Palais des Congrès</span>
+            </div>
+            <div className="flex items-center space-x-2 text-foreground">
+              <Calendar className="h-4 w-4 text-accent" />
+              <span>15-17 Mai 2025</span>
+            </div>
+            <p className="text-muted-foreground">
+              Trois jours de rencontres, d'ateliers, de lectures publiques et de remises de prix. 
+              Plus d'informations seront communiquées prochainement aux membres.
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Photo Gallery Placeholder */}
         <Card>

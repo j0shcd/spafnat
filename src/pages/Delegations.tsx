@@ -3,13 +3,13 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Mail, Phone, Users } from "lucide-react";
 
 const Delegations = () => {
-  const delegations = [
+const delegations = [
     {
       region: "Île-de-France",
       delegate: "Marie Dubois",
       city: "Paris",
       email: "idf@spafnat.com",
-      phone: "01 42 33 44 55",
+      address: "15 rue de Rivoli, 75001 Paris",
       members: 156,
       description: "Siège historique de l'association, organise des lectures mensuelles à la Sorbonne."
     },
@@ -18,7 +18,7 @@ const Delegations = () => {
       delegate: "Jean Moreau",
       city: "Lyon",
       email: "aura@spafnat.com",
-      phone: "04 78 90 12 34",
+      address: "45 place Bellecour, 69002 Lyon",
       members: 89,
       description: "Active dans l'organisation d'ateliers d'écriture et de concours régionaux."
     },
@@ -27,7 +27,7 @@ const Delegations = () => {
       delegate: "Sophie Martin",
       city: "Bordeaux",
       email: "na@spafnat.com",
-      phone: "05 56 78 90 12",
+      address: "28 cours de l'Intendance, 33000 Bordeaux",
       members: 67,
       description: "Spécialisée dans la poésie occitane et les traditions littéraires régionales."
     },
@@ -36,7 +36,7 @@ const Delegations = () => {
       delegate: "Pierre Rousseau",
       city: "Toulouse",
       email: "occitanie@spafnat.com",
-      phone: "05 61 23 45 67",
+      address: "12 place du Capitole, 31000 Toulouse",
       members: 72,
       description: "Forte tradition de troubadours, organise le Festival de Poésie de Printemps."
     },
@@ -45,7 +45,7 @@ const Delegations = () => {
       delegate: "Isabelle Lefort",
       city: "Marseille",
       email: "paca@spafnat.com",
-      phone: "04 91 34 56 78",
+      address: "8 boulevard Longchamp, 13001 Marseille",
       members: 85,
       description: "Collabore étroitement avec les festivals de Cannes et d'Avignon."
     },
@@ -54,7 +54,7 @@ const Delegations = () => {
       delegate: "Michel Girard",
       city: "Strasbourg",
       email: "grandest@spafnat.com",
-      phone: "03 88 45 67 89",
+      address: "22 place Kléber, 67000 Strasbourg",
       members: 54,
       description: "Promotion de la poésie bilingue français-allemand et des échanges européens."
     },
@@ -63,7 +63,7 @@ const Delegations = () => {
       delegate: "Catherine Blanc",
       city: "Lille",
       email: "hdf@spafnat.com",
-      phone: "03 20 56 78 90",
+      address: "35 Grand'Place, 59000 Lille",
       members: 43,
       description: "Organise des rencontres avec les poètes belges et néerlandais."
     },
@@ -72,7 +72,7 @@ const Delegations = () => {
       delegate: "François Petit",
       city: "Rouen",
       email: "normandie@spafnat.com",
-      phone: "02 35 67 89 01",
+      address: "18 place du Vieux-Marché, 76000 Rouen",
       members: 38,
       description: "Préservation du patrimoine littéraire normand, terre de Corneille et Flaubert."
     },
@@ -81,7 +81,7 @@ const Delegations = () => {
       delegate: "Anne Durand",
       city: "Nantes",
       email: "pdl@spafnat.com",
-      phone: "02 40 78 90 12",
+      address: "7 place Royale, 44000 Nantes",
       members: 45,
       description: "Organisation de résidences d'artistes et de masterclasses d'écriture."
     },
@@ -90,7 +90,7 @@ const Delegations = () => {
       delegate: "Yann Le Gall",
       city: "Rennes",
       email: "bretagne@spafnat.com",
-      phone: "02 99 89 01 23",
+      address: "11 place des Lices, 35000 Rennes",
       members: 52,
       description: "Valorisation de la tradition bardique bretonne et de la poésie contemporaine."
     }
@@ -133,12 +133,9 @@ const Delegations = () => {
             <Card key={index} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-5 w-5 text-accent" />
-                    <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20">
-                      {delegation.region}
-                    </Badge>
-                  </div>
+                  <CardTitle className="font-serif-title text-2xl text-primary">
+                    {delegation.region}
+                  </CardTitle>
                   <div className="flex items-center space-x-1">
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="font-sans text-sm text-muted-foreground">
@@ -146,9 +143,10 @@ const Delegations = () => {
                     </span>
                   </div>
                 </div>
-                <CardTitle className="font-serif-title text-xl text-primary">
-                  {delegation.city}
-                </CardTitle>
+                <div className="flex items-center space-x-2 mb-2">
+                  <MapPin className="h-4 w-4 text-accent" />
+                  <span className="font-sans text-lg text-muted-foreground">{delegation.city}</span>
+                </div>
                 <CardDescription className="font-sans text-foreground">
                   Délégué·e : <strong>{delegation.delegate}</strong>
                 </CardDescription>
@@ -169,9 +167,9 @@ const Delegations = () => {
                     </a>
                   </div>
                   <div className="flex items-center space-x-2 text-sm">
-                    <Phone className="h-4 w-4 text-accent" />
+                    <MapPin className="h-4 w-4 text-accent" />
                     <span className="font-sans text-foreground">
-                      {delegation.phone}
+                      {delegation.address}
                     </span>
                   </div>
                 </div>
