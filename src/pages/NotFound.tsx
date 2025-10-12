@@ -17,11 +17,11 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="text-center max-w-md mx-auto">
         <div className="mb-8">
-          <h1 className="font-serif-title text-6xl font-bold text-primary mb-4">404</h1>
+          <h1 className="font-serif-title text-6xl font-bold text-primary mb-4">🚧</h1>
           <div className="w-16 h-1 bg-accent mx-auto mb-6"></div>
-          <h2 className="font-serif-title text-2xl text-primary mb-4">Page introuvable</h2>
+          <h2 className="font-serif-title text-2xl text-primary mb-4">Site en construction</h2>
           <p className="font-sans text-muted-foreground mb-8">
-            Désolé, la page que vous cherchez n'existe pas ou a été déplacée.
+            Cette page est actuellement en cours de développement. Merci de votre patience.
           </p>
         </div>
         
