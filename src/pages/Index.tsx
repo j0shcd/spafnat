@@ -56,7 +56,7 @@ const Index = () => {
           <div className="flex justify-center mb-8">
             <img 
               src={spafLogo} 
-              alt="SPAF - Art & Poésie" 
+              alt="SPAF - Société des Poètes et Artistes de France" 
               className="h-32 w-auto"
             />
           </div>
@@ -86,17 +86,11 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="font-serif-title text-3xl font-bold text-primary mb-6">
-              Notre Communauté en Chiffres
+              Notre communauté en chiffres
             </h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <div className="text-3xl font-serif-title font-bold text-accent mb-2">700+</div>
-                <p className="font-sans text-muted-foreground">Membres totaux</p>
-              </CardContent>
-            </Card>
             <Card className="text-center">
               <CardContent className="p-6">
                 <div className="text-3xl font-serif-title font-bold text-accent mb-2">10</div>
@@ -105,8 +99,14 @@ const Index = () => {
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
+                <div className="text-3xl font-serif-title font-bold text-accent mb-2">300+</div>
+                <p className="font-sans text-muted-foreground">Membres</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="p-6">
                 <div className="text-3xl font-serif-title font-bold text-accent mb-2">171,000</div>
-                <p className="font-sans text-muted-foreground">Visiteurs totaux</p>
+                <p className="font-sans text-muted-foreground">Visiteurs</p>
               </CardContent>
             </Card>
           </div>
@@ -210,7 +210,7 @@ const Index = () => {
       </section>
 
       {/* Contact Section */}
-      <section className="py-16 px-4 bg-background">
+      <section id="contact" className="py-16 px-4 bg-background scroll-mt-24">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-serif-title text-4xl font-bold text-primary mb-4">
