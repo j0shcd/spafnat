@@ -78,11 +78,27 @@ const Index = () => {
             Créée en 1958, la SPAF fédère poètes, écrivains, artistes, peintres, 
             photographes et musiciens autour d'une passion commune : l'expression artistique.
           </p>
+
+          <div className="pt-10 flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-6 mb-6">
+            <Button asChild variant="outline">
+              <a href="#contact">
+                <Mail className="h-4 w-4 mr-2" />
+                Nous contacter
+              </a>
+            </Button>
+
+            <Button asChild variant="outline">
+              <a href="/formulaire-adhesion.pdf" download>
+                <Download className="h-4 w-4 mr-2" />
+                Formulaire d&apos;adhésion (PDF)
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 px-4 bg-muted/30">
+      <section className="pt-10 pb-16 px-4 bg-muted/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="font-serif-title text-3xl font-bold text-primary mb-6">
