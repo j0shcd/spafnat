@@ -2,10 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Mail, Phone, MapPin, Trophy, BookOpen, Users } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import spafLogo from "@/assets/spaf-logo.png";
+import adhesionPdf from "@/assets/bulletin_adhesion_2026.pdf";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -88,9 +90,9 @@ const Index = () => {
             </Button>
 
             <Button asChild variant="outline">
-              <a href="/formulaire-adhesion.pdf" download>
+              <a href={adhesionPdf} download>
                 <Download className="h-4 w-4 mr-2" />
-                Formulaire d&apos;adhésion (PDF)
+                Télécharger le formulaire (PDF)
               </a>
             </Button>
           </div>
@@ -217,17 +219,40 @@ const Index = () => {
                 </p>
               </div>
 
+              <div className="rounded-2xl border bg-background/60 p-5 mb-6">
+                <p className="font-sans font-medium text-primary mb-3">Comment adhérer</p>
+                <ol className="space-y-2">
+                  <li className="font-sans text-sm">
+                    <strong>1.</strong>{" "}
+                    <a
+                      href={adhesionPdf}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-4 font-medium hover:opacity-80"
+                    >
+                      Ouvrir le formulaire (PDF)
+                    </a>
+                  </li>
+                  <li className="font-sans text-sm">
+                    <strong>2.</strong> Entourez votre formule et remplissez vos coordonnées
+                  </li>
+                  <li className="font-sans text-sm">
+                    <strong>3.</strong> Envoyez-le par email ou par courrier
+                  </li>
+                </ol>
+              </div>
+
               {/* Main offer */}
               <div className="rounded-2xl border border-accent/25 bg-gradient-to-br from-background to-accent/5 p-6 md:p-7 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge className="bg-accent/15 text-accent hover:bg-accent/15">
-                        Recommandé
-                      </Badge>
-                      <span className="font-sans text-xs text-muted-foreground">
                         Le plus choisi
-                      </span>
+                      </Badge>
+                      {/* <span className="font-sans text-xs text-muted-foreground">
+                        Le plus choisi
+                      </span> */}
                     </div>
 
                     <h4 className="font-serif-title text-xl md:text-2xl text-primary">
@@ -271,8 +296,8 @@ const Index = () => {
                     </div>
 
                     <div className="mt-5 flex md:justify-end">
-                      <Button className="bg-accent hover:bg-accent/90" asChild>
-                        <a href="/formulaire-adhesion.pdf" download>
+                      <Button asChild variant="outline">
+                        <a href={adhesionPdf} download>
                           <Download className="h-4 w-4 mr-2" />
                           Télécharger le formulaire (PDF)
                         </a>
@@ -292,33 +317,45 @@ const Index = () => {
                 </p>
               </div>
 
-              {/* Secondary options */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <div className="rounded-2xl border bg-background/60 p-5 hover:bg-background transition-colors">
-                  <p className="font-serif-title text-lg text-primary">Adhésion</p>
-                  <p className="font-sans text-sm text-muted-foreground mt-1">
-                    Pour devenir membre (concours).
-                  </p>
-                  <p className="font-serif-title text-3xl font-bold text-primary mt-4">24€</p>
-                  <p className="font-sans text-xs text-muted-foreground mt-1">par an</p>
-                </div>
-
-                <div className="rounded-2xl border bg-background/60 p-5 hover:bg-background transition-colors">
-                  <p className="font-serif-title text-lg text-primary">Revue (unité)</p>
-                  <p className="font-sans text-sm text-muted-foreground mt-1">
-                    Acheter un numéro.
-                  </p>
-                  <p className="font-serif-title text-3xl font-bold text-primary mt-4">12€</p>
-                </div>
-
-                <div className="rounded-2xl border bg-background/60 p-5 hover:bg-background transition-colors">
-                  <p className="font-serif-title text-lg text-primary">Revue (abonnement)</p>
-                  <p className="font-sans text-sm text-muted-foreground mt-1">
-                    Sans adhésion.
-                  </p>
-                  <p className="font-serif-title text-3xl font-bold text-primary mt-4">30€</p>
-                  <p className="font-sans text-xs text-muted-foreground mt-1">par an</p>
-                </div>
+               {/* “More” (collapsible) */}
+              <div className="max-w-3xl mx-auto mt-4">
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="tarifs">
+                    <AccordionTrigger className="font-sans">
+                      Voir toutes les formules
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 pt-2">
+                        <div className="flex justify-between gap-6">
+                          <span className="font-sans text-sm">Adhésion (sans revue)</span>
+                          <span className="font-sans text-sm font-semibold">24€</span>
+                        </div>
+                        <div className="flex justify-between gap-6">
+                          <span className="font-sans text-sm">Abonnement revue (sans adhésion)</span>
+                          <span className="font-sans text-sm font-semibold">33€</span>
+                        </div>
+                        <div className="flex justify-between gap-6">
+                          <span className="font-sans text-sm">Abonnement et adhésion</span>
+                          <span className="font-sans text-sm font-semibold">40€</span>
+                        </div>
+                        <div className="flex justify-between gap-6">
+                          <span className="font-sans text-sm">Membre bienfaiteur</span>
+                          <span className="font-sans text-sm font-semibold">60€</span>
+                        </div>
+                        <div className="flex justify-between gap-6">
+                          <span className="font-sans text-sm">Couple</span>
+                          <span className="font-sans text-sm font-semibold">48€</span>
+                        </div>
+                        <div className="flex justify-between gap-6">
+                          <span className="font-sans text-sm">
+                            Le numéro <span className="text-muted-foreground">( + 5€ frais d’envoi )</span>
+                          </span>
+                          <span className="font-sans text-sm font-semibold">12€</span>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
 
               {/* Supporter */}
@@ -330,7 +367,7 @@ const Index = () => {
                       Membre bienfaiteur (adhésion + abonnement + soutien).
                     </p>
                   </div>
-                  <div className="font-serif-title text-2xl font-bold text-primary">50€</div>
+                  <div className="font-serif-title text-2xl font-bold text-primary">60€</div>
                 </div>
               </div>
             </CardContent>
@@ -400,40 +437,25 @@ const Index = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h4 className="font-sans font-semibold text-foreground">François Girard</h4>
-                    <p className="font-sans text-muted-foreground">Président de la SPAF</p>
+                    <h4 className="font-sans font-semibold text-foreground">Pascal Lecordier</h4>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
                       <Mail className="h-4 w-4 text-accent" />
-                      <span className="font-sans text-sm">president@spafnat.com</span>
+                      <span className="font-sans text-sm">plecordier@free.fr</span>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    {/* <div className="flex items-center space-x-3">
                       <Phone className="h-4 w-4 text-accent" />
                       <span className="font-sans text-sm">05 49 52 35 85</span>
-                    </div>
+                    </div> */}
                     <div className="flex items-start space-x-3">
                       <MapPin className="h-4 w-4 text-accent mt-1" />
                       <div className="font-sans text-sm">
-                        <p>12 rue des Lilas</p>
-                        <p>86360 Chasseneuil-du-Poitou</p>
+                        <p>11 rue Juliette Récamier</p>
+                        <p>69130 Écully</p>
                         <p>France</p>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-primary text-primary-foreground">
-                <CardContent className="p-6">
-                  <h4 className="font-serif-title text-lg font-semibold mb-3">
-                    Siège social
-                  </h4>
-                  <div className="space-y-2 font-sans text-sm">
-                    <p>Mairie de Chasseneuil du Poitou</p>
-                    <p>1 Place de la Mairie</p>
-                    <p>86360 Chasseneuil-du-Poitou</p>
-                    <p>France</p>
                   </div>
                 </CardContent>
               </Card>

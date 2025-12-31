@@ -15,14 +15,14 @@ const Footer = () => {
                 <MapPin className="h-5 w-5 mt-1 text-artistic-yellow" />
                 <div className="font-sans">
                   <p>Mairie de Chasseneuil du Poitou</p>
-                  <p>1 Place de la Mairie</p>
-                  <p>86360 Chasseneuil-du-Poitou</p>
+                  <p>10bis Rue du 11 novembre</p>
+                  <p>86360 Chasseneuil du Poitou</p>
                   <p>France</p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-artistic-yellow" />
-                <span className="font-sans">contact@spafnat.com</span>
+                <span className="font-sans">plecordier@free.fr</span>
               </div>
             </div>
           </div>
