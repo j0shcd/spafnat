@@ -19,29 +19,29 @@ const Index = () => {
 
   const activities = [
     {
-      title: "Revues mensuelles",
-      description: "Publication mensuelle de poésies et d'articles artistiques",
+      title: "Revue",
+      description: "Publication de poèmes et d’oeuvres artistiques",
       icon: BookOpen,
       link: "/revue",
       color: "artistic-yellow"
     },
     {
       title: "Concours",
-      description: "Concours littéraires et artistiques nationaux",
+      description: "Concours poétiques et artistiques nationaux et régionaux",
       icon: Trophy,
-      action: "Télécharger le formulaire",
+      action: "Télécharger le formulaire", // add variable number of links, for all regions
       color: "artistic-orange"
     },
     {
-      title: "Évènements nationaux", 
-      description: "Congrès annuel et événements d'envergure",
+      title: "Congrès", 
+      description: "Congrès national annuel",
       icon: Users,
       link: "/congres",
       color: "accent"
     },
     {
-      title: "Évènements départementaux",
-      description: "Activités locales organisées par nos délégations",
+      title: "Délégations",
+      description: "Activités régionales organisées par nos délégations",
       icon: MapPin,
       link: "/delegations",
       color: "secondary"
@@ -68,7 +68,7 @@ const Index = () => {
           <div className="w-32 h-1 bg-accent mx-auto mb-8"></div>
           
           <p className="font-serif-title text-xl md:text-2xl text-secondary italic mb-8 max-w-3xl mx-auto leading-relaxed">
-            "L'art est une grande vibration où personne ne dépasse personne."
+            "L&apos;art est une grande vibration où personne ne dépasse personne."
           </p>
           <p className="font-sans text-sm text-muted-foreground mb-8">
             — Jean Cocteau
@@ -76,7 +76,7 @@ const Index = () => {
           
           <p className="font-sans text-lg text-foreground max-w-3xl mx-auto leading-relaxed">
             Créée en 1958, la SPAF fédère poètes, écrivains, artistes, peintres, 
-            photographes et musiciens autour d'une passion commune : l'expression artistique.
+            photographes et musiciens autour d&apos;une passion commune : l&apos;expression artistique.
           </p>
 
           <div className="pt-10 flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-6 mb-6">
@@ -98,7 +98,7 @@ const Index = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="pt-10 pb-16 px-4 bg-muted/30">
+      <section className="pt-6 pb-16 px-4 bg-muted/30">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="font-serif-title text-3xl font-bold text-primary mb-6">
@@ -129,7 +129,7 @@ const Index = () => {
 
           <div className="text-center">
             <a 
-              href="https://facebook.com/groups/spafnat" 
+              href="https://www.facebook.com/groups/1533487767456303/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-sans font-medium transition-colors"
@@ -148,7 +148,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-serif-title text-4xl font-bold text-primary mb-4">
-              Nos Actions
+              Nos actions
             </h2>
             <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
           </div>
@@ -198,28 +198,141 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-serif-title text-4xl font-bold text-primary mb-4">
-              Nous Rejoindre
+              Nous rejoindre
             </h2>
             <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
           </div>
 
           <Card className="bg-gradient-to-r from-accent/5 to-artistic-yellow/5 border-accent/20">
-            <CardContent className="p-8 text-center">
-              <h3 className="font-serif-title text-2xl text-primary mb-4">
-                Adhésion SPAF 2025
-              </h3>
-              <p className="font-sans text-foreground mb-6 max-w-2xl mx-auto">
-                Rejoignez notre communauté d'artistes et participez à la vie culturelle française. 
-                L'adhésion vous donne accès à tous nos concours, événements et à notre revue mensuelle.
-              </p>
-              <div className="space-y-2 mb-6">
-                <p className="font-sans"><strong>Cotisation annuelle :</strong> 35€</p>
-                <p className="font-sans"><strong>Cotisation de soutien :</strong> 50€</p>
+            <CardContent className="p-8 md:p-10">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <h3 className="font-serif-title text-2xl md:text-3xl text-primary mb-3">
+                  Adhésion SPAF
+                </h3>
+                <p className="font-sans text-foreground/90 max-w-2xl mx-auto leading-relaxed">
+                  Rejoignez une communauté d’artistes en France et dans la francophonie.
+                  L’adhésion est requise pour participer aux concours. L’abonnement à la revue
+                  ouvre la possibilité de proposer une parution.
+                </p>
               </div>
-              <Button className="bg-accent hover:bg-accent/90">
-                <Download className="h-4 w-4 mr-2" />
-                Formulaire d'adhésion (PDF)
-              </Button>
+
+              {/* Main offer */}
+              <div className="rounded-2xl border border-accent/25 bg-gradient-to-br from-background to-accent/5 p-6 md:p-7 shadow-sm">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge className="bg-accent/15 text-accent hover:bg-accent/15">
+                        Recommandé
+                      </Badge>
+                      <span className="font-sans text-xs text-muted-foreground">
+                        Le plus choisi
+                      </span>
+                    </div>
+
+                    <h4 className="font-serif-title text-xl md:text-2xl text-primary">
+                      Adhésion + abonnement à la revue
+                    </h4>
+
+                    <p className="font-sans text-sm text-muted-foreground mt-2 leading-relaxed max-w-xl">
+                      Le meilleur équilibre pour participer aux concours et suivre la vie de l’association.
+                      <span className="text-foreground/90"> Bonus :</span> pour toute personne abonnée, parution offerte d’un poème ou d’une œuvre
+                      (si qualité suffisante).
+                    </p>
+
+                    <ul className="mt-4 space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                        <span className="font-sans text-sm text-foreground">
+                          Concours réservés aux adhérents
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                        <span className="font-sans text-sm text-foreground">
+                          Revue incluse (abonnement)
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                        <span className="font-sans text-sm text-foreground">
+                          Communauté d’artistes en France et dans la francophonie
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="shrink-0 md:text-right">
+                    <div className="font-serif-title text-4xl md:text-5xl font-bold text-primary leading-none">
+                      40€
+                    </div>
+                    <div className="font-sans text-xs text-muted-foreground mt-2">
+                      par an
+                    </div>
+
+                    <div className="mt-5 flex md:justify-end">
+                      <Button className="bg-accent hover:bg-accent/90" asChild>
+                        <a href="/formulaire-adhesion.pdf" download>
+                          <Download className="h-4 w-4 mr-2" />
+                          Télécharger le formulaire (PDF)
+                        </a>
+                      </Button>
+                    </div>
+
+                    <div className="mt-3">
+                      <Button variant="outline" asChild className="w-full md:w-auto">
+                        <a href="#contact">Une question ? Nous contacter</a>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="font-sans text-xs text-muted-foreground mt-5">
+                  Les événements peuvent être payants et font l’objet d’une organisation séparée.
+                </p>
+              </div>
+
+              {/* Secondary options */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="rounded-2xl border bg-background/60 p-5 hover:bg-background transition-colors">
+                  <p className="font-serif-title text-lg text-primary">Adhésion</p>
+                  <p className="font-sans text-sm text-muted-foreground mt-1">
+                    Pour devenir membre (concours).
+                  </p>
+                  <p className="font-serif-title text-3xl font-bold text-primary mt-4">24€</p>
+                  <p className="font-sans text-xs text-muted-foreground mt-1">par an</p>
+                </div>
+
+                <div className="rounded-2xl border bg-background/60 p-5 hover:bg-background transition-colors">
+                  <p className="font-serif-title text-lg text-primary">Revue (unité)</p>
+                  <p className="font-sans text-sm text-muted-foreground mt-1">
+                    Acheter un numéro.
+                  </p>
+                  <p className="font-serif-title text-3xl font-bold text-primary mt-4">12€</p>
+                </div>
+
+                <div className="rounded-2xl border bg-background/60 p-5 hover:bg-background transition-colors">
+                  <p className="font-serif-title text-lg text-primary">Revue (abonnement)</p>
+                  <p className="font-sans text-sm text-muted-foreground mt-1">
+                    Sans adhésion.
+                  </p>
+                  <p className="font-serif-title text-3xl font-bold text-primary mt-4">30€</p>
+                  <p className="font-sans text-xs text-muted-foreground mt-1">par an</p>
+                </div>
+              </div>
+
+              {/* Supporter */}
+              <div className="mt-6 rounded-2xl border bg-background/40 p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <p className="font-serif-title text-lg text-primary">Soutenir la SPAF</p>
+                    <p className="font-sans text-sm text-muted-foreground">
+                      Membre bienfaiteur (adhésion + abonnement + soutien).
+                    </p>
+                  </div>
+                  <div className="font-serif-title text-2xl font-bold text-primary">50€</div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -243,7 +356,7 @@ const Index = () => {
                   Nous écrire
                 </CardTitle>
                 <CardDescription className="font-sans">
-                  Une question ? Un projet ? N'hésitez pas à nous contacter.
+                  Une question ? Un projet ? N&apos;hésitez pas à nous contacter.
                 </CardDescription>
               </CardHeader>
               <CardContent>
