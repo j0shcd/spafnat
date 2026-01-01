@@ -15,7 +15,7 @@ const Footer = () => {
                 <MapPin className="h-5 w-5 mt-1 text-artistic-yellow" />
                 <div className="font-sans">
                   <p>Mairie de Chasseneuil du Poitou</p>
-                  <p>10bis Rue du 11 novembre</p>
+                  <p>10bis rue du 11 novembre</p>
                   <p>86360 Chasseneuil du Poitou</p>
                   <p>France</p>
                 </div>

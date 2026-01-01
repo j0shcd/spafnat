@@ -8,7 +8,8 @@
 
 @layer base {
   :root {
-    --background: 10 54% 89%; /* #F2E6D4 */
+    /* --background: 10 54% 89%; #F2E6D4 */
+    --background: 0 0% 98%; /* #FAF9F6 light cream */
     --foreground: 23 55% 13%; /* #422218 dark brown */
     
     --card: 0 0% 100%;
