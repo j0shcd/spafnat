@@ -31,7 +31,7 @@ const Index = () => {
       title: "Concours",
       description: "Concours poétiques et artistiques nationaux et régionaux",
       icon: Trophy,
-      action: "Télécharger le formulaire", // add variable number of links, for all regions
+      action: "Concours Bretagne 2026", // add variable number of links, for all regions
       color: "artistic-orange"
     },
     {
@@ -92,7 +92,7 @@ const Index = () => {
             <Button asChild variant="outline">
               <a href={adhesionPdf} download>
                 <Download className="h-4 w-4 mr-2" />
-                Télécharger le formulaire (PDF)
+                Télécharger le bulletin d&apos;adhésion
               </a>
             </Button>
           </div>
@@ -104,26 +104,26 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="font-serif-title text-3xl font-bold text-primary mb-6">
-              Notre communauté en chiffres
+              Notre communauté
             </h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <Card className="text-center">
               <CardContent className="p-6">
-                <div className="text-3xl font-serif-title font-bold text-accent mb-2">10</div>
+                <div className="text-3xl font-serif-title font-bold text-accent mb-2">11</div>
                 <p className="font-sans text-muted-foreground">Régions représentées</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <div className="text-3xl font-serif-title font-bold text-accent mb-2">300+</div>
+                <div className="text-3xl font-serif-title font-bold text-accent mb-2">700+</div>
                 <p className="font-sans text-muted-foreground">Membres</p>
               </CardContent>
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <div className="text-3xl font-serif-title font-bold text-accent mb-2">171,000</div>
+                <div className="text-3xl font-serif-title font-bold text-accent mb-2">179'175</div>
                 <p className="font-sans text-muted-foreground">Visiteurs</p>
               </CardContent>
             </Card>
@@ -230,7 +230,7 @@ const Index = () => {
                       rel="noopener noreferrer"
                       className="underline underline-offset-4 font-medium hover:opacity-80"
                     >
-                      Ouvrir le formulaire (PDF)
+                      Télécharger le bulletin d&apos;adhésion
                     </a>
                   </li>
                   <li className="font-sans text-sm">
@@ -299,7 +299,7 @@ const Index = () => {
                       <Button asChild variant="outline">
                         <a href={adhesionPdf} download>
                           <Download className="h-4 w-4 mr-2" />
-                          Télécharger le formulaire (PDF)
+                          Télécharger le bulletin d&apos;adhésion
                         </a>
                       </Button>
                     </div>
