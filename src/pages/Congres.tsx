@@ -111,7 +111,7 @@ const Congres = () => {
               Congrès National 2026
             </CardTitle>
             <CardDescription className="font-sans text-lg">
-              L'événement phare de l'année artistique française
+              L&apos;événement phare de l&apos;année artistique française
             </CardDescription>
           </CardHeader>
           <CardContent className="font-sans space-y-4">
@@ -124,8 +124,7 @@ const Congres = () => {
               <span>26 Septembre 2026</span>
             </div>
             <p className="text-muted-foreground">
-              Trois jours de rencontres, d'ateliers, de lectures publiques et de remises de prix. 
-              Plus d'informations seront communiquées prochainement aux membres.
+              Plus d&apos;information à venir dans les prochaines revues !
             </p>
           </CardContent>
         </Card>

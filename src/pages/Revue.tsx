@@ -5,19 +5,118 @@ import { Download, BookOpen, Users, Calendar } from "lucide-react";
 
 const Revue = () => {
   const contributors = [
-    "Alain Borer", "André Velter", "Anne Perrier", "Antoine Emaz", "Bernard Noël", 
-    "Brigitte Gyr", "Catherine Pozzi", "Charles Dobzynski", "Christian Bobin", "Claude Esteban",
-    "Daniel Boulanger", "Dominique Fourcade", "Edith Azam", "Emmanuel Hocquard", "Eva Rachele Antonelli",
-    "François Cheng", "Geneviève Huttin", "Georges Schehadé", "Gilles Ortlieb", "Guy Goffette",
-    "Hédi Kaddour", "Henri Deluy", "Hervé Micolet", "Hubert Haddad", "Jacques Réda",
-    "James Sacré", "Jean-Baptiste Para", "Jean-Claude Pinson", "Jean-Luc Sarré", "Jean-Marie Barnaud",
-    "Jean-Michel Maulpoix", "Jean-Pierre Lemaire", "Jean-Pierre Siméon", "Jude Stéfan", "Laurence Breysse-Chanet",
-    "Louis-René des Forêts", "Lorand Gaspar", "Ludovic Janvier", "Marc Alyn", "Marie-Claire Bancquart",
-    "Marie-Claire Blais", "Marie Étienne", "Mathieu Bénézet", "Michel Deguy", "Michel Host",
-    "Nathalie Quintane", "Olivier Barbarant", "Pascal Commère", "Patrick Beurard-Valdoye", "Paul de Roux",
-    "Philippe Beck", "Philippe Denis", "Philippe Jaccottet", "Pierre Chappuis", "Pierre Dhainaut",
-    "Raoul Hausmann", "René Char", "Rémy Ricordeau", "Robert Marteau", "Salah Stétié",
-    "Serge Pey", "Sylvain Trudel", "Tristan Cabral", "Valérie Rouzeau", "Véronique Pittolo"
+    "Fernand GREGH, de l’Académie Française",
+    "Pierre BZNOIT",
+    "Charles Le QUINTREC",
+    "Maurice FOMBEUR",
+    "Marcel BEALU",
+    "Pierre BEARN",
+    "André SALMON",
+    "Sylvain France",
+    "Hervé",
+    "Pierre SEGHERS",
+    "Paul FORT",
+    "BAZIN de l’Académie française",
+    "Jean ROUSSELOT",
+    "Paul GILSON",
+    "Patrice DE LA TOUR DU PIN",
+    "Luc BERIMON",
+    "François DIDELOT",
+    "Michel BUTOR",
+    "Philéas LEBESQUE",
+    "Philippe CHABANEX",
+    "Yves TARLET",
+    "Yanette DELETANG-TARDIF",
+    "Armand LANOUX",
+    "André ASSELIN",
+    "Wilfrid LUCAS",
+    "Jean BRETON",
+    "R. de OBALDIA",
+    "Pierre GROSCLAUDE",
+    "Mireio DORYAN",
+    "Hélène VESTIER",
+    "Gaston BOURGEOIS",
+    "Daniel ROPS de l’Académie Française",
+    "M-Th POILLERA",
+    "Georges DELAMARE",
+    "Marc CHESNEAU",
+    "Andrée BOURCOIS-MACE",
+    "Pierre DEBOISDEFFRE",
+    "René DORIN",
+    "Pierre AUTIZE",
+    "GUILLOT DEN SAI",
+    "André BERRY",
+    "Françoise DORIN",
+    "Andrée RODENBACH",
+    "Armand GOT",
+    "Katia GRANOFF",
+    "André MAUROIS de l’Académie Française",
+    "Jules ROMAIN de l’Académie Française",
+    "Daniel GELIN",
+    "Paul GERALDY",
+    "Paul GUTH",
+    "J-P ROSNAY",
+    "Renée DAUMIERE",
+    "André BLANCHARD",
+    "Michel de SAINT-PIERRE",
+    "Marc ALYN",
+    "Henri de LESCOET",
+    "Léopold S. SENGHOR",
+    "Roger DENUX",
+    "Marcel FARGES",
+    "Lamine DIAKATE",
+    "Roland LECORDIER",
+    "Pierre Marc ORLAN de l’Académie Goncourt",
+    "Maurice TOESCA",
+    "Bernard ANDRE",
+    "Maurice d’HARTOIS",
+    "Bogomir DALMA",
+    "Jean DAWEL",
+    "Jean GIONO",
+    "Louis A1MADE",
+    "Georges RIGUET",
+    "René VIOLAINES",
+    "Pierre LYAUTE",
+    "J-L BECHU",
+    "Maurice GAUCHEZ",
+    "Tistan MAYA",
+    "Noël H. VILLARD",
+    "Georges GUERIN",
+    "MARJAN",
+    "André HENRY",
+    "Maurice CARËME",
+    "Roger FERDINAN",
+    "Alain DEBROISE",
+    "Géo LIBRECHT",
+    "Jean CASSOU",
+    "Claude VAILLANT",
+    "Odette CASADESUS",
+    "Roger BERNIER",
+    "Maurice COURANT",
+    "Jacques LAPAGE",
+    "Marcel PAGNOL de l’Académie française",
+    "Ch. BORY",
+    "René HERVAL",
+    "Louis-Thomas JURDAN",
+    "Anthony LHERITIER",
+    "Maurice GENEVOIX, Secrétaire perpétuel de l’Académie Française",
+    "René FAUCHOIS",
+    "Jacqueline DELPY",
+    "Jean L’Anselme",
+    "Louis ARAGON",
+    "Henry MEILLANT",
+    "Jean-Michel RENAITOUR",
+    "Marie NOEL",
+    "Laure Maupas",
+    "Jean SALVAYRE",
+    "M-A ASTURIAS",
+    "Claude LUEZIOR",
+    "Henry BORDEAUX de l’Académie Française",
+    "Jean ROSTAND de l’Académie Française",
+    "Jean-Claude GEORGE",
+    "Tristan KLINGSOR",
+    "Jean GUIREC",
+    "Patrick POIVRE D’ARVOR"
   ].sort();
 
   return (
@@ -63,35 +162,17 @@ const Revue = () => {
                   <Badge variant="secondary">Numéro actuel</Badge>
                 </div>
                 <CardTitle className="font-serif-title text-2xl text-primary">
-                  Revue SPAF - Décembre 2024
+                  Revue n°264 - Janvier 2025
                 </CardTitle>
                 <CardDescription className="font-sans">
-                  Thème : "Poésie d'Hiver - Quand les mots réchauffent l'âme"
+                  Revue internationale de culture française
                 </CardDescription>
               </CardHeader>
               <CardContent className="font-sans space-y-4">
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>Décembre 2024</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <BookOpen className="h-4 w-4" />
-                    <span>48 pages</span>
-                  </div>
-                </div>
-                <p className="text-foreground">
-                  Cette édition explore les multiples facettes de la poésie hivernale, 
-                  des paysages enneigés aux méditations intérieures, en passant par 
-                  les traditions littéraires de fin d'année.
-                </p>
                 <div className="flex space-x-3">
                   <Button variant="default" className="flex items-center space-x-2">
                     <Download className="h-4 w-4" />
                     <span>Télécharger l'extrait</span>
-                  </Button>
-                  <Button variant="outline">
-                    Voir le sommaire
                   </Button>
                 </div>
               </CardContent>
@@ -106,19 +187,19 @@ const Revue = () => {
               </CardHeader>
               <CardContent className="font-sans space-y-3">
                 <p className="text-foreground">
-                  Recevez chaque mois notre revue directement chez vous.
+                  Recevez trois fois par an votre revue directement chez vous.
                 </p>
                 <div className="space-y-2">
                   <p className="text-sm">
-                    <strong>Abonnement annuel :</strong> 45€ (12 numéros)
+                    <strong>Abonnement annuel :</strong> 33€ (3 revues)
                   </p>
                   <p className="text-sm">
-                    <strong>Abonnement de soutien :</strong> 60€ (12 numéros + avantages)
+                    <strong>Abonnement et adhésion :</strong> 40€ (3 revues)
+                  </p>
+                  <p className="text-sm">
+                    <strong> Le numéro <span className="text-muted-foreground">( + 5€ frais d’envoi )</span> :</strong> 12
                   </p>
                 </div>
-                <Button variant="secondary" className="w-full">
-                  Bulletin d'abonnement (PDF)
-                </Button>
               </CardContent>
             </Card>
           </div>
