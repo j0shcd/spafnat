@@ -5,94 +5,76 @@ import { MapPin, Mail, Phone, Users } from "lucide-react";
 const Delegations = () => {
 const delegations = [
     {
-      region: "Île-de-France",
-      delegate: "Marie Dubois",
-      city: "Paris",
-      email: "idf@spafnat.com",
-      address: "15 rue de Rivoli, 75001 Paris",
-      members: 156,
-      description: "Siège historique de l'association, organise des lectures mensuelles à la Sorbonne."
-    },
-    {
       region: "Auvergne-Rhône-Alpes",
-      delegate: "Jean Moreau",
-      city: "Lyon",
+      delegate: "Gael Schmidt",
       email: "aura@spafnat.com",
-      address: "45 place Bellecour, 69002 Lyon",
-      members: 89,
-      description: "Active dans l'organisation d'ateliers d'écriture et de concours régionaux."
+      address: "64 route de la vieille églises, 74410 Saint-Jorioz",
     },
     {
-      region: "Nouvelle-Aquitaine",
-      delegate: "Sophie Martin",
-      city: "Bordeaux",
+      region: "Bourgogne-Franche-Comté",
+      delegate: "Michel Potier",
+      email: "idf@spafnat.com",
+      address: "33 rue de Compostelle, Villiers-le-Sec, 58210 Varzy",
+    },
+    {
+      region: "Bretagne",
+      delegate: "Loriane Dréan ",
       email: "na@spafnat.com",
-      address: "28 cours de l'Intendance, 33000 Bordeaux",
-      members: 67,
-      description: "Spécialisée dans la poésie occitane et les traditions littéraires régionales."
+      address: "31 Hent Toull Moger, 29000 Quimper",
     },
     {
       region: "Occitanie",
       delegate: "Pierre Rousseau",
-      city: "Toulouse",
       email: "occitanie@spafnat.com",
       address: "12 place du Capitole, 31000 Toulouse",
-      members: 72,
-      description: "Forte tradition de troubadours, organise le Festival de Poésie de Printemps."
-    },
-    {
-      region: "Provence-Alpes-Côte d'Azur",
-      delegate: "Isabelle Lefort",
-      city: "Marseille",
-      email: "paca@spafnat.com",
-      address: "8 boulevard Longchamp, 13001 Marseille",
-      members: 85,
-      description: "Collabore étroitement avec les festivals de Cannes et d'Avignon."
     },
     {
       region: "Grand Est",
-      delegate: "Michel Girard",
-      city: "Strasbourg",
-      email: "grandest@spafnat.com",
-      address: "22 place Kléber, 67000 Strasbourg",
-      members: 54,
-      description: "Promotion de la poésie bilingue français-allemand et des échanges européens."
+      delegate: "Christine Golleau-Braibant",
+      email: "paca@spafnat.com",
+      address: "8 rue du Maréchal Foch, 57220 Boulay",
     },
     {
-      region: "Hauts-de-France",
-      delegate: "Catherine Blanc",
-      city: "Lille",
+      region: "Île-de-France ",
+      delegate: "Magali Breton",
+      email: "grandest@spafnat.com",
+      address: "12 Chemin des Boissettes, 77350 Boissise la Bertrand",
+    },
+    {
+      region: "Martinique - Guadeloupe ",
+      delegate: "Arlette Millon",
       email: "hdf@spafnat.com",
-      address: "35 Grand'Place, 59000 Lille",
-      members: 43,
-      description: "Organise des rencontres avec les poètes belges et néerlandais."
+      address: "Quartier Lamberton, 97215 Rivière Salée",
+    },
+    {
+      region: "Mascareignes",
+      delegate: "Thierry Bertil",
+      email: "normandie@spafnat.com",
+      address: "312 rue Raphaël Douyere Bois-court, 97418 Plaine des Cafres",
     },
     {
       region: "Normandie",
-      delegate: "François Petit",
-      city: "Rouen",
-      email: "normandie@spafnat.com",
-      address: "18 place du Vieux-Marché, 76000 Rouen",
-      members: 38,
-      description: "Préservation du patrimoine littéraire normand, terre de Corneille et Flaubert."
-    },
-    {
-      region: "Pays de la Loire",
-      delegate: "Anne Durand",
-      city: "Nantes",
+      delegate: "Philippe Pauthonier",
       email: "pdl@spafnat.com",
-      address: "7 place Royale, 44000 Nantes",
-      members: 45,
-      description: "Organisation de résidences d'artistes et de masterclasses d'écriture."
+      address: "13 rue de la Mailleray, Rés. de France Imm. Roussillon, 76600 Le Havre"
     },
     {
-      region: "Bretagne",
-      delegate: "Yann Le Gall",
-      city: "Rennes",
+      region: "Nouvelle Aquitaine",
+      delegate: "Christian Littée",
       email: "bretagne@spafnat.com",
-      address: "11 place des Lices, 35000 Rennes",
-      members: 52,
-      description: "Valorisation de la tradition bardique bretonne et de la poésie contemporaine."
+      address: "13 rue des Carmes appt. 14 allée du bon pasteur, 86000 Poitiers",
+    },
+    {
+      region: "Occitane",
+      delegate: "Richard Maggiore",
+      email: "bretagne@spafnat.com",
+      address: "9 rue Desmazels Appt 7, 82200 Moissac",
+    },
+    {
+      region: "Provence-Alpes-Côte d'Azur",
+      delegate: "Natalie Lauro",
+      email: "bretagne@spafnat.com",
+      address: "64 Avenue du 3 septembre, La Lézardière Bat G, 06320 Cap d’ail",
     }
   ];
 
@@ -136,28 +118,14 @@ const delegations = [
                   <CardTitle className="font-serif-title text-2xl text-primary">
                     {delegation.region}
                   </CardTitle>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-sans text-sm text-muted-foreground">
-                      {delegation.members} membres
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <MapPin className="h-4 w-4 text-accent" />
-                  <span className="font-sans text-lg text-muted-foreground">{delegation.city}</span>
                 </div>
                 <CardDescription className="font-sans text-foreground">
                   Délégué·e : <strong>{delegation.delegate}</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="font-sans text-sm text-muted-foreground leading-relaxed">
-                  {delegation.description}
-                </p>
-                
                 <div className="border-t pt-4 space-y-2">
-                  <div className="flex items-center space-x-2 text-sm">
+                  {/* <div className="flex items-center space-x-2 text-sm">
                     <Mail className="h-4 w-4 text-accent" />
                     <a 
                       href={`mailto:${delegation.email}`}
@@ -165,7 +133,7 @@ const delegations = [
                     >
                       {delegation.email}
                     </a>
-                  </div>
+                  </div> */}
                   <div className="flex items-center space-x-2 text-sm">
                     <MapPin className="h-4 w-4 text-accent" />
                     <span className="font-sans text-foreground">
@@ -191,7 +159,7 @@ const delegations = [
             </p>
             <div className="space-x-4">
               <a 
-                href="mailto:delegations@spafnat.com"
+                href="mailto:plecordier@free.fr"
                 className="inline-block bg-artistic-yellow text-primary px-6 py-3 rounded-lg font-sans font-medium hover:bg-artistic-yellow/90 transition-colors"
               >
                 Devenir délégué·e

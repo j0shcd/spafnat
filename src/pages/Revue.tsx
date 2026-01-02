@@ -128,9 +128,6 @@ const Revue = () => {
             Notre Revue
           </h1>
           <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
-          <p className="font-sans text-lg text-muted-foreground max-w-3xl mx-auto">
-            Publication mensuelle de référence pour la poésie et les arts en France
-          </p>
         </header>
 
         {/* Current Issue */}
