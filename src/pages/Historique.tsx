@@ -2,13 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 const Historique = () => {
   const pastPresidents = [
-    { name: "Jean Dubois", period: "1958-1965", description: "Fondateur de l'association" },
-    { name: "Marie Delacroix", period: "1965-1972", description: "Développement des délégations régionales" },
-    { name: "Pierre Moreau", period: "1972-1985", description: "Création de la revue mensuelle" },
-    { name: "Catherine Rousseau", period: "1985-1998", description: "Expansion internationale" },
-    { name: "Michel Lefort", period: "1998-2010", description: "Modernisation et numérique" },
-    { name: "Isabelle Martin", period: "2010-2020", description: "Rayonnement culturel national" },
-    { name: "François Girard", period: "2020-présent", description: "Président actuel" },
+    { name: "Monsieur Henri MEILLANT", period: "1958-1993"},
+    { name: "Monsieur Jean-Claude GEORGE", period: "1993-2008"},
+    { name: "Monsieur Abraham Vincent VIGILANT", period: "2008-2014"},
+    { name: "Monsieur Jean-Jacques CHIRON", period: "2014-2024" },
+    { name: "Monsieur Pascal LECORDIER", period: "Depuis 2024" }
   ];
 
   return (
