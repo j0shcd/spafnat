@@ -108,7 +108,7 @@ const Congres = () => {
               </Badge>
             </div>
             <CardTitle className="font-serif-title text-2xl text-primary">
-              Congrès National 2025
+              Congrès National 2026
             </CardTitle>
             <CardDescription className="font-sans text-lg">
               L'événement phare de l'année artistique française
@@ -117,11 +117,11 @@ const Congres = () => {
           <CardContent className="font-sans space-y-4">
             <div className="flex items-center space-x-2 text-foreground">
               <MapPin className="h-4 w-4 text-accent" />
-              <span>Lyon - Palais des Congrès</span>
+              <span>Villers-sur-Mer</span>
             </div>
             <div className="flex items-center space-x-2 text-foreground">
               <Calendar className="h-4 w-4 text-accent" />
-              <span>15-17 Mai 2025</span>
+              <span>26 Septembre 2026</span>
             </div>
             <p className="text-muted-foreground">
               Trois jours de rencontres, d'ateliers, de lectures publiques et de remises de prix. 
