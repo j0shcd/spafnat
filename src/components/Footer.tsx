@@ -1,4 +1,5 @@
-import { MapPin, Mail, Phone } from "lucide-react";
+import { MapPin, Mail, Download } from "lucide-react";
+import { DOCUMENTS } from "@/config/documents";
 
 const Footer = () => {
   return (
@@ -22,9 +23,12 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-artistic-yellow" />
-                <span className="font-sans">plecordier@free.fr</span>
+                <span className="font-sans">jcohendumani7@gmail.com</span>
               </div>
             </div>
+            <p className="font-sans text-xs opacity-75 mt-4 italic">
+              Pour tout courrier destiné au siège social, l'envoyer au Président Lecordier Pascal, 11 rue Juliette Récamier, 69130 Écully. Il n'y a pas de permanence à Chasseneuil du Poitou au moulin.
+            </p>
           </div>
 
           {/* About */}
@@ -32,11 +36,27 @@ const Footer = () => {
             <h3 className="font-serif-title text-xl font-semibold mb-4">
               À propos
             </h3>
-            <p className="font-sans text-sm leading-relaxed opacity-90">
-              La Société des Poètes et Artistes de France fédère depuis 1958 
-              poètes, écrivains, artistes, peintres, photographes et musiciens 
+            <p className="font-sans text-sm leading-relaxed opacity-90 mb-4">
+              La Société des Poètes et Artistes de France fédère depuis 1958
+              poètes, écrivains, artistes, peintres, photographes et musiciens
               autour d'une passion commune : l'expression artistique.
             </p>
+            <div className="flex items-center space-x-2">
+              <Download className="h-4 w-4 text-artistic-yellow" />
+              <button
+                onClick={(e) => {
+                  if (!DOCUMENTS.formulaireConfidentialite.available) {
+                    e.preventDefault();
+                  } else {
+                    window.open(DOCUMENTS.formulaireConfidentialite.path, '_blank');
+                  }
+                }}
+                disabled={!DOCUMENTS.formulaireConfidentialite.available}
+                className="font-sans text-sm opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Formulaire de confidentialité
+              </button>
+            </div>
           </div>
         </div>
 
