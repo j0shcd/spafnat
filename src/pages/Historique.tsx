@@ -66,9 +66,6 @@ const Historique = () => {
               les poètes et les artistes, si nécessaires à l&apos;humanité.
             </p>
             <p>
-              En 2014, Monsieur Jean-Jacques CHIRON prend la présidence de la Société des Poètes et Artistes de France.
-            </p>
-            <p>
               En 2014, Monsieur Jean-Jacques CHIRON prend la présidence de la Société des Poètes et Artistes de France 
               qu&apos;il conduira avec son épouse Christine jusqu&apos;en 2024 alors que la maladie l&apos;emporte. Suite à son décès, 
               Pascal Lecordier est élu à la présidence de la Société pour 6 ans conformément aux statuts.

@@ -1,12 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, BookOpen, Users, Calendar } from "lucide-react";
+import { Download, BookOpen, Users } from "lucide-react";
+import { DOCUMENTS } from "@/config/documents";
 
 const Revue = () => {
   const contributors = [
-    "Fernand GREGH, de l’Académie Française",
-    "Pierre BZNOIT",
+    "Fernand GREGH, de l'Académie Française",
+    "Pierre BENOIT",
     "Charles Le QUINTREC",
     "Maurice FOMBEUR",
     "Marcel BEALU",
@@ -73,19 +74,19 @@ const Revue = () => {
     "Bogomir DALMA",
     "Jean DAWEL",
     "Jean GIONO",
-    "Louis A1MADE",
+    "Louis AMADE",
     "Georges RIGUET",
     "René VIOLAINES",
     "Pierre LYAUTE",
     "J-L BECHU",
     "Maurice GAUCHEZ",
-    "Tistan MAYA",
+    "Tristan MAYA",
     "Noël H. VILLARD",
     "Georges GUERIN",
     "MARJAN",
     "André HENRY",
     "Maurice CARËME",
-    "Roger FERDINAN",
+    "Roger FERDINAND",
     "Alain DEBROISE",
     "Géo LIBRECHT",
     "Jean CASSOU",
@@ -140,7 +141,7 @@ const Revue = () => {
                   <h3 className="font-serif-title text-3xl font-bold mb-4">
                     SPAF REVUE
                   </h3>
-                  <p className="font-sans text-lg mb-2">N° 785 - Décembre 2024</p>
+                  <p className="font-sans text-lg mb-2">N° 264 - Janvier 2025</p>
                   <div className="w-16 h-0.5 bg-artistic-yellow mx-auto mb-4"></div>
                   <p className="font-serif-title text-xl italic">
                     "Poésie d'Hiver"
@@ -167,9 +168,22 @@ const Revue = () => {
               </CardHeader>
               <CardContent className="font-sans space-y-4">
                 <div className="flex space-x-3">
-                  <Button variant="default" className="flex items-center space-x-2">
+                  <Button
+                    variant="default"
+                    className="flex items-center space-x-2"
+                    disabled={!DOCUMENTS.extraitRevue.available}
+                    onClick={() => {
+                      if (DOCUMENTS.extraitRevue.available) {
+                        window.open(DOCUMENTS.extraitRevue.path, '_blank');
+                      }
+                    }}
+                  >
                     <Download className="h-4 w-4" />
-                    <span>Télécharger l'extrait</span>
+                    <span>
+                      {DOCUMENTS.extraitRevue.available
+                        ? "Télécharger l'extrait"
+                        : "Bientôt disponible"}
+                    </span>
                   </Button>
                 </div>
               </CardContent>
@@ -194,7 +208,7 @@ const Revue = () => {
                     <strong>Abonnement et adhésion :</strong> 40€ (3 revues)
                   </p>
                   <p className="text-sm">
-                    <strong> Le numéro <span className="text-muted-foreground">( + 5€ frais d’envoi )</span> :</strong> 12
+                    <strong> Le numéro <span className="text-muted-foreground">( + 5€ frais d'envoi )</span> :</strong> 12€
                   </p>
                 </div>
               </CardContent>

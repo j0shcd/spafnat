@@ -1,80 +1,62 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Mail, Phone, Users } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 const Delegations = () => {
 const delegations = [
     {
       region: "Auvergne-Rhône-Alpes",
       delegate: "Gael Schmidt",
-      email: "aura@spafnat.com",
       address: "64 route de la vieille églises, 74410 Saint-Jorioz",
     },
     {
       region: "Bourgogne-Franche-Comté",
       delegate: "Michel Potier",
-      email: "idf@spafnat.com",
       address: "33 rue de Compostelle, Villiers-le-Sec, 58210 Varzy",
     },
     {
       region: "Bretagne",
-      delegate: "Loriane Dréan ",
-      email: "na@spafnat.com",
+      delegate: "Loriane Dréan",
       address: "31 Hent Toull Moger, 29000 Quimper",
-    },
-    {
-      region: "Occitanie",
-      delegate: "Pierre Rousseau",
-      email: "occitanie@spafnat.com",
-      address: "12 place du Capitole, 31000 Toulouse",
     },
     {
       region: "Grand Est",
       delegate: "Christine Golleau-Braibant",
-      email: "paca@spafnat.com",
       address: "8 rue du Maréchal Foch, 57220 Boulay",
     },
     {
-      region: "Île-de-France ",
+      region: "Île-de-France",
       delegate: "Magali Breton",
-      email: "grandest@spafnat.com",
       address: "12 Chemin des Boissettes, 77350 Boissise la Bertrand",
     },
     {
-      region: "Martinique - Guadeloupe ",
+      region: "Martinique - Guadeloupe",
       delegate: "Arlette Millon",
-      email: "hdf@spafnat.com",
       address: "Quartier Lamberton, 97215 Rivière Salée",
     },
     {
       region: "Mascareignes",
       delegate: "Thierry Bertil",
-      email: "normandie@spafnat.com",
       address: "312 rue Raphaël Douyere Bois-court, 97418 Plaine des Cafres",
     },
     {
       region: "Normandie",
       delegate: "Philippe Pauthonier",
-      email: "pdl@spafnat.com",
       address: "13 rue de la Mailleray, Rés. de France Imm. Roussillon, 76600 Le Havre"
     },
     {
       region: "Nouvelle Aquitaine",
       delegate: "Christian Littée",
-      email: "bretagne@spafnat.com",
       address: "13 rue des Carmes appt. 14 allée du bon pasteur, 86000 Poitiers",
     },
     {
-      region: "Occitane",
+      region: "Occitanie",
       delegate: "Richard Maggiore",
-      email: "bretagne@spafnat.com",
       address: "9 rue Desmazels Appt 7, 82200 Moissac",
     },
     {
       region: "Provence-Alpes-Côte d'Azur",
       delegate: "Natalie Lauro",
-      email: "bretagne@spafnat.com",
-      address: "64 Avenue du 3 septembre, La Lézardière Bat G, 06320 Cap d’ail",
+      address: "64 Avenue du 3 septembre, La Lézardière Bat G, 06320 Cap d'ail",
     }
   ];
 
@@ -125,15 +107,6 @@ const delegations = [
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-t pt-4 space-y-2">
-                  {/* <div className="flex items-center space-x-2 text-sm">
-                    <Mail className="h-4 w-4 text-accent" />
-                    <a 
-                      href={`mailto:${delegation.email}`}
-                      className="font-sans text-foreground hover:text-accent transition-colors"
-                    >
-                      {delegation.email}
-                    </a>
-                  </div> */}
                   <div className="flex items-center space-x-2 text-sm">
                     <MapPin className="h-4 w-4 text-accent" />
                     <span className="font-sans text-foreground">
@@ -159,7 +132,7 @@ const delegations = [
             </p>
             <div className="space-x-4">
               <a 
-                href="mailto:plecordier@free.fr"
+                href="mailto:jcohendumani7@gmail.com"
                 className="inline-block bg-artistic-yellow text-primary px-6 py-3 rounded-lg font-sans font-medium hover:bg-artistic-yellow/90 transition-colors"
               >
                 Devenir délégué·e
