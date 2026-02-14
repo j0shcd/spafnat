@@ -1,21 +1,34 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Calendar, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Download, Calendar, MapPin, ChevronLeft, ChevronRight, X, Image as ImageIcon } from "lucide-react";
+import { DOCUMENTS } from "@/config/documents";
 
 const Congres = () => {
-  const palmaresPoeticque = [
-    { category: "Grand Prix National de Poésie", winner: "Marie Durand", work: "Éclats de lumière", year: "2024" },
-    { category: "Prix Jeune Talent", winner: "Antoine Moreau", work: "Murmures urbains", year: "2024" },
-    { category: "Prix de la Forme Libre", winner: "Sophie Legrand", work: "Fragments d'âme", year: "2024" },
-    { category: "Prix du Sonnet", winner: "Jean-Paul Martin", work: "Saisons perdues", year: "2024" },
-  ];
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
-  const palmaresArtistique = [
-    { category: "Grand Prix Arts Plastiques", winner: "Claude Rousseau", work: "Série Métamorphoses", year: "2024" },
-    { category: "Prix Photographie", winner: "Élise Bonnet", work: "Regards croisés", year: "2024" },
-    { category: "Prix Nouvelles Technologies", winner: "David Chen", work: "Poésie Interactive", year: "2024" },
-    { category: "Prix Illustration", winner: "Anna Kowalski", work: "Carnets de voyage", year: "2024" },
-  ];
+  // Generate years from 2010 to 2026
+  const years = Array.from({ length: 17 }, (_, i) => 2026 - i);
+
+  // Placeholder photos for each year (empty for now)
+  const photosByYear: Record<number, string[]> = {};
+
+  const currentYearPhotos = photosByYear[selectedYear] || [];
+
+  const handlePrevPhoto = () => {
+    if (selectedPhoto !== null && selectedPhoto > 0) {
+      setSelectedPhoto(selectedPhoto - 1);
+    }
+  };
+
+  const handleNextPhoto = () => {
+    if (selectedPhoto !== null && selectedPhoto < currentYearPhotos.length - 1) {
+      setSelectedPhoto(selectedPhoto + 1);
+    }
+  };
 
   return (
     <div className="min-h-screen py-12 px-4">
@@ -27,79 +40,12 @@ const Congres = () => {
           </h1>
           <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
           <p className="font-sans text-lg text-muted-foreground max-w-3xl mx-auto">
-            Découvrez nos événements nationaux et les lauréats de nos prestigieux concours
+            L'événement annuel qui rassemble les poètes et artistes de France
           </p>
         </header>
 
-        {/* Awards Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Palmarès Poétique */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2 mb-2">
-                <Trophy className="h-5 w-5 text-artistic-yellow" />
-                <Badge variant="outline" className="border-artistic-yellow text-artistic-yellow">
-                  Poésie
-                </Badge>
-              </div>
-              <CardTitle className="font-serif-title text-2xl text-primary">
-                Palmarès Poétique 2024
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {palmaresPoeticque.map((award, index) => (
-                  <div key={index} className="border-l-4 border-artistic-yellow pl-4">
-                    <h4 className="font-sans font-semibold text-foreground">
-                      {award.category}
-                    </h4>
-                    <p className="font-sans text-primary font-medium">
-                      {award.winner}
-                    </p>
-                    <p className="font-sans text-sm text-muted-foreground italic">
-                      "{award.work}"
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Palmarès Artistique */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2 mb-2">
-                <Trophy className="h-5 w-5 text-artistic-orange" />
-                <Badge variant="outline" className="border-artistic-orange text-artistic-orange">
-                  Arts Plastiques
-                </Badge>
-              </div>
-              <CardTitle className="font-serif-title text-2xl text-primary">
-                Palmarès Artistique 2024
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {palmaresArtistique.map((award, index) => (
-                  <div key={index} className="border-l-4 border-artistic-orange pl-4">
-                    <h4 className="font-sans font-semibold text-foreground">
-                      {award.category}
-                    </h4>
-                    <p className="font-sans text-primary font-medium">
-                      {award.winner}
-                    </p>
-                    <p className="font-sans text-sm text-muted-foreground italic">
-                      "{award.work}"
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Next Congress Info */}
-        <Card className="mb-12 bg-gradient-to-r from-accent/5 to-artistic-yellow/5 border-accent/20">
+        {/* Next Congress Event Card - MOVED TO TOP */}
+        <Card className="mb-12 bg-gradient-to-r from-accent/10 to-artistic-yellow/10 border-accent/30">
           <CardHeader>
             <div className="flex items-center space-x-2 mb-2">
               <Calendar className="h-5 w-5 text-accent" />
@@ -107,7 +53,7 @@ const Congres = () => {
                 Prochain événement
               </Badge>
             </div>
-            <CardTitle className="font-serif-title text-2xl text-primary">
+            <CardTitle className="font-serif-title text-3xl text-primary">
               Congrès National 2026
             </CardTitle>
             <CardDescription className="font-sans text-lg">
@@ -117,42 +63,168 @@ const Congres = () => {
           <CardContent className="font-sans space-y-4">
             <div className="flex items-center space-x-2 text-foreground">
               <MapPin className="h-4 w-4 text-accent" />
-              <span>Villers-sur-Mer</span>
+              <span className="font-medium">Villers-sur-Mer</span>
             </div>
             <div className="flex items-center space-x-2 text-foreground">
               <Calendar className="h-4 w-4 text-accent" />
-              <span>26 Septembre 2026</span>
+              <span className="font-medium">26 Septembre 2026</span>
             </div>
             <p className="text-muted-foreground">
               Plus d&apos;information à venir dans les prochaines revues !
             </p>
+
+            {/* Registration Download Button */}
+            <Button
+              variant="default"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground flex items-center space-x-2"
+              disabled={!DOCUMENTS.inscriptionCongres.available}
+              onClick={() => {
+                if (DOCUMENTS.inscriptionCongres.available) {
+                  window.open(DOCUMENTS.inscriptionCongres.path, '_blank');
+                }
+              }}
+            >
+              <Download className="h-4 w-4" />
+              <span>
+                {DOCUMENTS.inscriptionCongres.available
+                  ? DOCUMENTS.inscriptionCongres.label
+                  : "Inscription - Bientôt disponible"}
+              </span>
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Photo Gallery Placeholder */}
+        {/* Photo Gallery Section */}
         <Card>
           <CardHeader>
-            <CardTitle className="font-serif-title text-2xl text-primary">
-              Galerie des Congrès Précédents
+            <CardTitle className="font-serif-title text-3xl text-primary">
+              Galerie des Congrès
             </CardTitle>
             <CardDescription className="font-sans">
-              Revivez les moments forts de nos événements nationaux
+              Revivez les moments forts de nos événements nationaux de 2010 à 2026
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[2023, 2022, 2021].map((year) => (
-                <div key={year} className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="font-serif-title text-xl text-muted-foreground">
-                      Congrès {year}
-                    </p>
-                    <p className="font-sans text-sm text-muted-foreground">
-                      Galerie photo à venir
-                    </p>
-                  </div>
+            {/* Year Selector */}
+            <div className="mb-6">
+              <h3 className="font-sans font-semibold text-foreground mb-3">Sélectionner une année</h3>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2">
+                {years.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className={`
+                      px-4 py-2 rounded-lg font-sans font-medium transition-all
+                      ${selectedYear === year
+                        ? 'bg-accent text-accent-foreground shadow-md scale-105'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }
+                    `}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Photo Grid */}
+            <div className="mt-6">
+              {currentYearPhotos.length === 0 ? (
+                // Placeholder state
+                <div className="py-16 text-center bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                  <ImageIcon className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4" />
+                  <h4 className="font-serif-title text-xl text-muted-foreground mb-2">
+                    Photos à venir
+                  </h4>
+                  <p className="font-sans text-sm text-muted-foreground">
+                    Les photos du Congrès {selectedYear} seront bientôt disponibles
+                  </p>
                 </div>
-              ))}
+              ) : (
+                // Photo grid (when photos are available)
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {currentYearPhotos.map((photo, index) => (
+                    <Dialog key={index}>
+                      <DialogTrigger asChild>
+                        <button
+                          onClick={() => setSelectedPhoto(index)}
+                          className="relative group aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer"
+                        >
+                          <img
+                            src={photo}
+                            alt={`Congrès ${selectedYear} - Photo ${index + 1}`}
+                            className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                          />
+                          {/* Download icon overlay */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <Download className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl">
+                        <div className="relative">
+                          {/* Close button */}
+                          <button
+                            onClick={() => setSelectedPhoto(null)}
+                            className="absolute top-2 right-2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+
+                          {/* Main image */}
+                          <img
+                            src={currentYearPhotos[selectedPhoto || 0]}
+                            alt={`Congrès ${selectedYear} - Photo ${(selectedPhoto || 0) + 1}`}
+                            className="w-full h-auto rounded-lg"
+                          />
+
+                          {/* Navigation and download controls */}
+                          <div className="flex items-center justify-between mt-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handlePrevPhoto}
+                              disabled={selectedPhoto === 0}
+                            >
+                              <ChevronLeft className="h-4 w-4 mr-1" />
+                              Précédent
+                            </Button>
+
+                            <span className="font-sans text-sm text-muted-foreground">
+                              {(selectedPhoto || 0) + 1} / {currentYearPhotos.length}
+                            </span>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={handleNextPhoto}
+                              disabled={selectedPhoto === currentYearPhotos.length - 1}
+                            >
+                              Suivant
+                              <ChevronRight className="h-4 w-4 ml-1" />
+                            </Button>
+                          </div>
+
+                          {/* Download button */}
+                          <Button
+                            variant="default"
+                            className="w-full mt-2"
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = currentYearPhotos[selectedPhoto || 0];
+                              link.download = `congres_${selectedYear}_${(selectedPhoto || 0) + 1}.jpg`;
+                              link.click();
+                            }}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Télécharger la photo
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
