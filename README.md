@@ -19,20 +19,19 @@ All content is in French because, well, it's a French poetry society.
 
 **Requirements:**
 - Node.js 22.x LTS (matches Cloudflare Pages default)
-- Bun 1.3+ (package manager - install via `brew install oven-sh/bun/bun`)
 - Use `nvm use` to automatically switch to the correct Node version
 
 ```bash
-bun install        # install dependencies
-bun run dev        # dev server (port 8080)
-bun run build      # production build
-bun run lint       # ESLint
-bun run test:run   # run tests
+npm install        # install dependencies
+npm run dev        # dev server (port 8080)
+npm run build      # production build
+npm run lint       # ESLint
+npm run test:run   # run tests
 ```
 
 **Validation before commits:**
 ```bash
-bun run typecheck && bun run lint && bun run test:run && bun run build
+npm run typecheck && npm run lint && npm run test:run && npm run build
 ```
 
 ## Architecture Highlights
