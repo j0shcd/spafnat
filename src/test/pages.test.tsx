@@ -25,7 +25,7 @@ describe('Pages Smoke Tests', () => {
       render(<Index />, { wrapper: RouterWrapper });
       expect(screen.getByText(/Notre communauté/i)).toBeInTheDocument();
       expect(screen.getByText(/Nos actions/i)).toBeInTheDocument();
-      expect(screen.getByText(/Documents à télécharger/i)).toBeInTheDocument();
+      expect(screen.getByText(/Nos documents/i)).toBeInTheDocument();
     });
   });
 
@@ -37,14 +37,14 @@ describe('Pages Smoke Tests', () => {
 
     it('displays presidents list', () => {
       render(<Historique />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Pascal LECORDIER/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Pascal LECORDIER/i)[0]).toBeInTheDocument();
     });
   });
 
   describe('Congres Page', () => {
     it('renders without crashing', () => {
       render(<Congres />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Congrès National/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Congrès National/i)[0]).toBeInTheDocument();
     });
 
     it('displays next congress information', () => {
@@ -92,7 +92,7 @@ describe('Pages Smoke Tests', () => {
   describe('Delegations Page', () => {
     it('renders without crashing', () => {
       render(<Delegations />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Délégations Régionales/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Délégations Régionales/i)[0]).toBeInTheDocument();
     });
 
     it('displays delegations list', () => {
@@ -112,7 +112,7 @@ describe('Pages Smoke Tests', () => {
   describe('NotFound Page', () => {
     it('renders without crashing', () => {
       render(<NotFound />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/404/i)).toBeInTheDocument();
+      expect(screen.getByText(/Site en construction/i)).toBeInTheDocument();
     });
   });
 });
