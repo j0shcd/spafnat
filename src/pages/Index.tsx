@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import spafLogo from "@/assets/spaf-logo.png";
-import adhesionPdf from "@/assets/bulletin_adhesion_2026.pdf";
+import { DOCUMENTS } from "@/config/documents";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -31,7 +31,7 @@ const Index = () => {
       title: "Concours",
       description: "Concours poétiques et artistiques nationaux et régionaux",
       icon: Trophy,
-      action: "Concours Bretagne 2026", // add variable number of links, for all regions
+      link: "/concours",
       color: "artistic-orange"
     },
     {
@@ -90,7 +90,7 @@ const Index = () => {
             </Button>
 
             <Button asChild variant="outline">
-              <a href={adhesionPdf} download>
+              <a href={DOCUMENTS.bulletinAdhesion.path} download>
                 <Download className="h-4 w-4 mr-2" />
                 Télécharger le bulletin d&apos;adhésion
               </a>
@@ -225,7 +225,7 @@ const Index = () => {
                   <li className="font-sans text-sm">
                     <strong>1.</strong>{" "}
                     <a
-                      href={adhesionPdf}
+                      href={DOCUMENTS.bulletinAdhesion.path}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="underline underline-offset-4 font-medium hover:opacity-80"
@@ -297,7 +297,7 @@ const Index = () => {
 
                     <div className="mt-5 flex md:justify-end">
                       <Button asChild variant="outline">
-                        <a href={adhesionPdf} download>
+                        <a href={DOCUMENTS.bulletinAdhesion.path} download>
                           <Download className="h-4 w-4 mr-2" />
                           Télécharger le bulletin d&apos;adhésion
                         </a>
@@ -442,7 +442,7 @@ const Index = () => {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
                       <Mail className="h-4 w-4 text-accent" />
-                      <span className="font-sans text-sm">plecordier@free.fr</span>
+                      <span className="font-sans text-sm">jcohendumani7@gmail.com</span>
                     </div>
                     {/* <div className="flex items-center space-x-3">
                       <Phone className="h-4 w-4 text-accent" />
