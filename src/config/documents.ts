@@ -58,13 +58,13 @@ export const DOCUMENTS = {
   appelPoetes: {
     path: "/documents/appel_poetes.pdf",
     label: "Appel à poètes",
-    available: false, // To be provided
+    available: true, 
   },
 
   haikuNadineNajman: {
     path: "/documents/haiku_nadine_najman.pdf",
     label: "Haïku de Nadine Najman",
-    available: false, // To be provided
+    available: true, 
   },
 } as const;
 

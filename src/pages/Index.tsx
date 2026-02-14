@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Mail, Phone, MapPin, Trophy, BookOpen, Users } from "lucide-react";
+import { Download, Mail, Phone, MapPin, Trophy, BookOpen, Users, FileText } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,7 +22,7 @@ const Index = () => {
   const activities = [
     {
       title: "Revue",
-      description: "Publication de poèmes et d’oeuvres artistiques",
+      description: "Publication de poèmes et d&apos;oeuvres artistiques",
       icon: BookOpen,
       link: "/revue",
       color: "artistic-yellow"
@@ -123,7 +123,7 @@ const Index = () => {
             </Card>
             <Card className="text-center">
               <CardContent className="p-6">
-                <div className="text-3xl font-serif-title font-bold text-accent mb-2">179'175</div>
+                <div className="text-3xl font-serif-title font-bold text-accent mb-2">179&apos;175</div>
                 <p className="font-sans text-muted-foreground">Visiteurs</p>
               </CardContent>
             </Card>
@@ -173,9 +173,9 @@ const Index = () => {
                       {activity.description}
                     </p>
                     {activity.link ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="w-full"
                         onClick={() => window.location.href = activity.link}
                       >
@@ -195,8 +195,125 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Membership Section */}
+      {/* Documents Section */}
       <section className="py-16 px-4 bg-muted/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="font-serif-title text-4xl font-bold text-primary mb-4">
+              Nos documents
+            </h2>
+            <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
+            <p className="font-sans text-lg text-muted-foreground max-w-2xl mx-auto">
+              Téléchargez nos publications et documents officiels
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Bulletin d'adhésion */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center space-x-2 mb-2">
+                  <FileText className="h-5 w-5 text-accent" />
+                </div>
+                <CardTitle className="font-serif-title text-xl text-primary">
+                  Bulletin d&apos;adhésion
+                </CardTitle>
+                <CardDescription className="font-sans">
+                  Formulaire pour devenir membre de la SPAF
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  asChild
+                  disabled={!DOCUMENTS.bulletinAdhesion.available}
+                >
+                  <a
+                    href={DOCUMENTS.bulletinAdhesion.path}
+                    download
+                    className="flex items-center justify-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Télécharger (PDF)</span>
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Appel à poètes */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center space-x-2 mb-2">
+                  <FileText className="h-5 w-5 text-accent" />
+                </div>
+                <CardTitle className="font-serif-title text-xl text-primary">
+                  Appel à poètes
+                </CardTitle>
+                <CardDescription className="font-sans">
+                  Préservons la poésie francophone
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={!DOCUMENTS.appelPoetes.available}
+                  onClick={() => {
+                    if (DOCUMENTS.appelPoetes.available) {
+                      window.open(DOCUMENTS.appelPoetes.path, '_blank');
+                    }
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  <span>
+                    {DOCUMENTS.appelPoetes.available
+                      ? "Télécharger (PDF)"
+                      : "Bientôt disponible"}
+                  </span>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Haïku de Nadine Najman */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-center space-x-2 mb-2">
+                  <FileText className="h-5 w-5 text-accent" />
+                </div>
+                <CardTitle className="font-serif-title text-xl text-primary">
+                  Haïku de Nadine Najman
+                </CardTitle>
+                <CardDescription className="font-sans">
+                  Le haïku, une écriture de l&apos;instant
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={!DOCUMENTS.haikuNadineNajman.available}
+                  onClick={() => {
+                    if (DOCUMENTS.haikuNadineNajman.available) {
+                      window.open(DOCUMENTS.haikuNadineNajman.path, '_blank');
+                    }
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  <span>
+                    {DOCUMENTS.haikuNadineNajman.available
+                      ? "Télécharger (PDF)"
+                      : "Bientôt disponible"}
+                  </span>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Membership Section */}
+      <section className="py-16 px-4 bg-background">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-serif-title text-4xl font-bold text-primary mb-4">
@@ -213,8 +330,8 @@ const Index = () => {
                   Adhésion SPAF
                 </h3>
                 <p className="font-sans text-foreground/90 max-w-2xl mx-auto leading-relaxed">
-                  Rejoignez une communauté d’artistes en France et dans la francophonie.
-                  L’adhésion est requise pour participer aux concours. L’abonnement à la revue
+                  Rejoignez une communauté d&apos;artistes en France et dans la francophonie.
+                  L&apos;adhésion est requise pour participer aux concours. L&apos;abonnement à la revue
                   ouvre la possibilité de proposer une parution.
                 </p>
               </div>
@@ -260,8 +377,8 @@ const Index = () => {
                     </h4>
 
                     <p className="font-sans text-sm text-muted-foreground mt-2 leading-relaxed max-w-xl">
-                      Le meilleur équilibre pour participer aux concours et suivre la vie de l’association.
-                      <span className="text-foreground/90"> Bonus :</span> pour toute personne abonnée, parution offerte d’un poème ou d’une œuvre
+                      Le meilleur équilibre pour participer aux concours et suivre la vie de l&apos;association.
+                      <span className="text-foreground/90"> Bonus :</span> pour toute personne abonnée, parution offerte d&apos;un poème ou d&apos;une œuvre
                       (si qualité suffisante).
                     </p>
 
@@ -281,7 +398,7 @@ const Index = () => {
                       <li className="flex items-start gap-2">
                         <span className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
                         <span className="font-sans text-sm text-foreground">
-                          Communauté d’artistes en France et dans la francophonie
+                          Communauté d&apos;artistes en France et dans la francophonie
                         </span>
                       </li>
                     </ul>
@@ -313,7 +430,7 @@ const Index = () => {
                 </div>
 
                 <p className="font-sans text-xs text-muted-foreground mt-5">
-                  Les événements peuvent être payants et font l’objet d’une organisation séparée.
+                  Les événements peuvent être payants et font l&apos;objet d&apos;une organisation séparée.
                 </p>
               </div>
 
@@ -348,7 +465,7 @@ const Index = () => {
                         </div>
                         <div className="flex justify-between gap-6">
                           <span className="font-sans text-sm">
-                            Le numéro <span className="text-muted-foreground">( + 5€ frais d’envoi )</span>
+                            Le numéro <span className="text-muted-foreground">( + 5€ frais d&apos;envoi )</span>
                           </span>
                           <span className="font-sans text-sm font-semibold">12€</span>
                         </div>
