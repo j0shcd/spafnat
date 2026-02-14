@@ -18,56 +18,63 @@
 - [x] Upload and configure Appel à poètes PDF
 - [x] Upload and configure Haïku de Nadine Najman PDF
 
-### 1.1 `index.html` Fixes
-- [ ] Change `lang="en"` to `lang="fr"`
-- [ ] Move `spaf-rollup.jpg` to `public/`
-- [ ] Fix `og:image` to `/spaf-rollup.jpg`
+### 1.0.1 Centralized Contact Config ✅
+- [x] Create `src/config/contact.ts` with CONTACT_EMAIL constant
+- [x] Update Index.tsx to use CONTACT_EMAIL
+- [x] Update Delegations.tsx to use CONTACT_EMAIL
+- [x] Update Footer.tsx to use CONTACT_EMAIL
 
-### 1.2 New Concours Page
-- [ ] Create `src/pages/Concours.tsx`
-- [ ] Add sections: Palmarès Poétique, Palmarès Artistique
-- [ ] Add download buttons (disabled "Bientôt disponible" state)
-- [ ] Add `/concours` route in `src/App.tsx`
+### 1.1 `index.html` Fixes ✅
+- [x] Change `lang="en"` to `lang="fr"`
+- [x] Move `spaf-rollup.jpg` to `public/`
+- [x] Fix `og:image` to `/spaf-rollup.jpg`
+- [x] Remove lovable.dev placeholder URLs from Twitter meta tags
 
-### 1.3 Congres Page Rework
-- [ ] Remove all palmarès content
-- [ ] Move "Prochain événement" card to top of page
-- [ ] Add registration download button in event card
-- [ ] Design photo gallery UI (year selector 2010-2026, grid, lightbox)
-- [ ] Add placeholder state for photos ("Photos à venir")
+### 1.2 New Concours Page ✅
+- [x] Create `src/pages/Concours.tsx`
+- [x] Add sections: Palmarès Poétique, Palmarès Artistique
+- [x] Add download buttons (disabled "Bientôt disponible" state)
+- [x] Add `/concours` route in `src/App.tsx`
+
+### 1.3 Congres Page Rework ✅
+- [x] Remove all palmarès content
+- [x] Move "Prochain événement" card to top of page
+- [x] Add registration download button in event card
+- [x] Design photo gallery UI (year selector 2010-2026, grid, lightbox)
+- [x] Add placeholder state for photos ("Photos à venir")
 
 ### 1.4 Index Page Updates
-- [ ] Add "Documents à télécharger" section below activity cards
-- [ ] Replace fake toast with `mailto:plecordier@free.fr` link
-- [ ] Change Concours card from download button to navigation link
-- [ ] Remove phone number code
-- [ ] Remove hardcoded visitor counter
+- [x] Add "Documents à télécharger" section below activity cards
+- [x] Change Concours card from download button to navigation link
+- [x] Remove phone number code
+- [ ] Remove hardcoded visitor counter (deferred to Phase 2)
+- [ ] Replace fake toast with `mailto:plecordier@free.fr` link (deferred to Phase 2)
 
-### 1.5 Revue Page Fixes
-- [ ] Fix issue number to 264 consistently
-- [ ] Fix typos: BZNOIT→BENOIT, A1MADE→AMADE, Tistan→Tristan, FOMBEUR→FOMBEURE, FERDINAN→FERDINAND
-- [ ] Wire "Télécharger l'extrait" button to document config
-- [ ] Add missing `€` on price line
+### 1.5 Revue Page Fixes ✅
+- [x] Fix issue number to 264 consistently
+- [x] Fix typos: BZNOIT→BENOIT, A1MADE→AMADE, Tistan→Tristan, FOMBEUR→FOMBEURE, FERDINAN→FERDINAND
+- [x] Wire "Télécharger l'extrait" button to document config
+- [x] Add missing `€` on price line
 
-### 1.6 Delegations Page Fixes
-- [ ] Remove Pierre Rousseau Occitanie entry
-- [ ] Keep only Richard Maggiore for Occitanie (fix "Occitane" spelling)
-- [ ] Remove shuffled email data
-- [ ] Remove unused `Phone`/`Mail` imports
+### 1.6 Delegations Page Fixes ✅
+- [x] Remove Pierre Rousseau Occitanie entry
+- [x] Keep only Richard Maggiore for Occitanie (fix "Occitane" spelling)
+- [x] Remove shuffled email data
+- [x] Remove unused `Phone`/`Mail` imports
+- [ ] Fix "Devenir délégué·e" button visibility (needs proper button styling)
 
-### 1.7 Historique Page Fix
-- [ ] Remove duplicate paragraph about 2014 transition
+### 1.7 Historique Page Fix ✅
+- [x] Remove duplicate paragraph about 2014 transition
 
-### 1.8 Footer Rework
-- [ ] Restructure layout (3 sections: À propos, Contact, Siège social)
-- [ ] Make À propos and Contact prominent
-- [ ] Make Siège social subdued (smaller/lighter text)
-- [ ] Add `mailto:` link for president's email
-- [ ] Add "Formulaire de confidentialité" download link
-- [ ] Remove unused `Phone` import
+### 1.8 Footer Rework ✅
+- [x] Restructure layout (2 sections: Siège social, À propos)
+- [x] Make À propos prominent
+- [x] Add `mailto:` link for president's email
+- [x] Add "Formulaire de confidentialité" download link
+- [x] Remove unused `Phone` import
 
-### 1.9 SPA Routing
-- [ ] Create `public/_redirects` with `/* /index.html 200`
+### 1.9 SPA Routing ✅
+- [x] Create `public/_redirects` with `/* /index.html 200`
 
 ### 1.10 Validation Infrastructure
 - [ ] Install Vitest + React Testing Library

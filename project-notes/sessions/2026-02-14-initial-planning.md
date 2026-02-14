@@ -75,7 +75,7 @@ SPAF website migration from spafnat.com (paid hosting) to Cloudflare Pages (free
 
 ### Revue Page
 - Issue number: 264 (consistent)
-- Typos: BZNOIT→BENOIT, A1MADE→AMADE, Tistan→Tristan, FOMBEUR→FOMBEURE, FERDINAN→FERDINAND
+- Typos: BZNOIT→BENOIT, A1MADE→AMADE, Tistan→Tristan, FERDINAN→FERDINAND
 - Add missing € symbol
 
 ### Delegations Page
