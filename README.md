@@ -32,7 +32,7 @@ npm run typecheck && npm run lint && npm run test:run && npm run build
 
 ## Architecture Highlights
 
-- Centralized config for documents and contact info (easy production switch)
+- Centralized config for documents and contact info 
 - SPA routing with fallback (`public/_redirects`)
 - Custom fonts (Crimson Text + Inter) and color system
 - Static PDF hosting in `public/documents/`
@@ -48,15 +48,6 @@ src/
 ├── config/         # Centralized config (documents, contact)
 └── App.tsx         # Router setup
 ```
-
-## What's Next
-
-This is Phase 1 (static site). Future phases add:
-- Visitor counter (Cloudflare KV)
-- Contact form backend (Cloudflare Functions)
-- Admin panel for content management (no CMS, just a simple custom interface)
-
-See [CLAUDE.md](./CLAUDE.md) for detailed guidance.
 
 ## License
 
