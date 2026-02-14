@@ -1,5 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
+import { CONTACT_EMAIL } from "@/config/contact";
 
 const Delegations = () => {
 const delegations = [
@@ -126,17 +128,16 @@ const delegations = [
               Votre région ne figure pas dans cette liste ?
             </h3>
             <p className="font-sans mb-6 opacity-90 max-w-2xl mx-auto">
-              Nous sommes toujours à la recherche de nouveaux délégués régionaux 
-              pour étendre notre réseau. Contactez-nous si vous souhaitez représenter 
+              Nous sommes toujours à la recherche de nouveaux délégués régionaux
+              pour étendre notre réseau. Contactez-nous si vous souhaitez représenter
               la SPAF dans votre région.
             </p>
             <div className="space-x-4">
-              <a 
-                href="mailto:jcohendumani7@gmail.com"
-                className="inline-block bg-artistic-yellow text-primary px-6 py-3 rounded-lg font-sans font-medium hover:bg-artistic-yellow/90 transition-colors"
-              >
-                Devenir délégué·e
-              </a>
+              <Button variant="outline" asChild className="text-primary hover:text-primary-foreground">
+                <a href={`mailto:${CONTACT_EMAIL}`}>
+                  Devenir délégué·e
+                </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -1,13 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Mail, Phone, MapPin, Trophy, BookOpen, Users, FileText } from "lucide-react";
+import { Download, Mail, MapPin, Trophy, BookOpen, Users, FileText } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import spafLogo from "@/assets/spaf-logo.png";
 import { DOCUMENTS } from "@/config/documents";
+import { CONTACT_EMAIL } from "@/config/contact";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -559,12 +560,8 @@ const Index = () => {
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
                       <Mail className="h-4 w-4 text-accent" />
-                      <span className="font-sans text-sm">jcohendumani7@gmail.com</span>
+                      <span className="font-sans text-sm">{CONTACT_EMAIL}</span>
                     </div>
-                    {/* <div className="flex items-center space-x-3">
-                      <Phone className="h-4 w-4 text-accent" />
-                      <span className="font-sans text-sm">05 49 52 35 85</span>
-                    </div> */}
                     <div className="flex items-start space-x-3">
                       <MapPin className="h-4 w-4 text-accent mt-1" />
                       <div className="font-sans text-sm">

@@ -1,5 +1,6 @@
 import { MapPin, Mail, Download } from "lucide-react";
 import { DOCUMENTS } from "@/config/documents";
+import { CONTACT_EMAIL } from "@/config/contact";
 
 const Footer = () => {
   return (
@@ -26,7 +27,9 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-artistic-yellow" />
-                <span className="font-sans">jcohendumani7@gmail.com</span>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="font-sans hover:opacity-80 transition-opacity">
+                  {CONTACT_EMAIL}
+                </a>
               </div>
               <div className="flex items-center space-x-3">
                 <Download className="h-5 w-5 text-artistic-yellow" />
