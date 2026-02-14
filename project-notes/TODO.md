@@ -8,12 +8,15 @@
 - [x] Create project-notes/ directory structure
 - [x] Document initial planning session
 
-## Phase 1: Content Fixes + New Pages (Launch Blocker)
+## Phase 1: Content Fixes + New Pages ✅
 
-### 1.0 Centralized Document Config
-- [ ] Create `src/config/documents.ts`
-- [ ] Define all document types (bulletin, palmarès, revue, etc.)
-- [ ] Move `bulletin_adhesion_2026.pdf` from `src/assets/` to `public/documents/`
+### 1.0 Centralized Document Config ✅
+- [x] Create `src/config/documents.ts`
+- [x] Define all document types (bulletin, palmarès, revue, etc.)
+- [x] Move `bulletin_adhesion_2026.pdf` from `src/assets/` to `public/documents/`
+- [x] Add "Nos documents" standalone section to Index page
+- [x] Upload and configure Appel à poètes PDF
+- [x] Upload and configure Haïku de Nadine Najman PDF
 
 ### 1.1 `index.html` Fixes
 - [ ] Change `lang="en"` to `lang="fr"`
