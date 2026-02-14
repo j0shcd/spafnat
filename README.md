@@ -1,73 +1,63 @@
-# Welcome to your Lovable project
+# SPAF Website
 
-## Project info
+Website for the [Société des Poètes et Artistes de France](http://www.spafnat.com), a French poetry and arts association founded in 1958.
 
-**URL**: https://lovable.dev/projects/91883c96-9964-406c-8c7f-ad6146a32a88
+## What is this?
 
-## How can I edit this code?
+Started as a Lovable-generated project, then extensively refactored and enhanced manually. It's a static site for a 60+ year old poetry organization that needed to move from expensive hosting to something sustainable (Cloudflare Pages).
 
-There are several ways of editing your application.
+All content is in French because, well, it's a French poetry society.
 
-**Use Lovable**
+## Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/91883c96-9964-406c-8c7f-ad6146a32a88) and start prompting.
+- React 18 + TypeScript + Vite
+- TailwindCSS + shadcn-ui
+- Vitest + React Testing Library
+- Deployed on Cloudflare Pages
 
-Changes made via Lovable will be committed automatically to this repo.
+## Development
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+npm i              # install
+npm run dev        # dev server (port 8080)
+npm run build      # production build
+npm run lint       # ESLint
+npm run test:run   # run tests
 ```
 
-**Edit a file directly in GitHub**
+**Validation before commits:**
+```bash
+npm run typecheck && npm run lint && npm run test:run && npm run build
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Architecture Highlights
 
-**Use GitHub Codespaces**
+- Centralized config for documents and contact info (easy production switch)
+- SPA routing with fallback (`public/_redirects`)
+- Custom fonts (Crimson Text + Inter) and color system
+- Static PDF hosting in `public/documents/`
+- Path alias `@` → `./src`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── pages/          # Route components
+├── components/     # Reusable components
+│   └── ui/        # shadcn-ui primitives (CLI-managed)
+├── config/         # Centralized config (documents, contact)
+└── App.tsx         # Router setup
+```
 
-This project is built with:
+## What's Next
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This is Phase 1 (static site). Future phases add:
+- Visitor counter (Cloudflare KV)
+- Contact form backend (Cloudflare Functions)
+- Admin panel for content management (no CMS, just a simple custom interface)
 
-## How can I deploy this project?
+See [CLAUDE.md](./CLAUDE.md) for detailed guidance.
 
-Simply open [Lovable](https://lovable.dev/projects/91883c96-9964-406c-8c7f-ad6146a32a88) and click on Share -> Publish.
+## License
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Built for SPAF. Not open source in the traditional sense, but public for portfolio/reference purposes.
