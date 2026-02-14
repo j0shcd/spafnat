@@ -17,6 +17,10 @@ All content is in French because, well, it's a French poetry society.
 
 ## Development
 
+**Requirements:**
+- Node.js 22.x LTS (matches Cloudflare Pages default)
+- Use `nvm use` to automatically switch to the correct version
+
 ```bash
 npm i              # install
 npm run dev        # dev server (port 8080)
