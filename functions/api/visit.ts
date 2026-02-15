@@ -12,10 +12,11 @@ function getClientIP(request: Request): string {
   );
 }
 
-// Hash IP + today's date for privacy (no raw IPs stored)
-async function hashIPWithDate(ip: string): Promise<string> {
+// Hash IP + User-Agent + today's date for privacy (no raw IPs stored)
+// Different devices on same network have different User-Agents, so they're counted separately
+async function hashVisitorWithDate(ip: string, userAgent: string): Promise<string> {
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const data = new TextEncoder().encode(`${ip}:${today}`);
+  const data = new TextEncoder().encode(`${ip}:${userAgent}:${today}`);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -42,7 +43,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     const ip = getClientIP(request);
-    const hash = await hashIPWithDate(ip);
+    const userAgent = request.headers.get('User-Agent') || '';
+    const hash = await hashVisitorWithDate(ip, userAgent);
     const dedupKey = `rate:visit:${hash}`;
 
     // Check if this IP has already been counted today
