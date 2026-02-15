@@ -173,9 +173,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         Authorization: `Bearer ${env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev', // Resend test domain - switch to noreply@spafnat.com after verifying domain
-        // to: env.CONTACT_RECIPIENT, // Email recipient configured in .dev.vars (local) or Cloudflare Dashboard (production)
-        to: "joshua@cohendumani.com", // Temporary hardcoded recipient for testing
+        from: 'contact@spafnat.com', // Domain verified ✓
+        to: env.CONTACT_RECIPIENT, // Email recipient configured in .dev.vars (local) or Cloudflare Dashboard (production)
         reply_to: formData.email, // President can reply directly to sender
         subject: `[SPAF Contact] ${formData.subject}`,
         text: `Message de : ${formData.name} (${formData.email})\n\nSujet : ${formData.subject}\n\nMessage :\n${formData.message}`,
