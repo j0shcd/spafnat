@@ -1,0 +1,11 @@
+name = "spafnat"
+compatibility_date = "2024-01-01"
+
+# This file is gitignored — used only for local development
+# Production bindings are configured in Cloudflare Dashboard
+# Local dev: npx wrangler pages dev dist --kv SPAF_KV
+
+# KV namespace binding for local development
+# [[kv_namespaces]]
+# binding = "SPAF_KV"
+# id = "your-namespace-id-here"
