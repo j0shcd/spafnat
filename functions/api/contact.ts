@@ -1,53 +1,10 @@
 import type { Env } from '../env';
-
-// IP resolution fallback chain
-function getClientIP(request: Request): string {
-  return (
-    request.headers.get('CF-Connecting-IP') ||
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-    'localhost'
-  );
-}
-
-// Origin validation — loose initially, tighten to spafnat.com only after custom domain
-function isValidOrigin(origin: string | null): boolean {
-  if (!origin) return true; // Some clients omit Origin header
-
-  try {
-    const url = new URL(origin);
-    const hostname = url.hostname;
-
-    // Allow localhost for development
-    if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
-
-    // Allow Cloudflare Pages preview deployments
-    if (hostname.endsWith('.pages.dev')) return true;
-
-    // TODO: Once custom domain is active, tighten to only spafnat.com
-    // if (hostname === 'spafnat.com' || hostname === 'www.spafnat.com') return true;
-
-    return false;
-  } catch {
-    return false;
-  }
-}
+import { getClientIP, isValidOrigin, escapeHtml, jsonResponse } from '../lib/helpers';
 
 // Basic email validation
 function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
-}
-
-// HTML escape to prevent XSS in email body
-function escapeHtml(text: string): string {
-  const escapeMap: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  };
-  return text.replace(/[&<>"']/g, (char) => escapeMap[char]);
 }
 
 // Validation rules
@@ -100,10 +57,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 1. Origin check
   const origin = request.headers.get('Origin');
   if (!isValidOrigin(origin)) {
-    return new Response(JSON.stringify({ error: 'Origine non autorisée' }), {
-      status: 403,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Origine non autorisée' }, 403);
   }
 
   // 2. Parse JSON body
@@ -111,18 +65,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     body = await request.json();
   } catch {
-    return new Response(JSON.stringify({ error: 'Corps de requête invalide' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Corps de requête invalide' }, 400);
   }
 
   // Type guard for body
   if (typeof body !== 'object' || body === null) {
-    return new Response(JSON.stringify({ error: 'Corps de requête invalide' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Corps de requête invalide' }, 400);
   }
 
   const requestBody = body as Record<string, unknown>;
@@ -134,22 +82,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     requestBody.website.trim() !== ''
   ) {
     // Return fake success to avoid tipping off bots
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ success: true });
   }
 
   // 4. Validate form data
   const validation = validateFormData(requestBody);
   if (!validation.valid) {
-    return new Response(
-      JSON.stringify({ error: 'Données invalides', details: validation.errors }),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return jsonResponse({ error: 'Données invalides', details: validation.errors }, 400);
   }
 
   // 5. Rate limiting — 1 submission per IP per 5 minutes
@@ -158,14 +97,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   const existingRateLimit = await env.SPAF_KV.get(rateLimitKey);
   if (existingRateLimit) {
-    return new Response(
-      JSON.stringify({
-        error: 'Trop de soumissions. Veuillez patienter 5 minutes avant de réessayer.',
-      }),
+    return jsonResponse(
       {
-        status: 429,
-        headers: { 'Content-Type': 'application/json' },
-      }
+        error: 'Trop de soumissions. Veuillez patienter 5 minutes avant de réessayer.',
+      },
+      429
     );
   }
 
@@ -208,18 +144,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     // 7. Set rate limit key (only after successful send)
     await env.SPAF_KV.put(rateLimitKey, '1', { expirationTtl: 300 }); // 5 minutes
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ success: true });
   } catch (error) {
     console.error('Error sending contact form email:', error);
-    return new Response(
-      JSON.stringify({ error: 'Échec de l\'envoi du message. Veuillez réessayer.' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return jsonResponse({ error: 'Échec de l\'envoi du message. Veuillez réessayer.' }, 500);
   }
 };

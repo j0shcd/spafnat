@@ -103,7 +103,7 @@
 - [x] Create `functions/api/visit.ts` — GET (read count) + POST (deduplicate & increment)
 - [x] IP fallback chain: CF-Connecting-IP → x-forwarded-for → "localhost"
 - [x] SHA-256 hash IP+date for privacy, 24h TTL dedup keys in KV
-- [x] Fallback to 179175 if KV key missing (no manual seeding needed)
+- [x] Fallback to 184161 if KV key missing (no manual seeding needed)
 
 ### 2.2 Live Visitor Counter Frontend ✅
 - [x] Replace hardcoded "179'175" in Index.tsx with live count from API
@@ -123,12 +123,12 @@
 - [x] Disable button + "Envoi en cours..." during submission
 
 ### 2.5 Security Testing & Documentation ✅
-- [x] Create comprehensive security test suite (30+ tests)
+- [x] Create comprehensive security test suite
 - [x] Add specific error messages from backend validation
 - [x] Add character limits to form placeholders
 - [x] Document honeypot testing procedures
 - [x] Create TESTING.md guide
-- [x] All 63 tests passing (security + smoke tests)
+- [x] All 52 tests passing (28 smoke + 24 security unit tests)
 
 ### Phase 2 TODOs (post-implementation, pre-production)
 - [ ] Add CSP to `public/_headers` once third-party needs are known
@@ -143,19 +143,121 @@
 - **CSP**: Deferred — non-CSP headers ship now, CSP added once in prod and third-party needs clear
 - **wrangler.toml**: Gitignored (contains environment-specific config)
 
-## Phase 3: Admin Panel + Photo Gallery Backend (~5-8 days)
+## Phase 3: Admin Panel + File Management (~5-8 days)
 
-- [ ] Create Cloudflare R2 bucket `spaf-media`
-- [ ] Create `functions/api/auth/login.ts` (JWT, bcrypt, rate limit)
-- [ ] Create `functions/api/auth/middleware.ts` (JWT validation)
-- [ ] Create `functions/api/admin/upload.ts` (multipart, validation, R2)
-- [ ] Create `functions/api/admin/files.ts` (list by category)
-- [ ] Create `functions/api/admin/delete.ts` (remove from R2)
-- [ ] Create `functions/api/media/[...path].ts` (public serving with cache)
-- [ ] Build admin UI at `/admin` (login, file browser, upload, delete)
-- [ ] Connect Congres gallery to R2
-- [ ] Update document config to check R2 first, local fallback
-- [ ] Write French guide for president (1-page printed)
+**Status**: Planned (2026-02-15). See `project-notes/sessions/2026-02-15-phase3-planning.md` for full details.
+
+**Scope**: Enable non-technical president (~70 years old) to manage PDFs and congress photos independently via simple admin panel. Uses Cloudflare R2 for file storage, JWT auth for single admin, and elderly-user-friendly UI.
+
+**Broken into 3 sub-phases**: 3a (auth + backend APIs), 3b (admin UI), 3c (gallery + document integration)
+
+### Pre-Phase 3 Cleanup
+- [ ] Delete `src/tests/security.test.ts` (28 failing integration tests, superseded by `tests/security/`)
+- [ ] Create `.dev.vars.example` template with Phase 2 + Phase 3 env vars
+- [ ] Extract shared helpers: Create `functions/lib/helpers.ts` with `getClientIP`, `isValidOrigin`, `escapeHtml`, `jsonResponse`
+- [ ] Refactor `functions/api/contact.ts` and `functions/api/visit.ts` to use shared helpers
+
+### Phase 3a: Auth + Backend APIs (~2-3 days)
+
+**Dependencies**:
+- [ ] Install `jose` (JWT for edge runtimes)
+- [ ] Install `bcryptjs` + `@types/bcryptjs` (password hashing in Workers)
+
+**Backend files**:
+- [ ] Modify `functions/env.d.ts` — Add `JWT_SECRET`, `ADMIN_PASSWORD_HASH`, `SPAF_MEDIA: R2Bucket`
+- [ ] Create `functions/lib/file-validation.ts` — MIME type + magic bytes validation (PDF, JPEG, PNG, WebP)
+- [ ] Create `functions/api/auth/login.ts` — JWT login with bcrypt, rate limiting (5 attempts/15min)
+- [ ] Create `functions/api/auth/logout.ts` — Revoke session from KV
+- [ ] Create `functions/api/auth/verify.ts` — Token validation endpoint
+- [ ] Create `functions/api/admin/_middleware.ts` — JWT validation middleware for all `/api/admin/*` routes
+- [ ] Create `functions/api/admin/upload.ts` — Multipart upload, 5MB max, MIME+magic bytes validation, R2 put
+- [ ] Create `functions/api/admin/files.ts` — List R2 files by category (`?category=documents` or `?category=congres&year=2024`)
+- [ ] Create `functions/api/admin/delete.ts` — Delete file from R2
+- [ ] Create `functions/api/media/[[path]].ts` — Public file serving, cache headers, no directory listing
+- [ ] Create `functions/api/gallery.ts` — Public endpoint to list congress photos (no auth)
+
+**Tests**:
+- [ ] Create `tests/security/auth.test.ts` — Login rate limiting, JWT verify, expired tokens, revoked sessions
+- [ ] Create `tests/security/upload.test.ts` — File size limits, MIME validation, magic bytes, path traversal
+- [ ] Create `tests/security/media.test.ts` — Directory listing blocked, path traversal blocked, cache headers
+
+**Verification**:
+- [ ] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean
+- [ ] Manual test with `npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA`: login, upload, access via media endpoint
+
+### Phase 3b: Admin UI (~2-3 days)
+
+**Frontend files**:
+- [ ] Create `src/contexts/AuthContext.tsx` — Auth state management (token, login, logout, isAuthenticated)
+- [ ] Create `src/hooks/useAdminApi.ts` — Authenticated fetch wrapper, auto-logout on 401
+- [ ] Create `src/hooks/useDocumentUrl.ts` — Document URL resolution (R2 first, local fallback)
+- [ ] Create `src/components/admin/ProtectedRoute.tsx` — Route guard (shows login if not authenticated)
+- [ ] Create `src/components/admin/AdminLayout.tsx` — Simple top bar + content area (no public Header/Footer)
+- [ ] Create `src/pages/admin/AdminLogin.tsx` — Password-only login form
+- [ ] Create `src/pages/admin/AdminDashboard.tsx` — Overview with Documents + Photos sections
+- [ ] Create `src/pages/admin/AdminDocuments.tsx` — 8 document slots, upload/replace/delete, status badges
+- [ ] Create `src/pages/admin/AdminPhotos.tsx` — Year selector, photo grid, batch upload, delete with confirmation
+- [ ] Modify `src/AppRoutes.tsx` — Add `/admin/*` routes outside Layout wrapper (use AdminLayout instead)
+
+**Tests**:
+- [ ] Create `src/test/admin/admin-pages.test.tsx` — Smoke tests (login renders, dashboard renders, protected route blocks)
+
+**UX checklist** (elderly user):
+- [ ] Large fonts (16px+ body, 18px+ labels)
+- [ ] High contrast (SPAF brown on cream)
+- [ ] Big touch targets (44px+ buttons)
+- [ ] Clear French labels (no jargon)
+- [ ] Confirmation dialogs before delete
+- [ ] Green/red badges for document status
+- [ ] Toast messages for success/error
+- [ ] Upload progress indicators
+
+**Verification**:
+- [ ] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean
+- [ ] Manual test: Navigate to `/admin`, login, upload document, upload photos, delete file, logout
+
+### Phase 3c: Gallery + Document Integration (~1-2 days)
+
+**Files to modify**:
+- [ ] Modify `src/config/documents.ts` — Add `r2Key` field to Document interface
+- [ ] Modify `src/pages/Congres.tsx` — Fetch photos from `/api/gallery?year=`, display from `/api/media/`
+- [ ] Modify `src/pages/Index.tsx` — Use R2-aware document URLs (via `useDocumentUrl` hook)
+- [ ] Modify `src/pages/Concours.tsx` — Use R2-aware document URLs
+- [ ] Modify `src/pages/Revue.tsx` — Use R2-aware document URLs
+
+**Tests**:
+- [ ] Create `src/test/gallery.test.tsx` — Gallery fetches from API, shows loading state, handles empty state
+- [ ] Verify existing page tests still pass with R2 document URL changes
+
+**Documentation**:
+- [ ] Write French user guide (1-page PDF) — Login, upload/delete files, troubleshooting
+
+**Verification**:
+- [ ] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean
+- [ ] Congres page shows photos from R2 for years with photos
+- [ ] Congres page shows "Photos a venir" for years without photos
+- [ ] Document downloads work from R2 with local fallback
+- [ ] No regressions in existing pages (visitor counter, contact form)
+
+### Phase 3 Cloudflare Dashboard Setup (Manual, Before Deployment)
+
+- [ ] **Create R2 bucket**: Go to R2 > Create bucket > Name: `spaf-media`
+- [ ] **Add env vars** (Settings > Environment variables):
+  - `JWT_SECRET` — Generate with `openssl rand -base64 32`
+  - `ADMIN_PASSWORD_HASH` — Generate with Node REPL: `bcrypt.hashSync('password', 10)`
+- [ ] **Add R2 binding** (Settings > Functions > R2 bucket bindings):
+  - Variable name: `SPAF_MEDIA`
+  - R2 bucket: `spaf-media`
+
+### Phase 3 Key Decisions
+
+- **Auth**: JWT with jose (edge-native), bcryptjs for password hashing, 24h token expiration, KV session storage for revocation
+- **R2 structure**: `documents/{key}.pdf` and `congres/{year}/{filename}` (maps to config keys, organized by year)
+- **File limits**: 5 MB max upload size (within Workers free tier)
+- **Thumbnails**: No — serve original photos only (president uploads reasonably-sized images)
+- **Admin password**: Stored as bcrypt hash in `ADMIN_PASSWORD_HASH` env var (rotated manually in Dashboard)
+- **Public vs protected**: Media endpoint public (read-only, no directory listing), admin endpoints protected (JWT required)
+- **Elderly UX**: Large fonts, simple two-section dashboard, confirmation dialogs, green/red status badges
 
 ## Phase 4: Polish (Deferrable)
 
@@ -170,7 +272,7 @@
 
 - [x] `npm run typecheck` — no TS errors ✅
 - [x] `npm run lint` — 0 errors, 7 warnings (fast refresh in shadcn components) ✅
-- [x] `npm run test:run` — all 63 tests pass (28 smoke tests + 35 security tests) ✅
+- [x] `npm run test:run` — all 52 tests pass (28 smoke + 24 security unit tests) ✅
 - [x] `npm run build` — builds successfully ✅
 - [ ] Manual review: open each page, check content, click all buttons/links
 - [ ] For Cloudflare features: test with `npx wrangler pages dev dist`
@@ -202,7 +304,7 @@
 - [ ] Wait for deployment to complete
 - [ ] Visit the preview URL (*.pages.dev)
 - [ ] Test visitor counter:
-  - [ ] Counter appears on homepage (not "0", starts at ~179,175)
+  - [ ] Counter appears on homepage (not "0", starts at 184,161)
   - [ ] Refresh page — counter should NOT increment (24h deduplication)
   - [ ] Use different device/IP — counter SHOULD increment
 - [ ] Test contact form:

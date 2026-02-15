@@ -1,0 +1,16 @@
+# Cloudflare Pages Functions - Local Development Environment Variables
+# Copy this file to .dev.vars and fill in actual values
+# WARNING: Never commit .dev.vars - it contains secrets!
+
+# JWT Secret (generate with: openssl rand -base64 32)
+JWT_SECRET=your-jwt-secret-here
+
+# Admin Password Hash (generate with: node functions/lib/password.ts)
+# Format: salt:hash (both base64-encoded)
+ADMIN_PASSWORD_HASH=your-password-hash-here
+
+# Resend API Key (get from https://resend.com/api-keys)
+RESEND_API_KEY=re_your_api_key_here
+
+# Contact Form Email Recipient
+CONTACT_RECIPIENT=joshua@cohendumani.com

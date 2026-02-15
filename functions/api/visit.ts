@@ -1,16 +1,8 @@
 import type { Env } from '../env';
+import { getClientIP, jsonResponse } from '../lib/helpers';
 
 const COUNTER_KEY = 'counter:visitors';
 const INITIAL_COUNT = 184161; // Starting point for visitor count, pulled over from previous website (feb 14 2026)
-
-// IP resolution fallback chain for local dev and production
-function getClientIP(request: Request): string {
-  return (
-    request.headers.get('CF-Connecting-IP') ||
-    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-    'localhost'
-  );
-}
 
 // Hash IP + User-Agent + today's date for privacy (no raw IPs stored)
 // Different devices on same network have different User-Agents, so they're counted separately
@@ -27,16 +19,10 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     const countStr = await env.SPAF_KV.get(COUNTER_KEY);
     const count = countStr ? parseInt(countStr, 10) : INITIAL_COUNT;
 
-    return new Response(JSON.stringify({ count }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ count });
   } catch (error) {
     console.error('Error reading visitor count:', error);
-    return new Response(JSON.stringify({ error: 'Failed to read count' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Failed to read count' }, 500);
   }
 };
 
@@ -55,10 +41,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       const countStr = await env.SPAF_KV.get(COUNTER_KEY);
       const count = countStr ? parseInt(countStr, 10) : INITIAL_COUNT;
 
-      return new Response(JSON.stringify({ count, incremented: false }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ count, incremented: false });
     }
 
     // Not counted today — increment counter
@@ -72,15 +55,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       env.SPAF_KV.put(dedupKey, '1', { expirationTtl: 86400 }), // 24 hours
     ]);
 
-    return new Response(JSON.stringify({ count: newCount, incremented: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ count: newCount, incremented: true });
   } catch (error) {
     console.error('Error incrementing visitor count:', error);
-    return new Response(JSON.stringify({ error: 'Failed to increment count' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Failed to increment count' }, 500);
   }
 };
