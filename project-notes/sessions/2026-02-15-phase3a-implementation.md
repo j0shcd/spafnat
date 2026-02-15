@@ -150,11 +150,17 @@ All checks passing:
 - `npm run test:run` ✅ (103 tests passing)
 - `npm run build` ✅ (dist/ generated)
 
-### Commit
-- Commit: `feat: implement Phase 3a - auth and file management backend APIs`
-- Files changed: 20 files (+1354 insertions, -1 deletion)
-- New files: 15 (8 API endpoints, 2 libraries, 3 middleware, 3 test files)
-- Modified: 5 (env types, package.json, _headers, wrangler.toml)
+### Commits
+1. `feat: implement Phase 3a - auth and file management backend APIs`
+   - Files changed: 20 files (+1354 insertions, -1 deletion)
+   - New files: 15 (8 API endpoints, 2 libraries, 3 middleware, 3 test files)
+   - Modified: 5 (env types, package.json, _headers, wrangler.toml)
+
+2. `fix: move password hash script to avoid Workers runtime error with process`
+   - **Issue**: `process.argv` in password.ts caused "ReferenceError: process is not defined" in Workers runtime
+   - **Fix**: Moved standalone script from password.ts to `scripts/generate-password-hash.ts`
+   - **Added**: `tsx` dev dependency for running TypeScript scripts
+   - Files changed: 7 files (+1790 insertions, -17 deletions)
 
 ## Key Design Changes from Original Plan
 
@@ -215,19 +221,35 @@ All checks passing:
 ## Environment Variables Needed for Testing
 Add to `.dev.vars`:
 ```bash
+# Generate JWT secret
 JWT_SECRET=<generate with: openssl rand -base64 32>
-ADMIN_PASSWORD_HASH=<generate with: node functions/lib/password.ts your-password>
+
+# Generate password hash (use test password like "admin123")
+ADMIN_PASSWORD_HASH=<generate with: npx tsx scripts/generate-password-hash.ts your-password>
+```
+
+**Quick setup:**
+```bash
+# Add JWT secret
+echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars
+
+# Generate password hash
+npx tsx scripts/generate-password-hash.ts admin123
+# Copy the output and add to .dev.vars manually
 ```
 
 ## Local Testing Commands
 ```bash
 # Generate password hash
-node --experimental-modules functions/lib/password.ts admin123
+npx tsx scripts/generate-password-hash.ts admin123
+
+# Build frontend
+npm run build
 
 # Run dev server with KV + R2
 npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
 
-# Test login
+# Test login (in another terminal)
 curl -X POST http://localhost:8788/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}'
@@ -237,8 +259,21 @@ curl http://localhost:8788/api/admin/files?type=documents \
   -H "Authorization: Bearer <token>"
 ```
 
+## Post-Implementation Fix
+**Issue discovered during deployment testing:**
+- `npx wrangler pages dev` failed with "ReferenceError: process is not defined"
+- Cause: Standalone script at bottom of `password.ts` used Node.js `process.argv`
+- Workers runtime doesn't have Node.js globals
+
+**Resolution:**
+- Moved standalone script to `scripts/generate-password-hash.ts`
+- Installed `tsx` dev dependency for TypeScript script execution
+- Cleaned up `password.ts` to only export runtime functions
+- Dev server now starts successfully ✅
+
 ## Notes
 - All backend APIs functional and tested
+- Dev server verified working with KV + R2 bindings
 - Frontend integration (Phase 3b/3c) still pending
 - Ready for admin UI development
 - No breaking changes to existing Phase 2 functionality

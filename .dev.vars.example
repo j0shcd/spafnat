@@ -2,15 +2,33 @@
 # Copy this file to .dev.vars and fill in actual values
 # WARNING: Never commit .dev.vars - it contains secrets!
 
-# JWT Secret (generate with: openssl rand -base64 32)
-JWT_SECRET=your-jwt-secret-here
-
-# Admin Password Hash (generate with: node functions/lib/password.ts)
-# Format: salt:hash (both base64-encoded)
-ADMIN_PASSWORD_HASH=your-password-hash-here
+# Phase 2: Contact Form & Visitor Counter
+# ========================================
 
 # Resend API Key (get from https://resend.com/api-keys)
 RESEND_API_KEY=re_your_api_key_here
 
 # Contact Form Email Recipient
 CONTACT_RECIPIENT=joshua@cohendumani.com
+
+
+# Phase 3: Admin Panel & File Management
+# =======================================
+
+# JWT Secret - Generate with:
+#   echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars
+JWT_SECRET=your-jwt-secret-here
+
+# Admin Password Hash - Generate with:
+#   npx tsx scripts/generate-password-hash.ts your-password
+# Format: salt:hash (both base64-encoded)
+ADMIN_PASSWORD_HASH=your-password-hash-here
+
+
+# Quick Setup Commands
+# ====================
+# 1. Copy this file: cp .dev.vars.example .dev.vars
+# 2. Add your Resend API key from https://resend.com/api-keys
+# 3. Generate JWT secret: echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars
+# 4. Generate password hash: npx tsx scripts/generate-password-hash.ts admin123
+# 5. Copy the hash output and add to .dev.vars manually
