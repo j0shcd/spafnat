@@ -1,7 +1,7 @@
 import type { Env } from '../env';
 
 const COUNTER_KEY = 'counter:visitors';
-const INITIAL_COUNT = 179175;
+const INITIAL_COUNT = 184161; // Starting point for visitor count, pulled over from previous website (feb 14 2026)
 
 // IP resolution fallback chain for local dev and production
 function getClientIP(request: Request): string {
