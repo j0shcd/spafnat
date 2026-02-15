@@ -99,7 +99,7 @@ const Index = () => {
   const activities = [
     {
       title: "Revue",
-      description: "Publication de poèmes et d&apos;oeuvres artistiques",
+      description: "Publication de poèmes et d'oeuvres artistiques",
       icon: BookOpen,
       link: "/revue",
       color: "artistic-yellow"

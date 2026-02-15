@@ -70,7 +70,7 @@ const Congres = () => {
               <span className="font-medium">26 Septembre 2026</span>
             </div>
             <p className="text-muted-foreground">
-              Plus d&apos;information à venir dans les prochaines revues !
+              Plus d&apos;information à venir !
             </p>
 
             {/* Registration Download Button */}

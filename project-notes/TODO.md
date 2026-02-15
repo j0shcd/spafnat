@@ -178,7 +178,7 @@
 ## Production Deployment Checklist
 
 ### Step 1: Cloudflare Dashboard Setup (One-Time)
-- [ ] **Create KV Namespace**:
+- [x] **Create KV Namespace**:
   - Go to Workers & Pages > KV
   - Click "Create namespace"
   - Name: `SPAF_KV`
