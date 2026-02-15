@@ -38,6 +38,18 @@ function isValidEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
+// HTML escape to prevent XSS in email body
+function escapeHtml(text: string): string {
+  const escapeMap: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => escapeMap[char]);
+}
+
 // Validation rules
 interface ContactFormData {
   name: string;
@@ -179,10 +191,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         subject: `[SPAF Contact] ${formData.subject}`,
         text: `Message de : ${formData.name} (${formData.email})\n\nSujet : ${formData.subject}\n\nMessage :\n${formData.message}`,
         html: `
-          <p><strong>Message de :</strong> ${formData.name} (${formData.email})</p>
-          <p><strong>Sujet :</strong> ${formData.subject}</p>
+          <p><strong>Message de :</strong> ${escapeHtml(formData.name)} (${escapeHtml(formData.email)})</p>
+          <p><strong>Sujet :</strong> ${escapeHtml(formData.subject)}</p>
           <p><strong>Message :</strong></p>
-          <p>${formData.message.replace(/\n/g, '<br>')}</p>
+          <p>${escapeHtml(formData.message).replace(/\n/g, '<br>')}</p>
         `,
       }),
     });
