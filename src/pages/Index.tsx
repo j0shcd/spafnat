@@ -10,14 +10,90 @@ import spafLogo from "@/assets/spaf-logo.png";
 import { DOCUMENTS } from "@/config/documents";
 import { CONTACT_EMAIL } from "@/config/contact";
 import { toast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 const Index = () => {
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+    website: '', // Honeypot field
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Fetch and increment visitor count on mount
+    const incrementVisitorCount = async () => {
+      try {
+        const response = await fetch('/api/visit', {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setVisitorCount(data.count);
+        }
+      } catch (error) {
+        console.error('Failed to fetch visitor count:', error);
+        // Leave visitorCount as null to hide the card
+      }
+    };
+
+    incrementVisitorCount();
+  }, []);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message envoyé",
-      description: "Votre message a été transmis. Nous vous répondrons rapidement.",
-    });
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Message envoyé",
+          description: "Votre message a été transmis. Nous vous répondrons rapidement.",
+        });
+        // Clear form on success
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+          website: '',
+        });
+      } else {
+        // Show specific validation errors if available
+        const errorMessage = data.details && Array.isArray(data.details)
+          ? data.details.join('. ')
+          : data.error || "Échec de l'envoi du message. Veuillez réessayer.";
+
+        toast({
+          title: "Erreur",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const activities = [
@@ -109,7 +185,7 @@ const Index = () => {
             </h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className={`grid grid-cols-1 gap-6 mb-8 ${visitorCount !== null ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-2xl mx-auto'}`}>
             <Card className="text-center">
               <CardContent className="p-6">
                 <div className="text-3xl font-serif-title font-bold text-accent mb-2">11</div>
@@ -122,12 +198,16 @@ const Index = () => {
                 <p className="font-sans text-muted-foreground">Membres</p>
               </CardContent>
             </Card>
-            <Card className="text-center">
-              <CardContent className="p-6">
-                <div className="text-3xl font-serif-title font-bold text-accent mb-2">179&apos;175</div>
-                <p className="font-sans text-muted-foreground">Visiteurs</p>
-              </CardContent>
-            </Card>
+            {visitorCount !== null && (
+              <Card className="text-center">
+                <CardContent className="p-6">
+                  <div className="text-3xl font-serif-title font-bold text-accent mb-2">
+                    {visitorCount.toLocaleString('fr-CH')}
+                  </div>
+                  <p className="font-sans text-muted-foreground">Visiteurs</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="text-center">
@@ -516,30 +596,70 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleContactSubmit} className="space-y-4">
+                  {/* Honeypot field - hidden from humans, traps bots */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    className="absolute opacity-0 -z-10"
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    autoComplete="off"
+                  />
+
                   <div className="space-y-2">
                     <Label htmlFor="name" className="font-sans">Nom complet</Label>
-                    <Input id="name" placeholder="Votre nom" required />
+                    <Input
+                      id="name"
+                      placeholder="Votre nom (max 200 caractères)"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      disabled={isSubmitting}
+                      maxLength={200}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email" className="font-sans">Email</Label>
-                    <Input id="email" type="email" placeholder="votre@email.com" required />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="votre@email.com"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      disabled={isSubmitting}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="subject" className="font-sans">Sujet</Label>
-                    <Input id="subject" placeholder="Sujet de votre message" required />
+                    <Input
+                      id="subject"
+                      placeholder="Sujet de votre message (max 300 caractères)"
+                      required
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      disabled={isSubmitting}
+                      maxLength={300}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message" className="font-sans">Message</Label>
-                    <Textarea 
-                      id="message" 
-                      placeholder="Votre message..." 
+                    <Textarea
+                      id="message"
+                      placeholder="Votre message (max 5000 caractères)..."
                       rows={5}
-                      required 
+                      required
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      disabled={isSubmitting}
+                      maxLength={5000}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
                     <Mail className="h-4 w-4 mr-2" />
-                    Envoyer le message
+                    {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
                   </Button>
                 </form>
               </CardContent>
