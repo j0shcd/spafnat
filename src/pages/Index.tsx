@@ -612,7 +612,7 @@ const Index = () => {
                     <Label htmlFor="name" className="font-sans">Nom complet</Label>
                     <Input
                       id="name"
-                      placeholder="Votre nom (max 200 caractères)"
+                      placeholder="Votre nom"
                       required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -636,7 +636,7 @@ const Index = () => {
                     <Label htmlFor="subject" className="font-sans">Sujet</Label>
                     <Input
                       id="subject"
-                      placeholder="Sujet de votre message (max 300 caractères)"
+                      placeholder="Sujet de votre message"
                       required
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
@@ -648,7 +648,7 @@ const Index = () => {
                     <Label htmlFor="message" className="font-sans">Message</Label>
                     <Textarea
                       id="message"
-                      placeholder="Votre message (max 5000 caractères)..."
+                      placeholder="Votre message... (max 5000 caractères)"
                       rows={5}
                       required
                       value={formData.message}
