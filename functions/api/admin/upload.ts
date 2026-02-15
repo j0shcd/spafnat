@@ -1,0 +1,109 @@
+import type { Env } from '../../env';
+import { jsonResponse } from '../../lib/helpers';
+import {
+  validateFile,
+  sanitizeFilename,
+  getFileExtension,
+} from '../../lib/file-validation';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+/**
+ * POST /api/admin/upload
+ * Upload file to R2 storage
+ * Requires multipart/form-data with:
+ *  - file: File to upload
+ *  - type: "document" or "photo"
+ *  - key: Document key (for documents) or year (for photos)
+ *
+ * Protected by admin middleware
+ */
+export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+  try {
+    // 1. Check Content-Length header (early reject, but don't trust it)
+    const contentLength = request.headers.get('Content-Length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
+      return jsonResponse(
+        { error: `Fichier trop volumineux (max ${MAX_FILE_SIZE / (1024 * 1024)} MB)` },
+        413
+      );
+    }
+
+    // 2. Parse multipart form data
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return jsonResponse({ error: 'Échec du parsing du formulaire' }, 400);
+    }
+
+    // 3. Extract fields
+    const file = formData.get('file') as File | null;
+    const type = formData.get('type') as string | null;
+    const key = formData.get('key') as string | null;
+
+    if (!file || !type || !key) {
+      return jsonResponse({ error: 'Champs manquants (file, type, key requis)' }, 400);
+    }
+
+    if (type !== 'document' && type !== 'photo') {
+      return jsonResponse({ error: 'Type invalide (document ou photo uniquement)' }, 400);
+    }
+
+    // 4. Validate file size (actual file, not header)
+    if (file.size > MAX_FILE_SIZE) {
+      return jsonResponse(
+        { error: `Fichier trop volumineux (max ${MAX_FILE_SIZE / (1024 * 1024)} MB)` },
+        413
+      );
+    }
+
+    // 5. Validate file (MIME type + extension + magic bytes)
+    const validation = await validateFile(file, MAX_FILE_SIZE);
+    if (!validation.valid) {
+      return jsonResponse({ error: validation.error }, 400);
+    }
+
+    // 6. Determine R2 key based on type
+    let r2Key: string;
+
+    if (type === 'document') {
+      // Documents: documents/{key}.pdf
+      const ext = getFileExtension(file.name);
+      r2Key = `documents/${key}${ext}`;
+    } else {
+      // Photos: congres/{year}/{sanitized-filename}
+      const year = key; // For photos, key is the year
+      const sanitized = sanitizeFilename(file.name, false);
+      r2Key = `congres/${year}/${sanitized}`;
+
+      // Check for collision and add timestamp if needed
+      const existing = await env.SPAF_MEDIA.head(r2Key);
+      if (existing) {
+        const timestampedName = sanitizeFilename(file.name, true);
+        r2Key = `congres/${year}/${timestampedName}`;
+      }
+    }
+
+    // 7. Upload to R2
+    const arrayBuffer = await file.arrayBuffer();
+    await env.SPAF_MEDIA.put(r2Key, arrayBuffer, {
+      httpMetadata: {
+        contentType: file.type,
+      },
+      customMetadata: {
+        originalFilename: file.name,
+        uploadedAt: new Date().toISOString(),
+      },
+    });
+
+    return jsonResponse({
+      success: true,
+      r2Key,
+      url: `/api/media/${r2Key}`,
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return jsonResponse({ error: 'Échec du téléchargement' }, 500);
+  }
+};

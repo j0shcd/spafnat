@@ -3,9 +3,15 @@ compatibility_date = "2024-01-01"
 
 # This file is gitignored — used only for local development
 # Production bindings are configured in Cloudflare Dashboard
-# Local dev: npx wrangler pages dev dist --kv SPAF_KV
+# Local dev: npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
 
 # KV namespace binding for local development
 # [[kv_namespaces]]
 # binding = "SPAF_KV"
 # id = "your-namespace-id-here"
+
+# R2 bucket binding for local development
+[[r2_buckets]]
+binding = "SPAF_MEDIA"
+bucket_name = "spaf-media"
+preview_bucket_name = "spaf-media-preview"
