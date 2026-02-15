@@ -107,20 +107,4 @@ export async function hashPassword(password: string): Promise<string> {
   return `${saltB64}:${hashB64}`;
 }
 
-/**
- * Standalone script for generating password hashes
- * Run with: node --experimental-modules functions/lib/password.ts <password>
- */
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const password = process.argv[2];
-  if (!password) {
-    console.error('Usage: node functions/lib/password.ts <password>');
-    process.exit(1);
-  }
-
-  hashPassword(password).then((hash) => {
-    console.log(`\nGenerated ADMIN_PASSWORD_HASH:\n${hash}\n`);
-    console.log('Add this to your .dev.vars file:');
-    console.log(`ADMIN_PASSWORD_HASH=${hash}\n`);
-  });
-}
+// Note: Standalone script moved to scripts/generate-password-hash.ts to avoid Workers runtime errors
