@@ -15,7 +15,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  logout: () => Promise<void>;
+  logout: (redirectTo?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -61,10 +61,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return { ok: false, error: response.error || 'Login failed' };
   };
 
-  const logout = async () => {
+  const logout = async (redirectTo: string = '/admin/login') => {
     await apiLogout();
     setToken(null);
-    navigate('/admin/login');
+    // Use window.location for external navigation (outside admin routes)
+    if (redirectTo.startsWith('/admin')) {
+      navigate(redirectTo);
+    } else {
+      window.location.href = redirectTo;
+    }
   };
 
   return (
