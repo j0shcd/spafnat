@@ -18,7 +18,7 @@ async function main() {
   }
 
   console.log('\nGenerating PBKDF2 password hash...');
-  console.log('(600,000 iterations, this may take a few seconds)\n');
+  console.log('(100,000 iterations - Cloudflare Workers limit)\n');
 
   const hash = await hashPassword(password);
 

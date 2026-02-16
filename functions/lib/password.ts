@@ -1,9 +1,10 @@
 /**
  * Password hashing utilities using PBKDF2-SHA256
- * OWASP 2023 recommendation: 600,000 iterations for PBKDF2-SHA256
+ * Using 100,000 iterations (Cloudflare Workers max limit)
+ * Note: OWASP 2023 recommends 600k, but Cloudflare Workers caps at 100k
  */
 
-const ITERATIONS = 600000;
+const ITERATIONS = 100000;
 const SALT_LENGTH = 16; // 16 bytes = 128 bits
 const HASH_LENGTH = 32; // 32 bytes = 256 bits
 
