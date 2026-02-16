@@ -143,13 +143,15 @@
 - **CSP**: Deferred — non-CSP headers ship now, CSP added once in prod and third-party needs clear
 - **wrangler.toml**: Gitignored (contains environment-specific config)
 
-## Phase 3: Admin Panel + File Management (~5-8 days)
+## Phase 3: Admin Panel + File Management ✅ (Completed 2026-02-16)
 
-**Status**: Phase 3a Complete ✅ (2026-02-15). Phase 3b + 3c remaining.
+**Status**: Phase 3a Complete ✅ (2026-02-15). Phase 3b Complete ✅ (2026-02-16). Phase 3c Complete ✅ (2026-02-16).
 
 **Scope**: Enable non-technical president (~70 years old) to manage PDFs and congress photos independently via simple admin panel. Uses Cloudflare R2 for file storage, JWT auth for single admin, and elderly-user-friendly UI.
 
-**Broken into 3 sub-phases**: 3a (auth + backend APIs) ✅, 3b (admin UI), 3c (gallery + document integration)
+**Broken into 3 sub-phases**: 3a (auth + backend APIs) ✅, 3b (admin UI) ✅, 3c (gallery + document integration) ✅
+
+**Total time**: 2 days (2026-02-15 to 2026-02-16)
 
 ### Pre-Phase 3 Cleanup ✅
 - [x] Delete `src/tests/security.test.ts` (28 failing integration tests, superseded by `tests/security/`)
@@ -200,79 +202,134 @@
 
 **Session Notes**: `project-notes/sessions/2026-02-15-phase3a-implementation.md`
 
-### Phase 3b: Admin UI (~2-3 days)
+### Phase 3b: Admin UI ✅ (Completed 2026-02-16)
 
 **Frontend files**:
-- [ ] Create `src/contexts/AuthContext.tsx` — Auth state management (token, login, logout, isAuthenticated)
-- [ ] Create `src/hooks/useAdminApi.ts` — Authenticated fetch wrapper, auto-logout on 401
-- [ ] Create `src/hooks/useDocumentUrl.ts` — Document URL resolution (R2 first, local fallback)
-- [ ] Create `src/components/admin/ProtectedRoute.tsx` — Route guard (shows login if not authenticated)
-- [ ] Create `src/components/admin/AdminLayout.tsx` — Simple top bar + content area (no public Header/Footer)
-- [ ] Create `src/pages/admin/AdminLogin.tsx` — Password-only login form
-- [ ] Create `src/pages/admin/AdminDashboard.tsx` — Overview with Documents + Photos sections
-- [ ] Create `src/pages/admin/AdminDocuments.tsx` — 8 document slots, upload/replace/delete, status badges
-- [ ] Create `src/pages/admin/AdminPhotos.tsx` — Year selector, photo grid, batch upload, delete with confirmation
-- [ ] Modify `src/AppRoutes.tsx` — Add `/admin/*` routes outside Layout wrapper (use AdminLayout instead)
+- [x] Create `src/contexts/AuthContext.tsx` — Auth state management (token, login, logout, isAuthenticated)
+- [x] Create `src/lib/admin-api.ts` — Authenticated fetch wrapper, auto-logout on 401
+- [x] Create `src/hooks/useDocumentUrl.ts` — Document URL resolution (R2 first, local fallback) — created but not yet integrated (Phase 3c)
+- [x] Create `src/components/admin/RequireAuth.tsx` — Route guard (redirects to login if not authenticated)
+- [x] Create `src/components/admin/AdminLayout.tsx` — Sidebar navigation, top bar, "Retour au site" button
+- [x] Create `src/pages/admin/AdminLogin.tsx` — Password-only login form
+- [x] Create `src/pages/admin/AdminDashboard.tsx` — Simplified to redirect to /admin/documents
+- [x] Create `src/pages/admin/AdminDocuments.tsx` — 8 document slots, upload/replace/delete, status badges, original filename display
+- [x] Create `src/pages/admin/AdminPhotos.tsx` — Year selector (2010-2026), photo grid, multi-file upload, batch delete with confirmation
+- [x] Modify `src/App.tsx` — Add `/admin/*` routes outside Layout wrapper (use AdminLayout instead)
 
 **Tests**:
-- [ ] Create `src/test/admin/admin-pages.test.tsx` — Smoke tests (login renders, dashboard renders, protected route blocks)
+- [x] Create `src/test/admin.test.tsx` — Smoke tests (login renders, dashboard redirects, documents/photos pages render)
 
 **UX checklist** (elderly user):
 - [x] Large fonts (16px+ body, 18px+ labels)
 - [x] High contrast (SPAF brown on cream)
 - [x] Big touch targets (44px+ buttons)
 - [x] Clear French labels (no jargon)
-- [ ] Confirmation dialogs before delete
-- [ ] Green/red badges for document status
-- [ ] Toast messages for success/error
-- [ ] Upload progress indicators
+- [x] Confirmation dialogs before delete (single + batch)
+- [x] Green/red badges for document status
+- [x] Toast messages for success/error
+- [x] Upload progress indicators (multi-file)
+
+**Bug Fixes (2026-02-16)**:
+- [x] Fixed API endpoint path mismatches (/api/auth/ vs /api/admin/)
+- [x] Fixed field name mismatches (upload/delete APIs)
+- [x] Fixed data structure unwrapping (files/photos arrays)
+- [x] Improved error messages for non-technical user
+- [x] Fixed R2 binding validation and debug logging
+- [x] Fixed document key handling (filename vs camelCase)
+- [x] Fixed delete endpoint .pdf duplication
+
+**Polish (2026-02-16 PM)**:
+- [x] Removed year assumptions from document config (bulletin_adhesion_2026.pdf → bulletin_adhesion.pdf, extrait_revue_264.pdf → extrait_revue.pdf)
+- [x] Added original filename display (R2 head() calls for customMetadata)
+- [x] Fixed logout behavior ("Retour au site" now logs out and navigates to public homepage)
+- [x] Extended photo gallery years to 2010-2026 (was 2020-2026)
+- [x] Localhost rate limit bypass for login (dev convenience)
+- [x] Dashboard simplified to redirect to documents
 
 **Verification**:
-- [ ] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean
-- [ ] Manual test: Navigate to `/admin`, login, upload document, upload photos, delete file, logout
+- [x] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean ✅
+- [x] Manual test: Navigate to `/admin`, login, upload document, upload photos, delete file, logout ✅
+- [x] Tested in production preview deployment ✅
 
-### Phase 3c: Gallery + Document Integration (~1-2 days)
+**Commits**:
+- [x] `fix: skip login rate limiting for localhost development`
+- [x] `refactor: simplify admin dashboard to redirect to documents`
+- [x] `fix: remove year assumptions from document config`
+- [x] `fix: display original filename in admin document cards`
+- [x] `fix: logout and navigate to main site from admin panel`
+- [x] `fix: extend photo gallery years back to 2010`
 
-**Files to modify**:
-- [ ] Modify `src/config/documents.ts` — Add `r2Key` field to Document interface
-- [ ] Modify `src/pages/Congres.tsx` — Fetch photos from `/api/gallery?year=`, display from `/api/media/`
-- [ ] Modify `src/pages/Index.tsx` — Use R2-aware document URLs (via `useDocumentUrl` hook)
-- [ ] Modify `src/pages/Concours.tsx` — Use R2-aware document URLs
-- [ ] Modify `src/pages/Revue.tsx` — Use R2-aware document URLs
+### Phase 3c: Gallery + Document Integration ✅ (Completed 2026-02-16)
+
+**Files created**:
+- [x] Create `functions/api/gallery/years.ts` — Returns list of years with congress photos (used for year selector)
+
+**Files modified**:
+- [x] ~~Modify `src/config/documents.ts`~~ — Not needed (hook extracts filename from existing `path` field)
+- [x] Modify `src/pages/Congres.tsx` — Fetch photos from `/api/gallery?year=`, display from `/api/media/`, integrate `useDocumentUrl` for inscription button
+- [x] Modify `src/pages/Index.tsx` — Use R2-aware document URLs for 3 documents (bulletinAdhesion, appelPoetes, haikuNadineNajman)
+- [x] Modify `src/pages/Concours.tsx` — Use R2-aware document URLs for 2 documents (palmaresPoetique, palmaresArtistique)
+- [x] Modify `src/pages/Revue.tsx` — Use R2-aware document URL for extraitRevue
+- [x] Modify `src/components/Footer.tsx` — Use R2-aware document URL for formulaireConfidentialite
 
 **Tests**:
-- [ ] Create `src/test/gallery.test.tsx` — Gallery fetches from API, shows loading state, handles empty state
-- [ ] Verify existing page tests still pass with R2 document URL changes
+- [x] Create `src/tests/gallery.test.tsx` — Gallery fetches from API, shows loading state, handles empty state, renders photo grid (4 tests)
+- [x] Verify existing page tests still pass with R2 document URL changes (120 tests passing)
+
+**Bug Fixes & Polish (2026-02-16 Evening)**:
+- [x] Fixed document availability checking — buttons now correctly reflect R2 state
+  - [x] Added `onRequestHead` handler to media endpoint (was only GET, HEAD failed)
+  - [x] Changed Footer.tsx to use `useDocumentUrl` hook instead of hardcoded `available` field
+  - [x] Added cache-busting to HEAD requests (`?_=${Date.now()}` + `cache: 'no-store'`)
+  - [x] Added window focus listener to re-check availability after navigating back from admin
+- [x] Fixed photo gallery dialog layout shifts
+  - [x] Set fixed 70vh height container for images
+  - [x] Added min-width to navigation buttons for stable positioning
+- [x] Removed trophy/award icons from Concours page (cleaner design)
+- [x] Changed Concours download buttons to primary red brand color
+- [x] Updated test expectations for new section titles ("Grands Prix de Poésie" / "Grands Prix Artistiques")
 
 **Documentation**:
-- [ ] Write French user guide (1-page PDF) — Login, upload/delete files, troubleshooting
+- [ ] Write French user guide (1-page PDF) — Login, upload/delete files, troubleshooting (Phase 4)
 
 **Verification**:
-- [ ] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean
-- [ ] Congres page shows photos from R2 for years with photos
-- [ ] Congres page shows "Photos a venir" for years without photos
-- [ ] Document downloads work from R2 with local fallback
-- [ ] No regressions in existing pages (visitor counter, contact form)
+- [x] `npm run preflight` — All Cloudflare compatibility checks passed ✅
+- [x] `npm run typecheck` — No type errors ✅
+- [x] `npm run lint` — 0 errors, 8 warnings (fast refresh in shadcn components) ✅
+- [x] `npm run test:run` — All 120 tests passing ✅
+- [x] `npm run build` — Production build successful ✅
+- [x] Manual: Congres page shows photos from R2 for years with photos ✅
+- [x] Manual: Congres page shows "Photos a venir" for years without photos ✅
+- [x] Manual: Document downloads work from R2, buttons grey out when deleted ✅
+- [x] Manual: No regressions in existing pages (visitor counter, contact form) ✅
 
-### Phase 3 Cloudflare Dashboard Setup (Manual, Before Deployment)
+**Commits**:
+- [x] `fix: Phase 3c complete - document availability, photo gallery polish, and cache fixes`
 
-- [ ] **Create R2 bucket**: Go to R2 > Create bucket > Name: `spaf-media`
-- [ ] **Add env vars** (Settings > Environment variables):
-  - `JWT_SECRET` — Generate with `openssl rand -base64 32`
-  - `ADMIN_PASSWORD_HASH` — Generate with Node REPL: `bcrypt.hashSync('password', 10)`
-- [ ] **Add R2 binding** (Settings > Functions > R2 bucket bindings):
-  - Variable name: `SPAF_MEDIA`
-  - R2 bucket: `spaf-media`
+### Phase 3 Cloudflare Dashboard Setup ✅
+
+- [x] **Create R2 buckets**: `spaf-media` (production) and `spaf-media-preview` (preview)
+- [x] **Add env vars** (Settings > Environment variables):
+  - `JWT_SECRET` — Generated with `openssl rand -base64 32` ✅
+  - `ADMIN_PASSWORD_HASH` — Generated with `npx tsx scripts/generate-password-hash.ts` ✅
+- [x] **Add R2 bindings** (Settings > Functions > R2 bucket bindings):
+  - Production: Variable name `SPAF_MEDIA` → R2 bucket `spaf-media` ✅
+  - Preview: Variable name `SPAF_MEDIA` → R2 bucket `spaf-media-preview` ✅
+- [x] **Add KV binding**: `SPAF_KV` namespace configured for both Production and Preview ✅
 
 ### Phase 3 Key Decisions
 
-- **Auth**: JWT with jose (edge-native), bcryptjs for password hashing, 24h token expiration, KV session storage for revocation
-- **R2 structure**: `documents/{key}.pdf` and `congres/{year}/{filename}` (maps to config keys, organized by year)
+- **Auth**: JWT with jose (edge-native), PBKDF2 for password hashing (100k iterations), 24h token expiration, KV session storage for revocation
+- **R2 structure**: `documents/{filename}` (year-agnostic) and `congres/{year}/{filename}` (organized by year)
+- **R2 metadata**: Upload stores `originalFilename` in customMetadata (requires `head()` to fetch, not available in `list()`)
 - **File limits**: 5 MB max upload size (within Workers free tier)
 - **Thumbnails**: No — serve original photos only (president uploads reasonably-sized images)
-- **Admin password**: Stored as bcrypt hash in `ADMIN_PASSWORD_HASH` env var (rotated manually in Dashboard)
+- **Admin password**: Stored as PBKDF2 hash in `ADMIN_PASSWORD_HASH` env var (rotated manually in Dashboard)
 - **Public vs protected**: Media endpoint public (read-only, no directory listing), admin endpoints protected (JWT required)
-- **Elderly UX**: Large fonts, simple two-section dashboard, confirmation dialogs, green/red status badges
+- **Elderly UX**: Large fonts, simplified dashboard (redirect to documents), confirmation dialogs, green/red status badges, original filename display
+- **Photo years**: 2010-currentYear (auto-expands each January), Phase 4 enhancement for manual year creation
+- **Year-agnostic design**: Document config uses generic filenames (no hardcoded years/issue numbers) for rotating documents
+- **Logout flexibility**: AuthContext logout() accepts optional redirectTo parameter for flexible navigation
 
 ## Phase 4: Polish (Deferrable)
 
@@ -285,12 +342,13 @@
 
 ## Validation Checklist (Before Each Deployment)
 
+- [x] `npm run preflight` — All Cloudflare compatibility checks pass ✅
 - [x] `npm run typecheck` — no TS errors ✅
-- [x] `npm run lint` — 0 errors, 7 warnings (fast refresh in shadcn components) ✅
-- [x] `npm run test:run` — all 52 tests pass (28 smoke + 24 security unit tests) ✅
+- [x] `npm run lint` — 0 errors, 8 warnings (fast refresh in shadcn components) ✅
+- [x] `npm run test:run` — all 120 tests pass ✅
 - [x] `npm run build` — builds successfully ✅
-- [ ] Manual review: open each page, check content, click all buttons/links
-- [ ] For Cloudflare features: test with `npx wrangler pages dev dist`
+- [x] Manual review: open each page, check content, click all buttons/links ✅
+- [x] For Cloudflare features: test with `npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA` ✅
 
 ## Production Deployment Checklist
 
