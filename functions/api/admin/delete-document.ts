@@ -4,8 +4,8 @@ import { jsonResponse } from '../../lib/helpers';
 /**
  * POST /api/admin/delete-document
  * Delete a document from R2 storage
- * Expects: { key: "bulletin_adhesion_2026.pdf" } (full filename)
- * Deletes: documents/bulletin_adhesion_2026.pdf
+ * Expects: { key: "bulletin_adhesion.pdf" } (full filename)
+ * Deletes: documents/bulletin_adhesion.pdf
  *
  * Protected by admin middleware
  */

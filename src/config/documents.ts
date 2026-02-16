@@ -16,8 +16,8 @@ export interface Document {
 export const DOCUMENTS = {
   // Membership & General Documents
   bulletinAdhesion: {
-    path: "/documents/bulletin_adhesion_2026.pdf",
-    label: "Bulletin d'adhésion 2026",
+    path: "/documents/bulletin_adhesion.pdf",
+    label: "Bulletin d'adhésion",
     available: true,
   },
 
@@ -42,15 +42,15 @@ export const DOCUMENTS = {
 
   // Congrès (Congress)
   inscriptionCongres: {
-    path: "/documents/inscription_congres_2026.pdf",
-    label: "Inscription Congrès 2026",
+    path: "/documents/inscription_congres.pdf",
+    label: "Inscription Congrès",
     available: false, // To be provided
   },
 
   // Revue (Magazine)
   extraitRevue: {
-    path: "/documents/extrait_revue_264.pdf",
-    label: "Extrait de la Revue N°264",
+    path: "/documents/extrait_revue.pdf",
+    label: "Extrait de la Revue",
     available: false, // To be provided
   },
 
