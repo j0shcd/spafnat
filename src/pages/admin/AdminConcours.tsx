@@ -98,6 +98,21 @@ export default function AdminConcours() {
       return;
     }
 
+    // Check for duplicate filename in this category
+    const existingItems = categories[category].items;
+    const duplicate = existingItems.find(
+      item => item.originalFilename.toLowerCase() === file.name.toLowerCase()
+    );
+
+    if (duplicate) {
+      toast({
+        title: 'Fichier existant',
+        description: `Un fichier nommé "${file.name}" existe déjà dans cette catégorie. Veuillez renommer le fichier ou supprimer l'ancien.`,
+        variant: 'default',
+      });
+      return;
+    }
+
     // Set uploading state
     setCategories((prev) => ({
       ...prev,

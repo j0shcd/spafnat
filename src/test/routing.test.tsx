@@ -65,7 +65,8 @@ describe('App Routing', () => {
 
   it('renders Revue page at /revue', () => {
     renderWithRouter('/revue');
-    expect(screen.getByText(/Notre Revue/i)).toBeInTheDocument();
+    // "Notre Revue" appears in header and "Notre Histoire" section
+    expect(screen.getAllByText(/Notre Revue/i)[0]).toBeInTheDocument();
   });
 
   it('renders Delegations page at /delegations', () => {

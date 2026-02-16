@@ -96,7 +96,8 @@ describe('Pages Smoke Tests', () => {
   describe('Revue Page', () => {
     it('renders without crashing', () => {
       render(<Revue />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Notre Revue/i)).toBeInTheDocument();
+      // "Notre Revue" appears in header and "Notre Histoire" section
+      expect(screen.getAllByText(/Notre Revue/i)[0]).toBeInTheDocument();
     });
 
     it('displays current issue', () => {

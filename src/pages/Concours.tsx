@@ -34,12 +34,14 @@ const Concours = () => {
   const palmaresPoetique = data?.['palmares-poetique'] || [];
   const palmaresArtistique = data?.['palmares-artistique'] || [];
 
-  const renderDownloadButton = (item: ConcoursItem, showPrimary = false) => (
+  const renderDownloadButton = (item: ConcoursItem, showPrimary = false, isPalmares = false) => (
     <Button
       key={item.r2Key}
       variant={showPrimary ? "default" : "outline"}
       className={`flex items-center space-x-2 ${
-        showPrimary ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""
+        showPrimary || isPalmares
+          ? "bg-primary hover:bg-primary/90 text-primary-foreground border-primary"
+          : ""
       }`}
       onClick={() => window.open(`/api/media/${item.r2Key}`, '_blank')}
     >
@@ -78,7 +80,7 @@ const Concours = () => {
                 <p className="text-sm font-medium text-muted-foreground mb-2">
                   Dernier palmarès
                 </p>
-                {renderDownloadButton(latest, true)}
+                {renderDownloadButton(latest, true, true)}
               </div>
 
               {/* Previous palmares (collapsible) */}
@@ -97,7 +99,7 @@ const Concours = () => {
 
                   {expanded && (
                     <div className="flex flex-col gap-2 pl-4">
-                      {previous.map(item => renderDownloadButton(item))}
+                      {previous.map(item => renderDownloadButton(item, false, true))}
                     </div>
                   )}
                 </div>
@@ -164,14 +166,14 @@ const Concours = () => {
             setArtistiqueExpanded
           )}
 
-          {/* Information Card */}
+          {/* Information Card
           <Card className="bg-muted/30">
             <CardContent className="p-6">
               <p className="font-sans text-sm text-muted-foreground text-center">
                 Pour participer aux prochains concours, consultez nos délégations régionales ou contactez-nous directement.
               </p>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>

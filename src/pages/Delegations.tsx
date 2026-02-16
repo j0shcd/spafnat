@@ -93,20 +93,6 @@ const delegations = [
           </CardContent>
         </Card>
 
-        {/* Payment Instructions */}
-        <Card className="mb-12 bg-muted/30">
-          <CardHeader>
-            <CardTitle className="font-serif-title text-xl text-primary">
-              Modalités de paiement
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="font-sans text-foreground">
-            <p>
-              Le montant de l'abonnement et celui de la cotisation sont à verser au délégué par chèque libellé à son nom.
-            </p>
-          </CardContent>
-        </Card>
-
         {/* Delegations Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {delegations.map((delegation, index) => (
@@ -135,6 +121,20 @@ const delegations = [
           ))}
         </div>
 
+        {/* Payment Instructions */}
+        <Card className="mb-12 bg-muted/30">
+          <CardHeader>
+            <CardTitle className="font-serif-title text-xl text-primary">
+              Modalités de paiement
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="font-sans text-foreground">
+            <p>
+              Le montant de l'abonnement et celui de la cotisation sont à verser au délégué par chèque libellé à son nom.
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Treasurer Contact */}
         <Card className="mt-12 bg-muted/30">
           <CardHeader>
@@ -144,7 +144,7 @@ const delegations = [
           </CardHeader>
           <CardContent className="font-sans text-foreground space-y-2">
             <p>
-              Si votre délégation n'a pas encore de responsable, envoyez directement à la trésorière votre cotisation :
+              Si votre région n'a pas encore de responsable, envoyez directement à la trésorière votre cotisation :
             </p>
             <div className="pl-4 border-l-2 border-accent">
               <p className="font-semibold">Mme LECORDIER Flore</p>

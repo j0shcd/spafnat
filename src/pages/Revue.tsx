@@ -229,6 +229,30 @@ const Revue = () => {
           </div>
         </div>
 
+        {/* History & Mission */}
+        <Card className="mb-12 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+          <CardHeader>
+            <CardTitle className="font-serif-title text-2xl text-primary">
+              Notre Histoire
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="font-sans text-foreground space-y-4">
+            <p className="leading-relaxed">
+              Notre revue Art et Poésie a vu le jour en 1958 avec la création de l'association.
+              Le président en est le directeur littéraire de par nos statuts et la responsabilité qu'incombe
+              sa rédaction, son financement et sa diffusion.
+            </p>
+            <p className="leading-relaxed">
+              Un rédacteur-en-chef est en fonction ainsi qu'un comité de rédaction.
+              La revue permet aux membres, poètes et artistes de faire connaître leurs œuvres gracieusement.
+            </p>
+            <p className="leading-relaxed">
+              Cependant pour aider à son financement, tout membre peut faire paraître sa photo en couleurs
+              ou un poème ou une œuvre, pour la somme de vingt euros.
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Notable Contributors */}
         <Card>
           <CardHeader>
