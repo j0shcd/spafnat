@@ -7,9 +7,10 @@
  */
 
 import { useEffect, useState, useRef } from 'react';
-import { Upload, Trash2 } from 'lucide-react';
+import { Upload, Trash2, CheckSquare, Square } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -32,7 +33,11 @@ import { apiListPhotos, apiUploadPhoto, apiDeletePhoto, PhotoFile } from '@/lib/
 
 export default function AdminPhotos() {
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: currentYear - 2019 }, (_, i) => (currentYear - i).toString());
+  const startYear = 2010;
+  const years = Array.from(
+    { length: currentYear - startYear + 1 },
+    (_, i) => (currentYear - i).toString()
+  );
 
   const [selectedYear, setSelectedYear] = useState(currentYear.toString());
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
@@ -41,6 +46,9 @@ export default function AdminPhotos() {
   const [uploadProgress, setUploadProgress] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoFile | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
+  const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadPhotos = async (year: string) => {
@@ -62,6 +70,8 @@ export default function AdminPhotos() {
 
   useEffect(() => {
     loadPhotos(selectedYear);
+    setSelectionMode(false);
+    setSelectedPhotos(new Set());
   }, [selectedYear]);
 
   const handleUpload = async (files: FileList) => {
@@ -144,6 +154,56 @@ export default function AdminPhotos() {
     }
   };
 
+  const handleBatchDelete = async () => {
+    const keysToDelete = Array.from(selectedPhotos);
+    setBatchDeleteDialogOpen(false);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const key of keysToDelete) {
+      const response = await apiDeletePhoto(key);
+      if (response.ok) {
+        successCount++;
+      } else {
+        errorCount++;
+      }
+    }
+
+    setSelectedPhotos(new Set());
+    setSelectionMode(false);
+
+    if (errorCount === 0) {
+      toast({
+        title: 'Succès',
+        description: `${successCount} photo(s) supprimée(s) avec succès`,
+      });
+    } else {
+      toast({
+        title: 'Suppression partielle',
+        description: `${successCount} réussie(s), ${errorCount} échouée(s)`,
+        variant: 'destructive',
+      });
+    }
+
+    loadPhotos(selectedYear);
+  };
+
+  const togglePhotoSelection = (key: string) => {
+    const newSelection = new Set(selectedPhotos);
+    if (newSelection.has(key)) {
+      newSelection.delete(key);
+    } else {
+      newSelection.add(key);
+    }
+    setSelectedPhotos(newSelection);
+  };
+
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedPhotos(new Set());
+  };
+
   const formatFileSize = (bytes: number): string => {
     const mb = bytes / (1024 * 1024);
     if (mb < 1) {
@@ -165,48 +225,76 @@ export default function AdminPhotos() {
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="flex-1">
-          <label className="text-sm font-medium mb-2 block">Année du congrès</label>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-full sm:w-48 h-12 text-lg">
-              <SelectValue placeholder="Sélectionner l'année" />
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((year) => (
-                <SelectItem key={year} value={year} className="text-lg">
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <label className="text-sm font-medium mb-2 block">Année du congrès</label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-full sm:w-48 h-12 text-lg">
+                <SelectValue placeholder="Sélectionner l'année" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year} className="text-lg">
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-end gap-2">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              ref={fileInputRef}
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  handleUpload(e.target.files);
+                }
+                // Reset input
+                e.target.value = '';
+              }}
+            />
+            <Button
+              size="lg"
+              className="min-h-[48px] text-lg"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-5 w-5 mr-2" />
+              {isUploading ? uploadProgress : 'Téléverser des photos'}
+            </Button>
+            {photos.length > 0 && (
+              <Button
+                size="lg"
+                variant={selectionMode ? 'default' : 'outline'}
+                className="min-h-[48px] text-lg"
+                onClick={toggleSelectionMode}
+              >
+                {selectionMode ? <CheckSquare className="h-5 w-5 mr-2" /> : <Square className="h-5 w-5 mr-2" />}
+                Sélectionner
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-end">
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            ref={fileInputRef}
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > 0) {
-                handleUpload(e.target.files);
-              }
-              // Reset input
-              e.target.value = '';
-            }}
-          />
-          <Button
-            size="lg"
-            className="min-h-[48px] text-lg"
-            disabled={isUploading}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload className="h-5 w-5 mr-2" />
-            {isUploading ? uploadProgress : 'Téléverser des photos'}
-          </Button>
-        </div>
+        {/* Batch delete button (shown when photos are selected) */}
+        {selectionMode && selectedPhotos.size > 0 && (
+          <div className="flex justify-end">
+            <Button
+              size="lg"
+              variant="destructive"
+              className="min-h-[48px] text-lg"
+              onClick={() => setBatchDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-5 w-5 mr-2" />
+              Supprimer la sélection ({selectedPhotos.size})
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Photos grid */}
@@ -220,42 +308,65 @@ export default function AdminPhotos() {
         </Card>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {photos.map((photo) => (
-            <Card key={photo.key} className="overflow-hidden group">
-              <CardContent className="p-0 relative">
-                <img
-                  src={photo.url}
-                  alt={photo.key}
-                  loading="lazy"
-                  className="w-full aspect-square object-cover"
-                />
-                <div className="p-3">
-                  <p className="text-xs text-muted-foreground truncate mb-2">
-                    {photo.key.split('/').pop()}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    {formatFileSize(photo.size)}
-                  </p>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      setSelectedPhoto(photo);
-                      setDeleteDialogOpen(true);
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3 mr-2" />
-                    Supprimer
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {photos.map((photo) => {
+            const isSelected = selectedPhotos.has(photo.key);
+            return (
+              <Card
+                key={photo.key}
+                className={`overflow-hidden group ${selectionMode ? 'cursor-pointer' : ''} ${
+                  isSelected ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => {
+                  if (selectionMode) {
+                    togglePhotoSelection(photo.key);
+                  }
+                }}
+              >
+                <CardContent className="p-0 relative">
+                  <div className="relative">
+                    <img
+                      src={photo.url}
+                      alt={photo.key}
+                      loading="lazy"
+                      className="w-full aspect-square object-cover"
+                    />
+                    {/* Checkbox overlay in selection mode */}
+                    {selectionMode && (
+                      <div className="absolute top-2 right-2 bg-background rounded-md p-1 shadow-md">
+                        <Checkbox checked={isSelected} onCheckedChange={() => togglePhotoSelection(photo.key)} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground truncate mb-2">
+                      {photo.key.split('/').pop()}
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      {formatFileSize(photo.size)}
+                    </p>
+                    {!selectionMode && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedPhoto(photo);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3 mr-2" />
+                        Supprimer
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      {/* Delete confirmation dialog */}
+      {/* Delete confirmation dialog (single photo) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -270,7 +381,7 @@ export default function AdminPhotos() {
                     <img
                       src={selectedPhoto.url}
                       alt="Aperçu"
-                      className="max-w-xs rounded-md border"
+                      className="max-w-xs max-h-[40vh] object-contain rounded-md border"
                     />
                     <p className="text-sm text-muted-foreground">
                       {selectedPhoto.key.split('/').pop()}
@@ -284,6 +395,25 @@ export default function AdminPhotos() {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Batch delete confirmation dialog */}
+      <AlertDialog open={batchDeleteDialogOpen} onOpenChange={setBatchDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer <strong>{selectedPhotos.size}</strong> photo(s) ?
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBatchDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer {selectedPhotos.size} photo(s)
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
