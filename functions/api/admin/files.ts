@@ -37,7 +37,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const files = listed.objects.map((obj) => ({
       key: obj.key,
       size: obj.size,
-      uploaded: obj.uploaded.toISOString(),
+      lastModified: obj.uploaded.toISOString(),
       url: `/api/media/${obj.key}`,
     }));
 

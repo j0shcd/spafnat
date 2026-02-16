@@ -68,7 +68,7 @@ async function adminFetch<T = unknown>(
 // ===== Auth API =====
 
 export async function apiLogin(username: string, password: string): Promise<ApiResponse<{ token: string }>> {
-  const response = await adminFetch<{ token: string }>('/api/admin/login', {
+  const response = await adminFetch<{ token: string }>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
@@ -82,7 +82,7 @@ export async function apiLogin(username: string, password: string): Promise<ApiR
 }
 
 export async function apiLogout(): Promise<ApiResponse> {
-  const response = await adminFetch('/api/admin/logout', {
+  const response = await adminFetch('/api/auth/logout', {
     method: 'POST',
   });
 
@@ -93,7 +93,7 @@ export async function apiLogout(): Promise<ApiResponse> {
 }
 
 export async function apiVerify(): Promise<ApiResponse> {
-  return adminFetch('/api/admin/verify', {
+  return adminFetch('/api/auth/verify', {
     method: 'GET',
   });
 }
@@ -107,15 +107,22 @@ export interface DocumentFile {
 }
 
 export async function apiListDocuments(): Promise<ApiResponse<DocumentFile[]>> {
-  return adminFetch<DocumentFile[]>('/api/admin/files?type=documents', {
+  const response = await adminFetch<{ files: DocumentFile[]; count: number }>('/api/admin/files?type=documents', {
     method: 'GET',
   });
+
+  // Unwrap files array from response
+  if (response.ok && response.data) {
+    return { ...response, data: response.data.files };
+  }
+  return { ...response, data: [] };
 }
 
 export async function apiUploadDocument(file: File, docKey: string): Promise<ApiResponse> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('docKey', docKey);
+  formData.append('type', 'document');
+  formData.append('key', docKey);
 
   return adminFetch('/api/admin/upload', {
     method: 'POST',
@@ -126,7 +133,7 @@ export async function apiUploadDocument(file: File, docKey: string): Promise<Api
 export async function apiDeleteDocument(docKey: string): Promise<ApiResponse> {
   return adminFetch('/api/admin/delete-document', {
     method: 'POST',
-    body: JSON.stringify({ docKey }),
+    body: JSON.stringify({ key: docKey }),
   });
 }
 
@@ -140,15 +147,22 @@ export interface PhotoFile {
 }
 
 export async function apiListPhotos(year: string): Promise<ApiResponse<PhotoFile[]>> {
-  return adminFetch<PhotoFile[]>(`/api/gallery?year=${year}`, {
+  const response = await adminFetch<{ photos: PhotoFile[]; count: number; year: string }>(`/api/gallery?year=${year}`, {
     method: 'GET',
   });
+
+  // Unwrap photos array from response
+  if (response.ok && response.data) {
+    return { ...response, data: response.data.photos };
+  }
+  return { ...response, data: [] };
 }
 
 export async function apiUploadPhoto(file: File, year: string): Promise<ApiResponse> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('year', year);
+  formData.append('type', 'photo');
+  formData.append('key', year);
 
   return adminFetch('/api/admin/upload', {
     method: 'POST',
@@ -159,7 +173,7 @@ export async function apiUploadPhoto(file: File, year: string): Promise<ApiRespo
 export async function apiDeletePhoto(r2Key: string): Promise<ApiResponse> {
   return adminFetch('/api/admin/delete-photo', {
     method: 'POST',
-    body: JSON.stringify({ r2Key }),
+    body: JSON.stringify({ key: r2Key }),
   });
 }
 

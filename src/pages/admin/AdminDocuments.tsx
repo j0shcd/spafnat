@@ -58,9 +58,9 @@ export default function AdminDocuments() {
     // Map config documents to R2 files
     const r2Files = response.data || [];
     const statusList: DocumentStatus[] = Object.entries(DOCUMENTS).map(([key, doc]) => {
-      // Extract filename from path (e.g., /documents/bulletin_adhesion_2026.pdf -> bulletin_adhesion_2026)
-      const filename = doc.path.split('/').pop()?.replace('.pdf', '') || '';
-      const r2Key = `documents/${filename}.pdf`;
+      // Extract filename from path (e.g., /documents/bulletin_adhesion_2026.pdf -> bulletin_adhesion_2026.pdf)
+      const filename = doc.path.split('/').pop() || '';
+      const r2Key = `documents/${filename}`;
       const r2File = r2Files.find((f: DocumentFile) => f.key === r2Key);
 
       return {

@@ -15,25 +15,41 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     try {
       body = await request.json();
     } catch {
-      return jsonResponse({ error: 'Corps de requête invalide' }, 400);
+      console.error('Delete photo: invalid JSON');
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
     if (typeof body !== 'object' || body === null) {
-      return jsonResponse({ error: 'Corps de requête invalide' }, 400);
+      console.error('Delete photo: body is not an object');
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
     const requestBody = body as Record<string, unknown>;
 
     // Validate key
     if (!requestBody.key || typeof requestBody.key !== 'string') {
-      return jsonResponse({ error: 'Clé de photo requise' }, 400);
+      console.error('Delete photo: missing or invalid key');
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
     const key = requestBody.key;
 
     // Validate key format (must start with "congres/")
     if (!key.startsWith('congres/')) {
-      return jsonResponse({ error: 'Clé de photo invalide (doit commencer par congres/)' }, 400);
+      console.error('Delete photo: invalid key format:', key);
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
     // Check if file exists
@@ -48,6 +64,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     return jsonResponse({ success: true, deletedKey: key });
   } catch (error) {
     console.error('Delete photo error:', error);
-    return jsonResponse({ error: 'Échec de la suppression' }, 500);
+    return jsonResponse(
+      { error: 'Erreur lors de la suppression. Veuillez réessayer ou contacter joshua@cohendumani.com' },
+      500
+    );
   }
 };

@@ -35,13 +35,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         key: obj.key,
         filename,
         url: `/api/media/${obj.key}`,
-        uploadedAt: obj.uploaded.toISOString(),
+        lastModified: obj.uploaded.toISOString(),
         size: obj.size,
       };
     });
 
-    // Sort by uploadedAt (newest first)
-    photos.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+    // Sort by lastModified (newest first)
+    photos.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
 
     return jsonResponse({ photos, count: photos.length, year });
   } catch (error) {

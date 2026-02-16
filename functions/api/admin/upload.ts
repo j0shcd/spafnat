@@ -43,11 +43,19 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const key = formData.get('key') as string | null;
 
     if (!file || !type || !key) {
-      return jsonResponse({ error: 'Champs manquants (file, type, key requis)' }, 400);
+      console.error('Upload validation failed:', { hasFile: !!file, type, key });
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
     if (type !== 'document' && type !== 'photo') {
-      return jsonResponse({ error: 'Type invalide (document ou photo uniquement)' }, 400);
+      console.error('Invalid upload type:', type);
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
     // 4. Validate file size (actual file, not header)
@@ -104,6 +112,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     });
   } catch (error) {
     console.error('Upload error:', error);
-    return jsonResponse({ error: 'Échec du téléchargement' }, 500);
+    return jsonResponse(
+      { error: 'Erreur lors du téléversement. Veuillez réessayer ou contacter joshua@cohendumani.com' },
+      500
+    );
   }
 };
