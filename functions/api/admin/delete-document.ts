@@ -4,8 +4,8 @@ import { jsonResponse } from '../../lib/helpers';
 /**
  * POST /api/admin/delete-document
  * Delete a document from R2 storage
- * Expects: { key: "bulletinAdhesion" }
- * Deletes: documents/bulletinAdhesion.pdf
+ * Expects: { key: "bulletin_adhesion_2026.pdf" } (full filename)
+ * Deletes: documents/bulletin_adhesion_2026.pdf
  *
  * Protected by admin middleware
  */
@@ -44,8 +44,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     const key = requestBody.key;
 
-    // Construct R2 key (assume .pdf extension for documents)
-    const r2Key = `documents/${key}.pdf`;
+    // Construct R2 key (key is already the full filename)
+    const r2Key = `documents/${key}`;
 
     // Check if file exists
     const existing = await env.SPAF_MEDIA.head(r2Key);
