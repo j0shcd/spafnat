@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "post-edit": {
+      "command": "grep -rn 'process\\.argv\\|require(\\.\\./\\|fs\\.' src/ functions/ 2>/dev/null && echo '⚠️  WARNING: Possible Node.js-only API detected (not supported in Cloudflare Workers)' || true"
+    }
+  }
+}

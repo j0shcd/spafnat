@@ -6,6 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Website for the **Société des Poètes et Artistes de France (SPAF)**, a French poetry and arts association founded in 1958. All user-facing content is in French. Built with the Lovable platform.
 
+## Deployment Target: Cloudflare Workers/Pages
+
+**Critical runtime constraints** (non-obvious, caused production bugs):
+- **PBKDF2 max iterations: 100k** (not 600k like OWASP recommends) - Workers enforces lower limit
+- **R2/KV bindings**: Must be configured in Cloudflare Dashboard separately for Production and Preview - `wrangler.toml` only affects `wrangler dev`
+- **No Node.js APIs**: Use Web Crypto API (`crypto.subtle`), not Node.js `crypto` module
+- **Document R2 keys**: Must match filenames from `documents.ts` exactly (e.g., `bulletin_adhesion_2026.pdf`, not `bulletinAdhesion.pdf`)
+
 ## Commands
 
 ```bash
