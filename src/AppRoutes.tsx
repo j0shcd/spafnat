@@ -8,6 +8,9 @@ import Delegations from "./pages/Delegations";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDocuments from "./pages/admin/AdminDocuments";
+import AdminPhotos from "./pages/admin/AdminPhotos";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/admin/RequireAuth";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -33,9 +36,9 @@ export const AppRoutes = () => (
       }
     >
       <Route element={<AdminLayout />}>
-        <Route index element={<div>Dashboard Placeholder</div>} />
-        <Route path="documents" element={<div>Documents Placeholder</div>} />
-        <Route path="photos" element={<div>Photos Placeholder</div>} />
+        <Route index element={<AdminDashboard />} />
+        <Route path="documents" element={<AdminDocuments />} />
+        <Route path="photos" element={<AdminPhotos />} />
       </Route>
     </Route>
 
