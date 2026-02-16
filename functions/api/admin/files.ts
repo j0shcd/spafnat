@@ -32,7 +32,18 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // List objects with prefix
+    console.log('Listing R2 objects with prefix:', prefix);
+
+    if (!env.SPAF_MEDIA) {
+      console.error('SPAF_MEDIA binding not found!');
+      return jsonResponse(
+        { error: 'Configuration serveur incorrecte. Veuillez contacter joshua@cohendumani.com' },
+        500
+      );
+    }
+
     const listed = await env.SPAF_MEDIA.list({ prefix });
+    console.log('R2 list result:', { prefix, count: listed.objects.length });
 
     const files = listed.objects.map((obj) => ({
       key: obj.key,

@@ -94,6 +94,16 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // 7. Upload to R2
+    console.log('Uploading to R2:', { r2Key, size: file.size, type: file.type });
+
+    if (!env.SPAF_MEDIA) {
+      console.error('SPAF_MEDIA binding not found!');
+      return jsonResponse(
+        { error: 'Configuration serveur incorrecte. Veuillez contacter joshua@cohendumani.com' },
+        500
+      );
+    }
+
     const arrayBuffer = await file.arrayBuffer();
     await env.SPAF_MEDIA.put(r2Key, arrayBuffer, {
       httpMetadata: {
@@ -104,6 +114,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         uploadedAt: new Date().toISOString(),
       },
     });
+
+    console.log('R2 upload successful:', r2Key);
 
     return jsonResponse({
       success: true,
