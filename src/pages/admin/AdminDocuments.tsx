@@ -29,6 +29,7 @@ type DocumentStatus = {
   key: string;
   label: string;
   available: boolean;
+  filename: string; // e.g., bulletin_adhesion_2026.pdf
   size?: number;
   lastModified?: string;
 };
@@ -66,6 +67,7 @@ export default function AdminDocuments() {
       return {
         key,
         label: doc.label,
+        filename, // Store filename for upload/delete
         available: !!r2File,
         size: r2File?.size,
         lastModified: r2File?.lastModified,
@@ -79,7 +81,7 @@ export default function AdminDocuments() {
     loadDocuments();
   }, []);
 
-  const handleUpload = async (key: string, file: File) => {
+  const handleUpload = async (key: string, filename: string, file: File) => {
     if (!file.type.includes('pdf')) {
       toast({
         title: 'Erreur',
@@ -99,7 +101,7 @@ export default function AdminDocuments() {
     }
 
     setUploadingKey(key);
-    const response = await apiUploadDocument(file, key);
+    const response = await apiUploadDocument(file, key, filename);
     setUploadingKey(null);
 
     if (response.ok) {
@@ -120,7 +122,7 @@ export default function AdminDocuments() {
   const handleDelete = async () => {
     if (!selectedDoc) return;
 
-    const response = await apiDeleteDocument(selectedDoc.key);
+    const response = await apiDeleteDocument(selectedDoc.filename);
     setDeleteDialogOpen(false);
     setSelectedDoc(null);
 
@@ -195,7 +197,7 @@ export default function AdminDocuments() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    handleUpload(doc.key, file);
+                    handleUpload(doc.key, doc.filename, file);
                   }
                   // Reset input
                   e.target.value = '';

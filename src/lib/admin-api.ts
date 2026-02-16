@@ -118,11 +118,11 @@ export async function apiListDocuments(): Promise<ApiResponse<DocumentFile[]>> {
   return { ...response, data: [] };
 }
 
-export async function apiUploadDocument(file: File, docKey: string): Promise<ApiResponse> {
+export async function apiUploadDocument(file: File, docKey: string, filename: string): Promise<ApiResponse> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'document');
-  formData.append('key', docKey);
+  formData.append('key', filename); // Use actual filename, not docKey
 
   return adminFetch('/api/admin/upload', {
     method: 'POST',
@@ -130,10 +130,10 @@ export async function apiUploadDocument(file: File, docKey: string): Promise<Api
   });
 }
 
-export async function apiDeleteDocument(docKey: string): Promise<ApiResponse> {
+export async function apiDeleteDocument(filename: string): Promise<ApiResponse> {
   return adminFetch('/api/admin/delete-document', {
     method: 'POST',
-    body: JSON.stringify({ key: docKey }),
+    body: JSON.stringify({ key: filename }), // Use filename, not docKey
   });
 }
 

@@ -76,9 +76,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     let r2Key: string;
 
     if (type === 'document') {
-      // Documents: documents/{key}.pdf
-      const ext = getFileExtension(file.name);
-      r2Key = `documents/${key}${ext}`;
+      // Documents: documents/{filename} (key is already the full filename)
+      r2Key = `documents/${key}`;
     } else {
       // Photos: congres/{year}/{sanitized-filename}
       const year = key; // For photos, key is the year
