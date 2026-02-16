@@ -1,11 +1,11 @@
 /**
  * useDocumentUrl Hook
  *
- * Checks if a document exists in R2 storage and returns the appropriate URL.
- * - If document exists in R2: returns /api/media/documents/{filename}
- * - If not in R2: returns the original local path from documents.ts
- *
- * This enables gradual migration from local files to R2 without breaking links.
+ * Checks if a document exists in R2 storage and returns availability state.
+ * - Always returns the R2 URL (/api/media/documents/{filename})
+ * - Returns isAvailable=true if file exists in R2, false otherwise
+ * - No fallback to local files (R2-only approach)
+ * - Re-checks when window regains focus (to detect deletions)
  */
 
 import { useEffect, useState } from 'react';
@@ -16,38 +16,47 @@ type DocumentKey = keyof typeof DOCUMENTS;
 interface UseDocumentUrlResult {
   url: string;
   isLoading: boolean;
-  isFromR2: boolean;
+  isAvailable: boolean;
 }
 
 export function useDocumentUrl(docKey: DocumentKey): UseDocumentUrlResult {
   const document = DOCUMENTS[docKey];
-  const [url, setUrl] = useState(document.path); // Default to local path
   const [isLoading, setIsLoading] = useState(true);
-  const [isFromR2, setIsFromR2] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [checkTrigger, setCheckTrigger] = useState(0);
+
+  // Always use R2 URL (no fallback)
+  const filename = document.path.split('/').pop() || '';
+  const url = `/api/media/documents/${filename}`;
 
   useEffect(() => {
     const checkR2 = async () => {
-      // Extract filename from path
-      const filename = document.path.split('/').pop();
       if (!filename) {
         setIsLoading(false);
         return;
       }
 
-      const r2Url = `/api/media/documents/${filename}`;
+      setIsLoading(true);
 
       try {
-        // HEAD request to check if file exists in R2 (doesn't download the file)
-        const response = await fetch(r2Url, { method: 'HEAD' });
+        // HEAD request to check if file exists in R2
+        // Add cache-busting timestamp to prevent browser caching
+        const cacheBuster = `?_=${Date.now()}`;
+        const response = await fetch(url + cacheBuster, {
+          method: 'HEAD',
+          cache: 'no-store', // Prevent browser from using cached response
+        });
 
         if (response.ok) {
-          // File exists in R2, use R2 URL
-          setUrl(r2Url);
-          setIsFromR2(true);
+          // File exists in R2
+          setIsAvailable(true);
+        } else {
+          // File not in R2
+          setIsAvailable(false);
         }
-        // If not in R2, keep using the local path (already set in useState)
       } catch (error) {
-        // Network error, keep using local path
+        // Network error or file not found
+        setIsAvailable(false);
         console.warn(`Failed to check R2 for ${filename}:`, error);
       } finally {
         setIsLoading(false);
@@ -55,7 +64,17 @@ export function useDocumentUrl(docKey: DocumentKey): UseDocumentUrlResult {
     };
 
     checkR2();
-  }, [docKey, document.path]);
+  }, [docKey, filename, url, checkTrigger]);
 
-  return { url, isLoading, isFromR2 };
+  // Re-check when window regains focus (e.g., after navigating back from admin panel)
+  useEffect(() => {
+    const handleFocus = () => {
+      setCheckTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  return { url, isLoading, isAvailable };
 }
