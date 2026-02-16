@@ -14,16 +14,50 @@ Website for the **Société des Poètes et Artistes de France (SPAF)**, a French
 - **No Node.js APIs**: Use Web Crypto API (`crypto.subtle`), not Node.js `crypto` module
 - **Document R2 keys**: Must match filenames from `documents.ts` exactly (e.g., `bulletin_adhesion_2026.pdf`, not `bulletinAdhesion.pdf`)
 
+## Implementation Scope Discipline
+
+**CRITICAL: Always constrain scope before starting work**
+
+Before implementing any task:
+1. **List EXACTLY which files you will modify** based on the plan/request
+2. **Do NOT change**:
+   - UI styling, layout, or components not explicitly mentioned
+   - Test files unless specifically asked
+   - Package manager files (package.json, package-lock.json) unless adding/removing dependencies
+   - Configuration files unless part of the task
+   - Unrelated code (no "drive-by refactoring")
+3. **If you think something else needs changing, ASK FIRST** - do not assume
+
+**Template for implementation:**
+```
+I will modify these files to implement [task]:
+- src/path/to/file1.ts (add X function)
+- src/path/to/file2.tsx (integrate X)
+
+I will NOT modify:
+- UI components not mentioned
+- Test files (unless you want me to)
+- Other unrelated files
+
+Proceed? Or should I adjust scope?
+```
+
+This prevents rejected actions and correction cycles.
+
 ## Commands
 
 ```bash
-npm i            # install dependencies
-npm run dev      # dev server on port 8080
-npm run build    # production build
-npm run lint     # ESLint
+npm i                    # install dependencies
+npm run dev              # dev server on port 8080
+npm run build            # production build
+npm run lint             # ESLint
+npm run preflight        # Cloudflare compatibility checks (REQUIRED before commit)
+bash scripts/setup-hooks.sh  # Install git pre-commit hook (run once after clone)
 ```
 
 Test framework: Vitest + React Testing Library (configured in Phase 1).
+
+**First-time setup:** Run `bash scripts/setup-hooks.sh` to install the pre-commit hook that automatically runs preflight checks.
 
 ## Architecture
 
@@ -70,9 +104,17 @@ Test framework: Vitest + React Testing Library (configured in Phase 1).
 
 ## Validation Workflow
 
-Before any commit or deployment:
+**REQUIRED before every commit:**
 ```bash
-npm run typecheck && npm run lint && npm run test:run && npm run build
+npm run preflight     # Cloudflare compatibility checks
+npm run typecheck     # TypeScript validation
+npm run lint          # ESLint checks
+npm run test:run      # All tests
+npm run build         # Production build
 ```
 
-All four must pass clean.
+All five must pass clean. The preflight script catches:
+- Node.js-only APIs incompatible with Workers runtime
+- Missing dependencies
+- Hardcoded values that should use config
+- Environment variable mismatches with wrangler.toml

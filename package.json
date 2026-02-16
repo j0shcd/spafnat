@@ -16,7 +16,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preflight": "tsx scripts/preflight-check.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
