@@ -67,8 +67,8 @@ describe('Pages Smoke Tests', () => {
 
     it('displays both contest sections', () => {
       render(<Concours />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Palmarès Poétique/i)).toBeInTheDocument();
-      expect(screen.getByText(/Palmarès Artistique/i)).toBeInTheDocument();
+      expect(screen.getByText(/Grands Prix de Poésie/i)).toBeInTheDocument();
+      expect(screen.getByText(/Grands Prix Artistiques/i)).toBeInTheDocument();
     });
   });
 
