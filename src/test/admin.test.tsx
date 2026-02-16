@@ -92,15 +92,18 @@ describe('Admin UI Smoke Tests', () => {
   });
 
   describe('Admin Dashboard Page', () => {
-    it('renders without crashing', () => {
-      render(<AdminDashboard />, { wrapper: AdminWrapper });
-      expect(screen.getByText(/Bienvenue dans l'administration/i)).toBeInTheDocument();
-    });
+    it('redirects to documents page', () => {
+      const { container } = render(
+        <MemoryRouter initialEntries={['/admin']}>
+          <Routes>
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/documents" element={<div>Documents Page</div>} />
+          </Routes>
+        </MemoryRouter>
+      );
 
-    it('displays quick links', () => {
-      render(<AdminDashboard />, { wrapper: AdminWrapper });
-      expect(screen.getByText(/Gérer les documents/i)).toBeInTheDocument();
-      expect(screen.getByText(/Gérer les photos/i)).toBeInTheDocument();
+      // AdminDashboard should redirect to /admin/documents
+      expect(screen.getByText('Documents Page')).toBeInTheDocument();
     });
   });
 
