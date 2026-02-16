@@ -178,6 +178,49 @@ export async function apiDeletePhoto(r2Key: string): Promise<ApiResponse> {
   });
 }
 
+// ===== Concours API =====
+
+export interface ConcoursItem {
+  r2Key: string;
+  title: string;
+  originalFilename: string;
+  uploadedAt: string;
+  size: number;
+}
+
+export type ConcoursCategory = 'reglements' | 'palmares-poetique' | 'palmares-artistique';
+
+export async function apiListConcours(category: ConcoursCategory | 'all'): Promise<ApiResponse<Record<ConcoursCategory, ConcoursItem[]> | { items: ConcoursItem[] }>> {
+  return adminFetch(`/api/concours?category=${category}`, {
+    method: 'GET',
+  });
+}
+
+export async function apiUploadConcours(file: File, category: ConcoursCategory): Promise<ApiResponse<{ item: ConcoursItem }>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('category', category);
+
+  return adminFetch('/api/admin/concours/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function apiDeleteConcours(category: ConcoursCategory, r2Key: string): Promise<ApiResponse> {
+  return adminFetch('/api/admin/concours/delete', {
+    method: 'POST',
+    body: JSON.stringify({ category, r2Key }),
+  });
+}
+
+export async function apiReorderConcours(category: ConcoursCategory, r2Key: string, direction: 'up' | 'down'): Promise<ApiResponse<{ items: ConcoursItem[] }>> {
+  return adminFetch('/api/admin/concours/reorder', {
+    method: 'POST',
+    body: JSON.stringify({ category, r2Key, direction }),
+  });
+}
+
 // ===== Helper Functions =====
 
 export function getToken(): string | null {
