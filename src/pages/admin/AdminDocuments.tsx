@@ -7,7 +7,7 @@
  */
 
 import { useEffect, useState, useRef } from 'react';
-import { Upload, Trash2, FileText } from 'lucide-react';
+import { Upload, Trash2, FileText, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,9 +29,10 @@ type DocumentStatus = {
   key: string;
   label: string;
   available: boolean;
-  filename: string; // e.g., bulletin_adhesion_2026.pdf
+  filename: string; // e.g., bulletin_adhesion.pdf
   size?: number;
   lastModified?: string;
+  originalFilename?: string;
 };
 
 export default function AdminDocuments() {
@@ -71,6 +72,7 @@ export default function AdminDocuments() {
         available: !!r2File,
         size: r2File?.size,
         lastModified: r2File?.lastModified,
+        originalFilename: r2File?.originalFilename || undefined,
       };
     });
 
@@ -181,10 +183,19 @@ export default function AdminDocuments() {
               <CardTitle className="text-xl font-serif-title">
                 {doc.label}
               </CardTitle>
-              {doc.available && doc.size && (
-                <CardDescription className="text-sm">
-                  {formatFileSize(doc.size)}
-                </CardDescription>
+              {doc.available && (
+                <div className="space-y-1">
+                  {doc.size && (
+                    <CardDescription className="text-sm">
+                      Taille : {formatFileSize(doc.size)}
+                    </CardDescription>
+                  )}
+                  {doc.originalFilename && (
+                    <CardDescription className="text-sm font-medium">
+                      Fichier : {doc.originalFilename}
+                    </CardDescription>
+                  )}
+                </div>
               )}
             </CardHeader>
             <CardContent className="space-y-3">
@@ -213,19 +224,29 @@ export default function AdminDocuments() {
                 {uploadingKey === doc.key ? 'Téléversement...' : doc.available ? 'Remplacer' : 'Téléverser'}
               </Button>
 
-              {/* Delete button (only if document exists) */}
+              {/* View and Delete buttons (only if document exists) */}
               {doc.available && (
-                <Button
-                  variant="destructive"
-                  className="w-full min-h-[44px]"
-                  onClick={() => {
-                    setSelectedDoc(doc);
-                    setDeleteDialogOpen(true);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Supprimer
-                </Button>
+                <>
+                  <Button
+                    variant="secondary"
+                    className="w-full min-h-[44px]"
+                    onClick={() => window.open(`/api/media/documents/${doc.filename}`, '_blank')}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Voir
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    className="w-full min-h-[44px]"
+                    onClick={() => {
+                      setSelectedDoc(doc);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Supprimer
+                  </Button>
+                </>
               )}
             </CardContent>
           </Card>

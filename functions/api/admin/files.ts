@@ -45,12 +45,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const listed = await env.SPAF_MEDIA.list({ prefix });
     console.log('R2 list result:', { prefix, count: listed.objects.length });
 
-    const files = listed.objects.map((obj) => ({
-      key: obj.key,
-      size: obj.size,
-      lastModified: obj.uploaded.toISOString(),
-      url: `/api/media/${obj.key}`,
-    }));
+    // Fetch customMetadata for each file with head() since list() doesn't include it
+    const files = await Promise.all(
+      listed.objects.map(async (obj) => {
+        const metadata = await env.SPAF_MEDIA.head(obj.key);
+        return {
+          key: obj.key,
+          size: obj.size,
+          lastModified: obj.uploaded.toISOString(),
+          url: `/api/media/${obj.key}`,
+          originalFilename: metadata?.customMetadata?.originalFilename || null,
+        };
+      })
+    );
 
     return jsonResponse({ files, count: files.length });
   } catch (error) {

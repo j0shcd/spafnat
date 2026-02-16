@@ -104,6 +104,7 @@ export interface DocumentFile {
   key: string;
   size: number;
   lastModified: string;
+  originalFilename?: string | null;
 }
 
 export async function apiListDocuments(): Promise<ApiResponse<DocumentFile[]>> {
