@@ -17,12 +17,14 @@ interface UseDocumentUrlResult {
   url: string;
   isLoading: boolean;
   isAvailable: boolean;
+  originalFilename: string | null;
 }
 
 export function useDocumentUrl(docKey: DocumentKey): UseDocumentUrlResult {
   const document = DOCUMENTS[docKey];
   const [isLoading, setIsLoading] = useState(true);
   const [isAvailable, setIsAvailable] = useState(false);
+  const [originalFilename, setOriginalFilename] = useState<string | null>(null);
   const [checkTrigger, setCheckTrigger] = useState(0);
 
   // Always use R2 URL (no fallback)
@@ -50,9 +52,13 @@ export function useDocumentUrl(docKey: DocumentKey): UseDocumentUrlResult {
         if (response.ok) {
           // File exists in R2
           setIsAvailable(true);
+          // Get original filename from response header
+          const filename = response.headers.get('X-Original-Filename');
+          setOriginalFilename(filename);
         } else {
           // File not in R2
           setIsAvailable(false);
+          setOriginalFilename(null);
         }
       } catch (error) {
         // Network error or file not found
@@ -76,5 +82,5 @@ export function useDocumentUrl(docKey: DocumentKey): UseDocumentUrlResult {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
-  return { url, isLoading, isAvailable };
+  return { url, isLoading, isAvailable, originalFilename };
 }

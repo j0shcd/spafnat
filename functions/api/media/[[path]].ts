@@ -39,6 +39,9 @@ async function checkFileExists(env: Env, params: Record<string, unknown>): Promi
               ? 'image/webp'
               : 'application/octet-stream');
 
+    // 5. Get original filename from metadata
+    const originalFilename = object.customMetadata?.originalFilename || '';
+
     return new Response(null, {
       status: 200,
       headers: {
@@ -46,6 +49,8 @@ async function checkFileExists(env: Env, params: Record<string, unknown>): Promi
         'Content-Length': object.size.toString(),
         'Cache-Control': 'no-cache, no-store, must-revalidate', // No cache for availability checks
         'X-Content-Type-Options': 'nosniff',
+        'X-Original-Filename': originalFilename,
+        'Access-Control-Expose-Headers': 'X-Original-Filename',
       },
     });
   } catch (error) {
@@ -105,13 +110,18 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params })
               ? 'image/webp'
               : 'application/octet-stream');
 
-    // 5. Return file with cache headers
+    // 5. Get original filename from metadata
+    const originalFilename = object.customMetadata?.originalFilename || '';
+
+    // 6. Return file with cache headers
     return new Response(object.body, {
       status: 200,
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=86400', // 1 day
         'X-Content-Type-Options': 'nosniff',
+        'X-Original-Filename': originalFilename,
+        'Access-Control-Expose-Headers': 'X-Original-Filename',
       },
     });
   } catch (error) {

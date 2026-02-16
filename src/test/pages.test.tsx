@@ -101,7 +101,8 @@ describe('Pages Smoke Tests', () => {
 
     it('displays current issue', () => {
       render(<Revue />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Revue n°264/i)).toBeInTheDocument();
+      // Title is dynamic based on uploaded PDF, defaults to "Extrait de la Revue"
+      expect(screen.getByText(/Extrait de la Revue/i)).toBeInTheDocument();
     });
 
     it('displays subscription information', () => {

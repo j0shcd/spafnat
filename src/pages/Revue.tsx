@@ -4,10 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Download, BookOpen, Users } from "lucide-react";
 import { DOCUMENTS } from "@/config/documents";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
+import { PdfCover } from "@/components/PdfCover";
 
 const Revue = () => {
   // Get R2-aware URL for document
-  const { url: extraitUrl, isAvailable: extraitAvailable } = useDocumentUrl('extraitRevue');
+  const { url: extraitUrl, isAvailable: extraitAvailable, originalFilename } = useDocumentUrl('extraitRevue');
+
+  // Derive title from original filename or use fallback
+  const revueTitle = originalFilename
+    ? originalFilename.replace(/\.pdf$/i, '')
+    : "Extrait de la Revue";
   const contributors = [
     "Fernand GREGH, de l'Académie Française",
     "Pierre BENOIT",
@@ -138,19 +144,23 @@ const Revue = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Magazine Cover */}
           <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="aspect-[3/4] bg-gradient-to-br from-primary via-secondary to-accent relative flex items-center justify-center">
-                <div className="text-center text-primary-foreground p-8">
-                  <h3 className="font-serif-title text-3xl font-bold mb-4">
-                    SPAF REVUE
-                  </h3>
-                  <p className="font-sans text-lg mb-2">N° 264 - Janvier 2025</p>
-                  <div className="w-16 h-0.5 bg-artistic-yellow mx-auto mb-4"></div>
-                  <p className="font-serif-title text-xl italic">
-                    "Poésie d'Hiver"
-                  </p>
+            <CardContent className="p-4">
+              {extraitAvailable ? (
+                <PdfCover
+                  url={extraitUrl}
+                  alt={revueTitle}
+                  className="w-full"
+                />
+              ) : (
+                <div className="aspect-[3/4] bg-gradient-to-br from-primary via-secondary to-accent relative flex items-center justify-center rounded-lg shadow-xl">
+                  <div className="text-center text-primary-foreground p-8">
+                    <h3 className="font-serif-title text-3xl font-bold mb-4">
+                      SPAF REVUE
+                    </h3>
+                    <p className="font-sans text-lg mb-2">Bientôt disponible</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -163,7 +173,7 @@ const Revue = () => {
                   <Badge variant="secondary">Numéro actuel</Badge>
                 </div>
                 <CardTitle className="font-serif-title text-2xl text-primary">
-                  Revue n°264 - Janvier 2025
+                  {revueTitle}
                 </CardTitle>
                 <CardDescription className="font-sans">
                   Revue internationale de culture française
