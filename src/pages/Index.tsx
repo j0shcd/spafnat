@@ -11,6 +11,7 @@ import { DOCUMENTS } from "@/config/documents";
 import { CONTACT_EMAIL } from "@/config/contact";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 
 const Index = () => {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
@@ -22,6 +23,11 @@ const Index = () => {
     website: '', // Honeypot field
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get R2-aware URLs for documents
+  const { url: bulletinUrl, isAvailable: bulletinAvailable } = useDocumentUrl('bulletinAdhesion');
+  const { url: appelUrl, isAvailable: appelAvailable } = useDocumentUrl('appelPoetes');
+  const { url: haikuUrl, isAvailable: haikuAvailable } = useDocumentUrl('haikuNadineNajman');
 
   useEffect(() => {
     // Fetch and increment visitor count on mount
@@ -166,8 +172,8 @@ const Index = () => {
               </a>
             </Button>
 
-            <Button asChild variant="outline">
-              <a href={DOCUMENTS.bulletinAdhesion.path} download>
+            <Button asChild variant="outline" disabled={!bulletinAvailable}>
+              <a href={bulletinUrl} download>
                 <Download className="h-4 w-4 mr-2" />
                 Télécharger le bulletin d&apos;adhésion
               </a>
@@ -308,10 +314,10 @@ const Index = () => {
                   variant="outline"
                   className="w-full"
                   asChild
-                  disabled={!DOCUMENTS.bulletinAdhesion.available}
+                  disabled={!bulletinAvailable}
                 >
                   <a
-                    href={DOCUMENTS.bulletinAdhesion.path}
+                    href={bulletinUrl}
                     download
                     className="flex items-center justify-center space-x-2"
                   >
@@ -339,16 +345,16 @@ const Index = () => {
                 <Button
                   variant="outline"
                   className="w-full"
-                  disabled={!DOCUMENTS.appelPoetes.available}
+                  disabled={!appelAvailable}
                   onClick={() => {
-                    if (DOCUMENTS.appelPoetes.available) {
-                      window.open(DOCUMENTS.appelPoetes.path, '_blank');
+                    if (appelAvailable) {
+                      window.open(appelUrl, '_blank');
                     }
                   }}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   <span>
-                    {DOCUMENTS.appelPoetes.available
+                    {appelAvailable
                       ? "Télécharger (PDF)"
                       : "Bientôt disponible"}
                   </span>
@@ -373,16 +379,16 @@ const Index = () => {
                 <Button
                   variant="outline"
                   className="w-full"
-                  disabled={!DOCUMENTS.haikuNadineNajman.available}
+                  disabled={!haikuAvailable}
                   onClick={() => {
-                    if (DOCUMENTS.haikuNadineNajman.available) {
-                      window.open(DOCUMENTS.haikuNadineNajman.path, '_blank');
+                    if (haikuAvailable) {
+                      window.open(haikuUrl, '_blank');
                     }
                   }}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   <span>
-                    {DOCUMENTS.haikuNadineNajman.available
+                    {haikuAvailable
                       ? "Télécharger (PDF)"
                       : "Bientôt disponible"}
                   </span>
@@ -422,14 +428,20 @@ const Index = () => {
                 <ol className="space-y-2">
                   <li className="font-sans text-sm">
                     <strong>1.</strong>{" "}
-                    <a
-                      href={DOCUMENTS.bulletinAdhesion.path}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline underline-offset-4 font-medium hover:opacity-80"
-                    >
-                      Télécharger le bulletin d&apos;adhésion
-                    </a>
+                    {bulletinAvailable ? (
+                      <a
+                        href={bulletinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline underline-offset-4 font-medium hover:opacity-80"
+                      >
+                        Télécharger le bulletin d&apos;adhésion
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        Télécharger le bulletin d&apos;adhésion (bientôt disponible)
+                      </span>
+                    )}
                   </li>
                   <li className="font-sans text-sm">
                     <strong>2.</strong> Entourez votre formule et remplissez vos coordonnées
@@ -494,8 +506,8 @@ const Index = () => {
                     </div>
 
                     <div className="mt-5 flex md:justify-end">
-                      <Button asChild variant="outline">
-                        <a href={DOCUMENTS.bulletinAdhesion.path} download>
+                      <Button asChild variant="outline" disabled={!bulletinAvailable}>
+                        <a href={bulletinUrl} download>
                           <Download className="h-4 w-4 mr-2" />
                           Télécharger le bulletin d&apos;adhésion
                         </a>

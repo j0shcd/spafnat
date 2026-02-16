@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, BookOpen, Users } from "lucide-react";
 import { DOCUMENTS } from "@/config/documents";
+import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 
 const Revue = () => {
+  // Get R2-aware URL for document
+  const { url: extraitUrl, isAvailable: extraitAvailable } = useDocumentUrl('extraitRevue');
   const contributors = [
     "Fernand GREGH, de l'Académie Française",
     "Pierre BENOIT",
@@ -171,16 +174,16 @@ const Revue = () => {
                   <Button
                     variant="default"
                     className="flex items-center space-x-2"
-                    disabled={!DOCUMENTS.extraitRevue.available}
+                    disabled={!extraitAvailable}
                     onClick={() => {
-                      if (DOCUMENTS.extraitRevue.available) {
-                        window.open(DOCUMENTS.extraitRevue.path, '_blank');
+                      if (extraitAvailable) {
+                        window.open(extraitUrl, '_blank');
                       }
                     }}
                   >
                     <Download className="h-4 w-4" />
                     <span>
-                      {DOCUMENTS.extraitRevue.available
+                      {extraitAvailable
                         ? "Télécharger l'extrait"
                         : "Bientôt disponible"}
                     </span>

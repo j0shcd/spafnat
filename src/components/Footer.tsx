@@ -1,8 +1,11 @@
 import { MapPin, Mail, Download } from "lucide-react";
-import { DOCUMENTS } from "@/config/documents";
 import { CONTACT_EMAIL } from "@/config/contact";
+import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 
 const Footer = () => {
+  // Get R2-aware URL for confidentialité document
+  const { url: confidentialiteUrl, isAvailable: confidentialiteAvailable } = useDocumentUrl('formulaireConfidentialite');
+
   return (
     <footer className="bg-primary text-primary-foreground mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -35,13 +38,13 @@ const Footer = () => {
                 <Download className="h-5 w-5 text-artistic-yellow" />
                 <button
                   onClick={(e) => {
-                    if (!DOCUMENTS.formulaireConfidentialite.available) {
+                    if (!confidentialiteAvailable) {
                       e.preventDefault();
                     } else {
-                      window.open(DOCUMENTS.formulaireConfidentialite.path, '_blank');
+                      window.open(confidentialiteUrl, '_blank');
                     }
                   }}
-                  disabled={!DOCUMENTS.formulaireConfidentialite.available}
+                  disabled={!confidentialiteAvailable}
                   className="font-sans opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Formulaire de confidentialité
