@@ -218,10 +218,10 @@
 - [ ] Create `src/test/admin/admin-pages.test.tsx` — Smoke tests (login renders, dashboard renders, protected route blocks)
 
 **UX checklist** (elderly user):
-- [ ] Large fonts (16px+ body, 18px+ labels)
-- [ ] High contrast (SPAF brown on cream)
-- [ ] Big touch targets (44px+ buttons)
-- [ ] Clear French labels (no jargon)
+- [x] Large fonts (16px+ body, 18px+ labels)
+- [x] High contrast (SPAF brown on cream)
+- [x] Big touch targets (44px+ buttons)
+- [x] Clear French labels (no jargon)
 - [ ] Confirmation dialogs before delete
 - [ ] Green/red badges for document status
 - [ ] Toast messages for success/error
