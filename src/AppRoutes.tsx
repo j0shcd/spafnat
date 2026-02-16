@@ -11,6 +11,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminDocuments from "./pages/admin/AdminDocuments";
 import AdminPhotos from "./pages/admin/AdminPhotos";
+import AdminConcours from "./pages/admin/AdminConcours";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/admin/RequireAuth";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -38,6 +39,7 @@ export const AppRoutes = () => (
       <Route element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route path="documents" element={<AdminDocuments />} />
+        <Route path="concours" element={<AdminConcours />} />
         <Route path="photos" element={<AdminPhotos />} />
       </Route>
     </Route>
