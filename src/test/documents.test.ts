@@ -5,10 +5,10 @@ describe('Document Configuration', () => {
   it('has all required document entries', () => {
     expect(DOCUMENTS.bulletinAdhesion).toBeDefined();
     expect(DOCUMENTS.formulaireConfidentialite).toBeDefined();
-    expect(DOCUMENTS.palmaresPoetique).toBeDefined();
-    expect(DOCUMENTS.palmaresArtistique).toBeDefined();
     expect(DOCUMENTS.inscriptionCongres).toBeDefined();
     expect(DOCUMENTS.extraitRevue).toBeDefined();
+    expect(DOCUMENTS.appelPoetes).toBeDefined();
+    expect(DOCUMENTS.haikuNadineNajman).toBeDefined();
   });
 
   it('all documents have required properties', () => {

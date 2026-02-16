@@ -1,14 +1,114 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Download } from "lucide-react";
-import { DOCUMENTS } from "@/config/documents";
-import { useDocumentUrl } from "@/hooks/useDocumentUrl";
+import { Download, ChevronDown, ChevronUp } from "lucide-react";
+import { useConcours, type ConcoursItem } from "@/hooks/useConcours";
+import { CONCOURS_CATEGORIES } from "@/config/concours";
 
 const Concours = () => {
-  // Get R2-aware URLs for documents
-  const { url: palmarespoetiqueUrl, isAvailable: palmarespoetiqueAvailable } = useDocumentUrl('palmaresPoetique');
-  const { url: palmaresArtistiqueUrl, isAvailable: palmaresArtistiqueAvailable } = useDocumentUrl('palmaresArtistique');
+  const { data, isLoading, error } = useConcours();
+  const [poetiqueExpanded, setPoetiqueExpanded] = useState(false);
+  const [artistiqueExpanded, setArtistiqueExpanded] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen py-12 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen py-12 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-destructive">Erreur : {error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const reglements = data?.reglements || [];
+  const palmaresPoetique = data?.['palmares-poetique'] || [];
+  const palmaresArtistique = data?.['palmares-artistique'] || [];
+
+  const renderDownloadButton = (item: ConcoursItem, showPrimary = false) => (
+    <Button
+      key={item.r2Key}
+      variant={showPrimary ? "default" : "outline"}
+      className={`flex items-center space-x-2 ${
+        showPrimary ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""
+      }`}
+      onClick={() => window.open(`/api/media/${item.r2Key}`, '_blank')}
+    >
+      <Download className="h-4 w-4" />
+      <span>{item.title}</span>
+    </Button>
+  );
+
+  const renderPalmaresSection = (
+    title: string,
+    description: string,
+    items: ConcoursItem[],
+    expanded: boolean,
+    setExpanded: (value: boolean) => void
+  ) => {
+    const latest = items[0];
+    const previous = items.slice(1);
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-serif-title text-3xl text-primary">
+            {title}
+          </CardTitle>
+          <CardDescription className="font-sans">
+            {description}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="font-sans">
+          {items.length === 0 ? (
+            <p className="text-muted-foreground">Bientôt disponible</p>
+          ) : (
+            <div className="space-y-4">
+              {/* Latest palmares */}
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  Dernier palmarès
+                </p>
+                {renderDownloadButton(latest, true)}
+              </div>
+
+              {/* Previous palmares (collapsible) */}
+              {previous.length > 0 && (
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between"
+                    onClick={() => setExpanded(!expanded)}
+                  >
+                    <span className="text-sm font-medium">
+                      Palmarès précédents ({previous.length})
+                    </span>
+                    {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+
+                  {expanded && (
+                    <div className="flex flex-col gap-2 pl-4">
+                      {previous.map(item => renderDownloadButton(item))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   return (
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
@@ -19,85 +119,50 @@ const Concours = () => {
           </h1>
           <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
           <p className="font-sans text-lg text-muted-foreground max-w-2xl mx-auto">
-            Découvrez les règlements etlauréats de nos concours poétiques et artistiques nationaux
+            Découvrez les règlements et lauréats de nos concours poétiques et artistiques nationaux
           </p>
         </header>
 
         {/* Concours Sections */}
         <div className="space-y-8">
-          {/* Palmarès Poétique */}
+          {/* Règlements Section */}
           <Card>
             <CardHeader>
               <CardTitle className="font-serif-title text-3xl text-primary">
-                Grands Prix de Poésie
+                {CONCOURS_CATEGORIES.reglements.label}
               </CardTitle>
               <CardDescription className="font-sans">
-                Les lauréats du concours national de poésie
+                {CONCOURS_CATEGORIES.reglements.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="font-sans">
-              <div className="space-y-4">
-                <p className="text-foreground">
-                  Chaque année, la SPAF récompense les plus belles créations poétiques à travers son concours national.
-                  Découvrez les œuvres primées et les talents qui ont marqué cette édition.
-                </p>
-                <Button
-                  variant="default"
-                  className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={!palmarespoetiqueAvailable}
-                  onClick={() => {
-                    if (palmarespoetiqueAvailable) {
-                      window.open(palmarespoetiqueUrl, '_blank');
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  <span>
-                    {palmarespoetiqueAvailable
-                      ? DOCUMENTS.palmaresPoetique.label
-                      : "Bientôt disponible"}
-                  </span>
-                </Button>
-              </div>
+              {reglements.length === 0 ? (
+                <p className="text-muted-foreground">Bientôt disponible</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {reglements.map(item => renderDownloadButton(item))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* Palmarès Poétique */}
+          {renderPalmaresSection(
+            "Grands Prix de Poésie",
+            "Les lauréats du concours national de poésie",
+            palmaresPoetique,
+            poetiqueExpanded,
+            setPoetiqueExpanded
+          )}
+
           {/* Palmarès Artistique */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-serif-title text-3xl text-primary">
-                Grands Prix Artistiques
-              </CardTitle>
-              <CardDescription className="font-sans">
-                Les lauréats du concours national d'arts visuels
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="font-sans">
-              <div className="space-y-4">
-                <p className="text-foreground">
-                  La SPAF célèbre également les artistes peintres, dessinateurs et photographes à travers son concours artistique national.
-                  Explorez les œuvres visuelles qui ont été distinguées cette année.
-                </p>
-                <Button
-                  variant="default"
-                  className="flex items-center space-x-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={!palmaresArtistiqueAvailable}
-                  onClick={() => {
-                    if (palmaresArtistiqueAvailable) {
-                      window.open(palmaresArtistiqueUrl, '_blank');
-                    }
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  <span>
-                    {palmaresArtistiqueAvailable
-                      ? DOCUMENTS.palmaresArtistique.label
-                      : "Bientôt disponible"}
-                  </span>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {renderPalmaresSection(
+            "Grands Prix Artistiques",
+            "Les lauréats du concours national d'arts visuels",
+            palmaresArtistique,
+            artistiqueExpanded,
+            setArtistiqueExpanded
+          )}
 
           {/* Information Card */}
           <Card className="bg-muted/30">

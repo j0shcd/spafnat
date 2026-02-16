@@ -115,7 +115,7 @@ describe('Admin UI Smoke Tests', () => {
       });
     });
 
-    it('displays all 8 documents from config', async () => {
+    it('displays all 6 documents from config', async () => {
       render(<AdminDocuments />, { wrapper: AdminWrapper });
 
       // Wait for documents to load
@@ -137,9 +137,9 @@ describe('Admin UI Smoke Tests', () => {
         expect(screen.queryByText(/Chargement.../i)).not.toBeInTheDocument();
       });
 
-      // Should have upload buttons for all 8 documents
+      // Should have upload buttons for all 6 documents
       const uploadButtons = screen.getAllByText(/Téléverser|Remplacer/i);
-      expect(uploadButtons.length).toBe(8);
+      expect(uploadButtons.length).toBe(6);
     });
   });
 

@@ -27,19 +27,6 @@ export const DOCUMENTS = {
     available: false, // To be provided
   },
 
-  // Concours (Contests)
-  palmaresPoetique: {
-    path: "/documents/palmares_poetique.pdf",
-    label: "Palmarès Poétique",
-    available: false, // To be provided
-  },
-
-  palmaresArtistique: {
-    path: "/documents/palmares_artistique.pdf",
-    label: "Palmarès Artistique",
-    available: false, // To be provided
-  },
-
   // Congrès (Congress)
   inscriptionCongres: {
     path: "/documents/inscription_congres.pdf",

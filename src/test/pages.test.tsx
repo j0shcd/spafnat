@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Index from '../pages/Index';
@@ -60,13 +60,34 @@ describe('Pages Smoke Tests', () => {
   });
 
   describe('Concours Page', () => {
-    it('renders without crashing', () => {
+    beforeEach(() => {
+      // Mock fetch for concours API
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            reglements: [],
+            'palmares-poetique': [],
+            'palmares-artistique': [],
+          }),
+        })
+      ) as unknown as typeof fetch;
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('renders without crashing', async () => {
       render(<Concours />, { wrapper: RouterWrapper });
+      // Wait for async data fetching
+      await screen.findByText(/Concours Nationaux/i);
       expect(screen.getByText(/Concours Nationaux/i)).toBeInTheDocument();
     });
 
-    it('displays both contest sections', () => {
+    it('displays both contest sections', async () => {
       render(<Concours />, { wrapper: RouterWrapper });
+      await screen.findByText(/Concours Nationaux/i);
       expect(screen.getByText(/Grands Prix de Poésie/i)).toBeInTheDocument();
       expect(screen.getByText(/Grands Prix Artistiques/i)).toBeInTheDocument();
     });

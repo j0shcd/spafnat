@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -21,6 +21,27 @@ const renderWithRouter = (initialRoute: string) => {
 };
 
 describe('App Routing', () => {
+  beforeEach(() => {
+    // Mock fetch for concours API
+    global.fetch = vi.fn((url) => {
+      if (typeof url === 'string' && url.includes('/api/concours')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            reglements: [],
+            'palmares-poetique': [],
+            'palmares-artistique': [],
+          }),
+        });
+      }
+      return Promise.reject(new Error('Not found'));
+    }) as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders Index page at root path', () => {
     renderWithRouter('/');
     expect(screen.getAllByText(/Société des Poètes et Artistes de France/i)[0]).toBeInTheDocument();
@@ -36,8 +57,9 @@ describe('App Routing', () => {
     expect(screen.getAllByText(/Congrès National/i)[0]).toBeInTheDocument();
   });
 
-  it('renders Concours page at /concours', () => {
+  it('renders Concours page at /concours', async () => {
     renderWithRouter('/concours');
+    await screen.findByText(/Concours Nationaux/i);
     expect(screen.getByText(/Concours Nationaux/i)).toBeInTheDocument();
   });
 
