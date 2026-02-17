@@ -259,21 +259,14 @@ const Index = () => {
                     <p className="font-sans text-muted-foreground mb-4">
                       {activity.description}
                     </p>
-                    {activity.link ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => window.location.href = activity.link}
-                      >
-                        En savoir plus
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Download className="h-4 w-4 mr-2" />
-                        {activity.action}
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => window.location.href = activity.link}
+                    >
+                      En savoir plus
+                    </Button>
                   </CardContent>
                 </Card>
               );

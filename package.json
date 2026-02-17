@@ -16,7 +16,9 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p functions/tsconfig.json --noEmit",
+    "typecheck:strict": "tsc -p tsconfig.app.strict.json --noEmit",
+    "typecheck:functions": "tsc -p functions/tsconfig.json --noEmit",
     "preflight": "tsx scripts/preflight-check.ts"
   },
   "dependencies": {

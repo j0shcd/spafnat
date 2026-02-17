@@ -58,7 +58,9 @@ function Sidebar({ onBackToSite }: { onBackToSite: () => void }) {
         <Button
           variant="outline"
           className="w-full min-h-[44px] text-lg justify-start"
-          onClick={logout}
+          onClick={() => {
+            void logout();
+          }}
         >
           <LogOut className="h-5 w-5 mr-3" />
           Déconnexion
@@ -75,7 +77,7 @@ export function AdminLayout() {
 
   const handleBackToSite = () => {
     // Logout and navigate to public site
-    logout('/');
+    void logout('/');
   };
 
   return (
@@ -112,7 +114,12 @@ export function AdminLayout() {
               <Home className="h-4 w-4 mr-2" />
               Retour au site
             </Button>
-            <Button variant="ghost" onClick={logout}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                void logout();
+              }}
+            >
               <LogOut className="h-4 w-4 mr-2" />
               Déconnexion
             </Button>

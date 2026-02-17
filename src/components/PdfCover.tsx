@@ -60,6 +60,7 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
 
         // Render page
         await page.render({
+          canvas,
           canvasContext: context,
           viewport,
         }).promise;

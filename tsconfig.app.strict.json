@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
+  },
+  "exclude": [
+    "src/test/**",
+    "src/tests/**",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}

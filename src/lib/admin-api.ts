@@ -24,18 +24,16 @@ async function adminFetch<T = unknown>(
 ): Promise<ApiResponse<T>> {
   const token = localStorage.getItem(TOKEN_KEY);
 
-  const headers: HeadersInit = {
-    ...options.headers,
-  };
+  const headers = new Headers(options.headers);
 
   // Add Authorization header if token exists
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   // Add Content-Type for JSON payloads (unless it's FormData)
   if (options.body && !(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
+    headers.set('Content-Type', 'application/json');
   }
 
   try {

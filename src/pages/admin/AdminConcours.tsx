@@ -169,11 +169,12 @@ export default function AdminConcours() {
     const response = await apiReorderConcours(category, r2Key, direction);
 
     if (response.ok) {
+      const items = response.data?.items;
       // Update local state immediately for better UX
-      if (response.data?.items) {
+      if (items) {
         setCategories((prev) => ({
           ...prev,
-          [category]: { ...prev[category], items: response.data.items },
+          [category]: { ...prev[category], items },
         }));
       }
     } else {
