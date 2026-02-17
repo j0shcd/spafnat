@@ -82,7 +82,7 @@ export default function AdminLogin() {
               <Input
                 id="username"
                 type="text"
-                placeholder="admin"
+                placeholder="Votre nom d'utilisateur"
                 className="h-12 text-lg"
                 disabled={isSubmitting}
                 {...register('username')}
