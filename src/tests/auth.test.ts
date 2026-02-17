@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { verifyPassword, hashPassword } from '../../functions/lib/password';
+import { isLocalRequest, onRequestPost as loginHandler } from '../../functions/api/auth/login';
+
+type LoginHandlerContext = Parameters<typeof loginHandler>[0];
 
 /**
  * Phase 3a Auth Tests
@@ -138,6 +141,73 @@ describe('Auth API Mocking', () => {
     mockEnv.SPAF_KV.get.mockResolvedValueOnce(null);
     const session = await mockEnv.SPAF_KV.get(sessionKey);
     expect(session).toBeNull();
+  });
+});
+
+describe('Login Rate Limit Environment Detection', () => {
+  it('treats localhost URL as local development', () => {
+    expect(isLocalRequest('http://localhost:8788/api/auth/login')).toBe(true);
+    expect(isLocalRequest('http://127.0.0.1:8788/api/auth/login')).toBe(true);
+  });
+
+  it('does not trust spoofed Origin-like values in production URLs', () => {
+    expect(isLocalRequest('https://spafnat.pages.dev/api/auth/login')).toBe(false);
+    expect(isLocalRequest('https://spafnat.com/api/auth/login')).toBe(false);
+  });
+});
+
+describe('Login Endpoint Security', () => {
+  it('enforces production rate limits even when Origin header looks local', async () => {
+    const passwordHash = await hashPassword('admin123');
+    const env = {
+      JWT_SECRET: 'test-secret',
+      ADMIN_PASSWORD_HASH: passwordHash,
+      SPAF_KV: {
+        get: vi.fn().mockResolvedValue('5'),
+        put: vi.fn(),
+        delete: vi.fn(),
+      },
+    };
+
+    const request = new Request('https://spafnat.pages.dev/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'http://localhost:8080',
+        'CF-Connecting-IP': '203.0.113.1',
+      },
+      body: JSON.stringify({ username: 'admin', password: 'admin123' }),
+    });
+
+    const response = await loginHandler({ request, env } as unknown as LoginHandlerContext);
+    expect(response.status).toBe(429);
+  });
+
+  it('keeps localhost workflow usable without rate-limit lockout', async () => {
+    const passwordHash = await hashPassword('admin123');
+    const env = {
+      JWT_SECRET: 'test-secret',
+      ADMIN_PASSWORD_HASH: passwordHash,
+      SPAF_KV: {
+        get: vi.fn().mockResolvedValue('5'),
+        put: vi.fn(),
+        delete: vi.fn(),
+      },
+    };
+
+    const request = new Request('http://localhost:8788/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'CF-Connecting-IP': '127.0.0.1',
+      },
+      body: JSON.stringify({ username: 'admin', password: 'wrong-password' }),
+    });
+
+    const response = await loginHandler({ request, env } as unknown as LoginHandlerContext);
+    expect(response.status).toBe(401);
+    expect(env.SPAF_KV.get).not.toHaveBeenCalled();
+    expect(env.SPAF_KV.put).not.toHaveBeenCalled();
   });
 });
 

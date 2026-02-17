@@ -5,6 +5,8 @@ import {
   sanitizeFilename,
   validateExtension,
   getFileExtension,
+  isValidPhotoYear,
+  hasUnsafePathSegments,
 } from '../../functions/lib/file-validation';
 
 /**
@@ -154,6 +156,35 @@ describe('File Extension Validation', () => {
   it('should be case-insensitive for extension matching', () => {
     expect(validateExtension('FILE.PDF', 'application/pdf')).toBe(true);
     expect(validateExtension('PHOTO.JPG', 'image/jpeg')).toBe(true);
+  });
+});
+
+describe('Photo Year Validation', () => {
+  it('should accept valid year format in allowed range', () => {
+    expect(isValidPhotoYear('2010', 2026)).toBe(true);
+    expect(isValidPhotoYear('2026', 2026)).toBe(true);
+  });
+
+  it('should reject out-of-range years', () => {
+    expect(isValidPhotoYear('2009', 2026)).toBe(false);
+    expect(isValidPhotoYear('2027', 2026)).toBe(false);
+  });
+
+  it('should reject invalid format', () => {
+    expect(isValidPhotoYear('24', 2026)).toBe(false);
+    expect(isValidPhotoYear('20ab', 2026)).toBe(false);
+  });
+});
+
+describe('Path Segment Safety Validation', () => {
+  it('should reject traversal and unsafe segments', () => {
+    expect(hasUnsafePathSegments(['congres', '..', 'photo.jpg'])).toBe(true);
+    expect(hasUnsafePathSegments(['congres', '', 'photo.jpg'])).toBe(true);
+    expect(hasUnsafePathSegments(['congres', 'folder\\photo.jpg'])).toBe(true);
+  });
+
+  it('should allow safe path segments', () => {
+    expect(hasUnsafePathSegments(['congres', '2024', 'photo.jpg'])).toBe(false);
   });
 });
 

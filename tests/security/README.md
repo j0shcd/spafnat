@@ -28,12 +28,11 @@ npm test -- --coverage tests/security
 
 ## Test Status
 
-⚠️ **Current Status**: These tests are **placeholders** with `expect(true).toBe(true)`.
-
-They serve as:
-1. **Documentation** of security requirements
-2. **Checklist** for manual testing
-3. **Framework** for future automated tests
+✅ These are automated tests with real request/response assertions against the functions handlers.
+They cover:
+1. Contact form validation/sanitization/rate-limiting/origin checks
+2. Visitor counter method and storage hardening behavior
+3. Error handling paths that must stay safe for production
 
 ## Manual Testing Checklist
 
@@ -69,6 +68,20 @@ Use these test cases as a guide for manual security testing:
 3. **Origin Validation**: Only accept requests from spafnat.com domains
 4. **Input Sanitization**: All user input escaped/validated before sending email
 5. **Honeypot**: Bots silently rejected (fake success, no email)
+
+### Production Origin Lock
+
+To lock down CSRF/origin checks in production, set `ALLOWED_ORIGINS` in Cloudflare:
+
+```txt
+ALLOWED_ORIGINS=https://spafnat.com,https://www.spafnat.com
+```
+
+You can include preview domains during testing if needed:
+
+```txt
+ALLOWED_ORIGINS=https://spafnat.com,https://www.spafnat.com,*.spafnat.pages.dev
+```
 
 ## Future Work
 

@@ -28,6 +28,7 @@ describe('Contact Form Security Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    delete mockEnv.ALLOWED_ORIGINS;
 
     // Mock successful Resend API response by default
     global.fetch = vi.fn().mockResolvedValue({
@@ -469,6 +470,68 @@ describe('Contact Form Security Tests', () => {
         // Expected: 403 Forbidden
         expect(response.status).toBe(403);
       }
+    });
+
+    it('should enforce explicit production allowlist when configured', async () => {
+      mockEnv.ALLOWED_ORIGINS = 'https://spafnat.com,https://www.spafnat.com';
+      (mockEnv.SPAF_KV.get as any).mockResolvedValue(null);
+
+      const payload = {
+        name: 'Test',
+        email: 'test@example.com',
+        subject: 'Test',
+        message: 'Message',
+        website: '',
+      };
+
+      const blockedRequest = new Request('http://localhost/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'https://abc123.spafnat.pages.dev',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const blockedResponse = await onRequestPost({ request: blockedRequest, env: mockEnv } as any);
+      expect(blockedResponse.status).toBe(403);
+
+      const allowedRequest = new Request('http://localhost/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'https://spafnat.com',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const allowedResponse = await onRequestPost({ request: allowedRequest, env: mockEnv } as any);
+      expect(allowedResponse.status).toBe(200);
+    });
+
+    it('should support wildcard subdomain entries in allowlist', async () => {
+      mockEnv.ALLOWED_ORIGINS = '*.spafnat.pages.dev';
+      (mockEnv.SPAF_KV.get as any).mockResolvedValue(null);
+
+      const payload = {
+        name: 'Test',
+        email: 'test@example.com',
+        subject: 'Test',
+        message: 'Message',
+        website: '',
+      };
+
+      const request = new Request('http://localhost/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'https://preview-123.spafnat.pages.dev',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const response = await onRequestPost({ request, env: mockEnv } as any);
+      expect(response.status).toBe(200);
     });
   });
 
