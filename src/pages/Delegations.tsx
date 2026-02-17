@@ -122,7 +122,7 @@ const delegations = [
         </div>
 
         {/* Payment Instructions */}
-        <Card className="mb-12 bg-muted/30">
+        <Card className="mt-12 bg-muted/30">
           <CardHeader>
             <CardTitle className="font-serif-title text-xl text-primary">
               Modalités de paiement

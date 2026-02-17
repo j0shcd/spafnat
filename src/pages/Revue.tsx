@@ -247,8 +247,8 @@ const Revue = () => {
               La revue permet aux membres, poètes et artistes de faire connaître leurs œuvres gracieusement.
             </p>
             <p className="leading-relaxed">
-              Cependant pour aider à son financement, tout membre peut faire paraître sa photo en couleurs
-              ou un poème ou une œuvre, pour la somme de vingt euros.
+              Pour aider à son financement, tout membre peut faire paraître sa photo en couleurs,
+              un poème ou une œuvre, pour la somme de vingt euros.
             </p>
           </CardContent>
         </Card>
