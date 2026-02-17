@@ -2,6 +2,12 @@ import type { Env } from '../../env';
 import { hasUnsafePathSegments } from '../../lib/file-validation';
 
 const ALLOWED_PUBLIC_PREFIXES = ['documents/', 'congres/', 'concours/'] as const;
+const MUTABLE_PDF_PREFIXES = ['documents/', 'concours/'] as const;
+const EXPOSED_MEDIA_HEADERS = [
+  'X-Original-Filename',
+  'X-Original-Filename-Encoded',
+  'X-Uploaded-At',
+] as const;
 
 function getPathSegments(params: Record<string, unknown>): string[] {
   if (!Array.isArray(params.path)) return [];
@@ -14,6 +20,32 @@ export function isPublicMediaR2Key(r2Key: string): boolean {
 
 export function isSafeMediaPath(pathSegments: string[]): boolean {
   return pathSegments.length > 0 && !hasUnsafePathSegments(pathSegments);
+}
+
+function toHeaderSafeAscii(value: string): string {
+  return value.normalize('NFKD').replace(/[^\x20-\x7e]/g, '').trim();
+}
+
+function getUploadedAtValue(
+  customMetadata: Record<string, string> | undefined,
+  uploaded: Date | undefined
+): string {
+  if (typeof customMetadata?.uploadedAt === 'string' && customMetadata.uploadedAt.length > 0) {
+    return customMetadata.uploadedAt;
+  }
+  return uploaded ? uploaded.toISOString() : '';
+}
+
+export function getMediaCacheControl(r2Key: string): string {
+  const isMutablePdf =
+    r2Key.toLowerCase().endsWith('.pdf') &&
+    MUTABLE_PDF_PREFIXES.some((prefix) => r2Key.startsWith(prefix));
+
+  if (isMutablePdf) {
+    return 'no-cache, no-store, must-revalidate';
+  }
+
+  return 'public, max-age=86400';
 }
 
 function resolveMediaKey(params: Record<string, unknown>): { key?: string; response?: Response } {
@@ -63,6 +95,7 @@ async function checkFileExists(env: Env, params: Record<string, unknown>): Promi
 
     // 5. Get original filename from metadata
     const originalFilename = object.customMetadata?.originalFilename || '';
+    const uploadedAt = getUploadedAtValue(object.customMetadata, object.uploaded);
 
     return new Response(null, {
       status: 200,
@@ -71,8 +104,10 @@ async function checkFileExists(env: Env, params: Record<string, unknown>): Promi
         'Content-Length': object.size.toString(),
         'Cache-Control': 'no-cache, no-store, must-revalidate', // No cache for availability checks
         'X-Content-Type-Options': 'nosniff',
-        'X-Original-Filename': originalFilename,
-        'Access-Control-Expose-Headers': 'X-Original-Filename',
+        'X-Original-Filename': toHeaderSafeAscii(originalFilename),
+        'X-Original-Filename-Encoded': encodeURIComponent(originalFilename),
+        'X-Uploaded-At': uploadedAt,
+        'Access-Control-Expose-Headers': EXPOSED_MEDIA_HEADERS.join(', '),
       },
     });
   } catch (error) {
@@ -126,16 +161,19 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
 
     // 5. Get original filename from metadata
     const originalFilename = object.customMetadata?.originalFilename || '';
+    const uploadedAt = getUploadedAtValue(object.customMetadata, object.uploaded);
 
     // 6. Return file with cache headers
     return new Response(object.body, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=86400', // 1 day
+        'Cache-Control': getMediaCacheControl(r2Key),
         'X-Content-Type-Options': 'nosniff',
-        'X-Original-Filename': originalFilename,
-        'Access-Control-Expose-Headers': 'X-Original-Filename',
+        'X-Original-Filename': toHeaderSafeAscii(originalFilename),
+        'X-Original-Filename-Encoded': encodeURIComponent(originalFilename),
+        'X-Uploaded-At': uploadedAt,
+        'Access-Control-Expose-Headers': EXPOSED_MEDIA_HEADERS.join(', '),
       },
     });
   } catch (error) {
