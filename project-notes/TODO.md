@@ -133,7 +133,7 @@
 ### Phase 2 TODOs (post-implementation, pre-production)
 - [ ] Add CSP to `public/_headers` once third-party needs are known
 - [ ] Tighten Origin allowlist to spafnat.com only once custom domain is active
-- [ ] Verify spafnat.com domain in Resend, switch from onboarding@resend.dev
+- [x] Verify spafnat.com domain in Resend, switch from onboarding@resend.dev
 - [ ] Switch CONTACT_RECIPIENT env var to plecordier@free.fr
 
 ### Phase 2 Decisions Log
@@ -460,13 +460,13 @@
 
 **Tests**:
 - [x] Create `src/test/concours.test.ts` — Test config helpers (deriveTitleFromFilename, getConcoursKVKey, getConcoursR2Prefix) — 9 tests
-- [x] All 129 tests passing (120 Phase 3 + 9 Phase 4)
+- [x] All 140 tests passing (includes Phase 4 regressions + post-Phase 4 media/cache fixes)
 
 **Verification**:
 - [x] `npm run preflight` — All Cloudflare compatibility checks passed ✅
 - [x] `npm run typecheck` — No type errors ✅
 - [x] `npm run lint` — 0 errors ✅
-- [x] `npm run test:run` — All 129 tests passing ✅
+- [x] `npm run test:run` — All 140 tests passing ✅
 - [x] `npm run build` — Production build successful ✅
 
 **Commits**:
@@ -482,6 +482,40 @@
 - **Category=all endpoint**: Single request fetches all categories (reduces latency)
 - **useConcours window focus**: Auto re-fetch after admin changes (real-time updates)
 
+### Phase 4g: Post-Phase 4 Media Consistency + Filename Encoding Fix ✅ (2026-02-17)
+
+**Issue reported**:
+- [x] Replacing `extrait_revue.pdf` could show stale preview and stale downloaded file until multiple refreshes/navigation events
+- [x] `originalFilename` metadata with accents displayed as mojibake (`appel aÌ poeÌtes`)
+- [x] Repeated `HEAD /api/media/documents/formulaire_confidentialite.pdf 404` log entries caused concern
+
+**Root causes**:
+- [x] `GET /api/media/*` used long-lived cache (`public, max-age=86400`) even for mutable document PDF keys
+- [x] Replaced files kept the same R2 key, so stale responses could persist in browser/CDN cache
+- [x] Raw UTF-8 metadata in `X-Original-Filename` header is not reliably decoded by all clients
+
+**Fix implemented**:
+- [x] Add `X-Original-Filename-Encoded` (URL-encoded UTF-8) and `X-Uploaded-At` headers in media endpoint
+- [x] Parse/decode encoded filename in `useDocumentUrl`
+- [x] Build versioned URLs (`?v=<uploadedAt>`) for document links so replacements bust cache immediately
+- [x] Disable long-lived cache for mutable PDFs under `documents/` and `concours/`; keep image caching for congress photos
+- [x] Confirm `HEAD ... formulaire_confidentialite.pdf 404` is expected availability probing from footer hook when file is missing
+
+**Files updated**:
+- [x] `functions/api/media/[[path]].ts`
+- [x] `src/hooks/useDocumentUrl.ts`
+- [x] `src/tests/admin-endpoints.test.ts`
+- [x] `src/tests/media.test.ts`
+- [x] `src/tests/useDocumentUrl.test.ts` (new)
+
+**Verification**:
+- [x] `npm run typecheck` ✅
+- [x] `npm run test:run` ✅ (13 files / 140 tests)
+- [x] `npm run build` ✅
+
+**Session Note**:
+- [x] `project-notes/sessions/2026-02-17-media-cache-and-filename-fix.md`
+
 ## Phase 5: Polish & Production Readiness (Deferrable)
 
 - [ ] Add JSON-LD structured data
@@ -496,7 +530,7 @@
 - [x] `npm run preflight` — All Cloudflare compatibility checks pass ✅
 - [x] `npm run typecheck` — no TS errors ✅
 - [x] `npm run lint` — 0 errors, 8 warnings (fast refresh in shadcn components) ✅
-- [x] `npm run test:run` — all 129 tests pass ✅ (updated from 120 after Phase 4)
+- [x] `npm run test:run` — all 140 tests pass ✅ (updated from 129 after media/cache + encoding regressions)
 - [x] `npm run build` — builds successfully ✅
 - [x] Manual review: open each page, check content, click all buttons/links ✅
 - [x] For Cloudflare features: test with `npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA` ✅
@@ -566,9 +600,9 @@
   - Click "Save and deploy"
 
 - [ ] **Update Contact Form Origin Validation**:
-  - Edit `functions/api/contact.ts`
-  - Change allowlist from `['*.pages.dev', 'localhost']` to `['spafnat.com']`
-  - Commit and push to trigger new deployment
+  - Use env var `ALLOWED_ORIGINS` in Cloudflare Dashboard
+  - Set to production domains only: `https://spafnat.com,https://www.spafnat.com`
+  - Keep `*.spafnat.pages.dev` only in preview/local environments
 
 - [ ] **Switch Email Sender in Code**:
   - Edit `functions/api/contact.ts`
