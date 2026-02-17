@@ -91,4 +91,48 @@ describe('Admin Endpoint Security', () => {
     expect(response.status).toBe(404);
     expect(env.SPAF_MEDIA.get).toHaveBeenCalledWith('documents/bulletin_adhesion.pdf');
   });
+
+  it('returns encoded filename metadata and no-store cache for mutable PDFs', async () => {
+    env.SPAF_MEDIA.get.mockResolvedValueOnce({
+      body: null,
+      size: 128,
+      uploaded: new Date('2026-02-17T10:00:00.000Z'),
+      httpMetadata: { contentType: 'application/pdf' },
+      customMetadata: {
+        originalFilename: 'appel à poètes.pdf',
+        uploadedAt: '2026-02-17T10:00:00.000Z',
+      },
+    });
+
+    const response = await mediaGetHandler({
+      env,
+      params: { path: ['documents', 'extrait_revue.pdf'] },
+    } as unknown as MediaGetHandlerContext);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('no-cache, no-store, must-revalidate');
+    expect(decodeURIComponent(response.headers.get('X-Original-Filename-Encoded') || '')).toBe('appel à poètes.pdf');
+    expect(response.headers.get('X-Uploaded-At')).toBe('2026-02-17T10:00:00.000Z');
+  });
+
+  it('keeps long-lived cache for congress photos', async () => {
+    env.SPAF_MEDIA.get.mockResolvedValueOnce({
+      body: null,
+      size: 128,
+      uploaded: new Date('2026-02-17T10:00:00.000Z'),
+      httpMetadata: { contentType: 'image/jpeg' },
+      customMetadata: {
+        originalFilename: 'photo_2026.jpg',
+        uploadedAt: '2026-02-17T10:00:00.000Z',
+      },
+    });
+
+    const response = await mediaGetHandler({
+      env,
+      params: { path: ['congres', '2026', 'photo_1.jpg'] },
+    } as unknown as MediaGetHandlerContext);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('public, max-age=86400');
+  });
 });
