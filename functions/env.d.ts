@@ -5,6 +5,7 @@ export interface Env {
   SPAF_KV: KVNamespace;
   RESEND_API_KEY: string;
   CONTACT_RECIPIENT: string;
+  ALLOWED_ORIGINS?: string;
 
   // Phase 3: Auth and file storage
   JWT_SECRET: string;

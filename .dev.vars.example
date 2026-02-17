@@ -11,6 +11,13 @@ RESEND_API_KEY=re_your_api_key_here
 # Contact Form Email Recipient
 CONTACT_RECIPIENT=joshua@cohendumani.com
 
+# Optional production allowlist for request Origin header.
+# Comma-separated entries; each entry may be:
+# - full origin (https://spafnat.com)
+# - hostname (spafnat.com)
+# - wildcard subdomains (*.spafnat.pages.dev)
+ALLOWED_ORIGINS=http://localhost:8080,https://spafnat.com,https://www.spafnat.com,*.spafnat.pages.dev
+
 
 # Phase 3: Admin Panel & File Management
 # =======================================

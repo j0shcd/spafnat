@@ -14,13 +14,67 @@ export function getClientIP(request: Request): string {
   );
 }
 
+function normalizeOrigin(origin: string): string | null {
+  try {
+    return new URL(origin).origin.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function parseAllowedOrigins(allowedOrigins: string): string[] {
+  return allowedOrigins
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
+
+function matchesAllowedOrigin(origin: string, allowedOrigin: string): boolean {
+  const normalizedAllowed = allowedOrigin.toLowerCase();
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (!normalizedOrigin) return false;
+
+  // Entry format: "*.spafnat.com" (subdomains only)
+  if (normalizedAllowed.startsWith('*.')) {
+    try {
+      const hostname = new URL(normalizedOrigin).hostname;
+      const suffix = normalizedAllowed.slice(1); // ".spafnat.com"
+      return hostname.endsWith(suffix) && hostname !== suffix.slice(1);
+    } catch {
+      return false;
+    }
+  }
+
+  // Entry format: full origin (https://spafnat.com)
+  if (normalizedAllowed.includes('://')) {
+    const allowedFullOrigin = normalizeOrigin(normalizedAllowed);
+    return allowedFullOrigin !== null && normalizedOrigin === allowedFullOrigin;
+  }
+
+  // Entry format: bare hostname (spafnat.com)
+  try {
+    const hostname = new URL(normalizedOrigin).hostname;
+    return hostname === normalizedAllowed;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Validate request origin
  * Allows localhost (dev) and *.pages.dev (preview) initially
  * TODO: Tighten to spafnat.com only after custom domain is active
  */
-export function isValidOrigin(origin: string | null): boolean {
+export function isValidOrigin(origin: string | null, allowedOrigins?: string): boolean {
   if (!origin) return true; // Some clients omit Origin header
+
+  // If explicit allowlist is configured, enforce it strictly.
+  if (allowedOrigins && allowedOrigins.trim().length > 0) {
+    const configuredOrigins = parseAllowedOrigins(allowedOrigins);
+    if (configuredOrigins.length === 0) return false;
+
+    return configuredOrigins.some((entry) => matchesAllowedOrigin(origin, entry));
+  }
 
   try {
     const url = new URL(origin);

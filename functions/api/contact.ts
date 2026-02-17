@@ -56,7 +56,7 @@ function validateFormData(data: unknown): { valid: boolean; errors?: string[] } 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 1. Origin check
   const origin = request.headers.get('Origin');
-  if (!isValidOrigin(origin)) {
+  if (!isValidOrigin(origin, env.ALLOWED_ORIGINS)) {
     return jsonResponse({ error: 'Origine non autorisée' }, 403);
   }
 
