@@ -331,21 +331,172 @@
 - **Year-agnostic design**: Document config uses generic filenames (no hardcoded years/issue numbers) for rotating documents
 - **Logout flexibility**: AuthContext logout() accepts optional redirectTo parameter for flexible navigation
 
-## Phase 4: Polish (Deferrable)
+## Phase 4: Concours Collections, Revue Rework, Delegations Content ✅ (Completed 2026-02-17)
+
+**Status**: Complete except Admin Tutorial (deferred to Phase 5)
+
+**Scope**: Enable dynamic concours document management (variable-length collections), add PDF cover rendering to Revue page, and add missing Delegations content.
+
+**Total time**: 1 day (2026-02-17)
+
+### Phase 4a: Concours Backend ✅
+**Files created**:
+- [x] Create `src/config/concours.ts` — Category types, ConcoursItem interface, helper functions (deriveTitleFromFilename, getConcoursKVKey, getConcoursR2Prefix)
+- [x] Create `functions/api/concours.ts` — Public GET endpoint (`?category=all` or specific category)
+- [x] Create `functions/api/admin/concours/upload.ts` — Multipart upload to R2, append to KV array, auto-title derivation, filename collision handling
+- [x] Create `functions/api/admin/concours/delete.ts` — Delete from R2 + remove from KV array
+- [x] Create `functions/api/admin/concours/reorder.ts` — Swap items up/down in KV array
+
+**Files modified**:
+- [x] Modify `src/lib/admin-api.ts` — Add `apiListConcours`, `apiUploadConcours`, `apiDeleteConcours`, `apiReorderConcours`
+
+**Data structure**:
+- KV key: `concours:{category}` → JSON array of `{ r2Key, title, originalFilename, uploadedAt, size }`
+- R2 key: `concours/{category}/{sanitized-filename}`
+- Array order = display order (KV is source of truth)
+
+**Verification**:
+- [x] `npm run typecheck && npm run lint && npm run test:run && npm run build` all pass clean ✅
+- [x] Manual test: `npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA`, then `curl /api/concours?category=all` ✅
+
+**Commits**:
+- [x] `feat: add concours collection backend (KV + R2 endpoints)`
+
+### Phase 4b: Concours Admin UI ✅
+**Files created**:
+- [x] Create `src/pages/admin/AdminConcours.tsx` — 3-tab interface (Règlements, Palmarès Poétique, Palmarès Artistique)
+  - Upload PDF button (top of each tab)
+  - Ordered list with View/Up/Down/Delete buttons
+  - Duplicate file detection with user-friendly toast
+  - Large touch targets (44px+), French labels, AlertDialog confirmation
+
+**Files modified**:
+- [x] Modify `src/AppRoutes.tsx` — Add AdminConcours route under admin layout
+- [x] Modify `src/components/admin/AdminLayout.tsx` — Add "Concours" to sidebar with Award icon
+
+**UX features**:
+- [x] Duplicate detection: blocks uploads with same filename (case-insensitive), shows toast with actionable message
+- [x] Up/down arrows disabled at boundaries (not drag-drop for elderly user)
+- [x] File size display + original filename display
+- [x] Toast feedback for all operations (upload/delete/reorder)
+
+**Verification**:
+- [x] Manual test: Login to `/admin/concours`, upload/delete/reorder PDFs across all 3 tabs ✅
+
+**Commits**:
+- [x] `feat: add admin concours management page`
+
+### Phase 4c: Concours Public UI ✅
+**Files created**:
+- [x] Create `src/hooks/useConcours.ts` — Fetch hook with window focus re-fetching
+
+**Files modified**:
+- [x] Rewrite `src/pages/Concours.tsx` — Dynamic display from `/api/concours?category=all`
+  - Règlements: all visible (active competitions)
+  - Palmarès Poétique/Artistique: latest prominent + collapsible "Palmarès précédents"
+  - All palmares buttons use primary red color (bg-primary hover:bg-primary/90)
+  - Empty state: "Bientôt disponible"
+- [x] Modify `src/config/documents.ts` — Remove palmaresPoetique and palmaresArtistique (migrated to dynamic system)
+
+**Tests**:
+- [x] Modify `src/test/pages.test.tsx` — Add fetch mock for concours API (beforeEach/afterEach), change Concours test to async
+- [x] Modify `src/test/routing.test.tsx` — Add fetch mock, change Concours test to async
+- [x] Modify `src/test/documents.test.ts` — Update expected document count to 6 (was 8)
+- [x] Modify `src/test/admin.test.tsx` — Update expected upload button count to 6 (was 8)
+
+**Verification**:
+- [x] Manual test: Visit `/concours`, verify documents display with download links, test collapsible sections ✅
+
+**Commits**:
+- [x] `feat: rework public Concours page for dynamic collections`
+
+### Phase 4d: Revue Rework ✅
+**Dependencies**:
+- [x] Install `pdfjs-dist` (~300KB)
+
+**Files created**:
+- [x] Create `src/components/PdfCover.tsx` — Renders PDF first page to canvas using pdfjs-dist
+  - Worker source configured via `import.meta.url`
+  - Gradient fallback while loading or on error
+
+**Files modified**:
+- [x] Modify `functions/api/media/[[path]].ts` — Add `X-Original-Filename` header from R2 customMetadata, add to `Access-Control-Expose-Headers`
+- [x] Modify `src/hooks/useDocumentUrl.ts` — Return `originalFilename` from HEAD response header
+- [x] Modify `src/pages/Revue.tsx` — Replace gradient with `<PdfCover>`, dynamic title from originalFilename, add "Notre Histoire" section
+- [x] Modify `vite.config.ts` — Add `pdfjs-dist` to `optimizeDeps.include`
+
+**Tests**:
+- [x] Modify `src/test/setup.ts` — Mock pdfjs-dist to prevent test loading failures
+- [x] Fix Revue tests for dynamic content (multiple "Notre Revue" texts, dynamic title)
+
+**Verification**:
+- [x] Manual test: Upload PDF as extrait_revue via admin, visit `/revue`, verify cover renders and title updates ✅
+
+**Commits**:
+- [x] `feat: add PDF cover rendering and dynamic Revue title`
+
+### Phase 4e: Delegations Content ✅
+**Files modified**:
+- [x] Modify `src/pages/Delegations.tsx` — Add 2 info cards:
+  - Payment instructions: "Le montant de l'abonnement et celui de la cotisation sont à verser au délégué par chèque libellé à son nom."
+  - Treasurer contact: "Délégations sans responsables : Envoyez directement à la trésorière votre cotisation — Mme LECORDIER Flore, 11 rue Juliette Récamier, 69130 ÉCULLY"
+
+**Verification**:
+- [x] Manual test: Visit `/delegations`, verify new cards display correctly ✅
+
+**Commits**:
+- [x] `content: add delegation payment info and treasurer contact`
+
+### Phase 4f: Admin Tutorial ⏸️ DEFERRED
+- [ ] Create `src/pages/admin/AdminTutorial.tsx` — Static JSX page with sections: Connexion, Gestion documents/concours/photos, Résolution problèmes
+- [ ] Add route and sidebar link
+- **Note**: Deferred to Phase 5 per user request
+
+### Phase 4 Final Polish ✅
+**Improvements**:
+- [x] Add duplicate file detection in AdminConcours (case-insensitive filename check, user-friendly toast)
+- [x] Change palmares button colors to primary red (all palmares buttons, not just latest)
+- [x] Add "Notre Histoire" section to Revue page (historical text about magazine founding in 1958)
+
+**Tests**:
+- [x] Create `src/test/concours.test.ts` — Test config helpers (deriveTitleFromFilename, getConcoursKVKey, getConcoursR2Prefix) — 9 tests
+- [x] All 129 tests passing (120 Phase 3 + 9 Phase 4)
+
+**Verification**:
+- [x] `npm run preflight` — All Cloudflare compatibility checks passed ✅
+- [x] `npm run typecheck` — No type errors ✅
+- [x] `npm run lint` — 0 errors ✅
+- [x] `npm run test:run` — All 129 tests passing ✅
+- [x] `npm run build` — Production build successful ✅
+
+**Commits**:
+- [x] `test: add concours configuration tests`
+- [x] `feat: add duplicate file detection, palmares colors, and Revue history`
+
+### Phase 4 Key Decisions
+- **KV for collections**: Chosen over fixed documents.ts entries — enables variable-length lists
+- **Client-side PDF rendering**: pdfjs-dist chosen over server-side (no Workers image processing, avoids R2 thumbnails)
+- **Bundle size tradeoff**: ~300KB for pdfjs-dist acceptable for feature value
+- **Duplicate detection**: Client-side check before upload (not error-level, actionable guidance)
+- **Up/down reordering**: Arrows instead of drag-drop (easier for elderly user)
+- **Category=all endpoint**: Single request fetches all categories (reduces latency)
+- **useConcours window focus**: Auto re-fetch after admin changes (real-time updates)
+
+## Phase 5: Polish & Production Readiness (Deferrable)
 
 - [ ] Add JSON-LD structured data
 - [ ] Create `sitemap.xml`
-- [ ] Add proper cache headers
+- [ ] Add proper cache headers (beyond Phase 2 security headers)
 - [ ] Set up Cloudflare Web Analytics
 - [ ] Accessibility audit (headings, contrast, keyboard nav)
-- [ ] Expand concours section with per-region downloads
+- [ ] Admin tutorial page (deferred from Phase 4f)
 
 ## Validation Checklist (Before Each Deployment)
 
 - [x] `npm run preflight` — All Cloudflare compatibility checks pass ✅
 - [x] `npm run typecheck` — no TS errors ✅
 - [x] `npm run lint` — 0 errors, 8 warnings (fast refresh in shadcn components) ✅
-- [x] `npm run test:run` — all 120 tests pass ✅
+- [x] `npm run test:run` — all 129 tests pass ✅ (updated from 120 after Phase 4)
 - [x] `npm run build` — builds successfully ✅
 - [x] Manual review: open each page, check content, click all buttons/links ✅
 - [x] For Cloudflare features: test with `npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA` ✅
