@@ -3,10 +3,30 @@ import { jsonResponse } from '../../lib/helpers';
 import {
   validateFile,
   sanitizeFilename,
-  getFileExtension,
+  isValidPhotoYear,
+  type FileLike,
 } from '../../lib/file-validation';
+import { DOCUMENTS } from '../../../src/config/documents';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_DOCUMENT_FILENAMES = new Set(
+  Object.values(DOCUMENTS)
+    .map((document) => document.path.split('/').pop())
+    .filter((filename): filename is string => Boolean(filename))
+);
+
+function isFileLike(value: unknown): value is FileLike {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as Partial<FileLike>;
+  return (
+    typeof candidate.name === 'string' &&
+    typeof candidate.type === 'string' &&
+    typeof candidate.size === 'number' &&
+    typeof candidate.slice === 'function' &&
+    typeof candidate.arrayBuffer === 'function'
+  );
+}
 
 /**
  * POST /api/admin/upload
@@ -38,9 +58,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // 3. Extract fields
-    const file = formData.get('file') as File | null;
-    const type = formData.get('type') as string | null;
-    const key = formData.get('key') as string | null;
+    const fileEntry = formData.get('file');
+    const typeEntry = formData.get('type');
+    const keyEntry = formData.get('key');
+    const file = isFileLike(fileEntry) ? fileEntry : null;
+    const type = typeof typeEntry === 'string' ? typeEntry : null;
+    const key = typeof keyEntry === 'string' ? keyEntry : null;
 
     if (!file || !type || !key) {
       console.error('Upload validation failed:', { hasFile: !!file, type, key });
@@ -76,11 +99,27 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     let r2Key: string;
 
     if (type === 'document') {
+      if (!ALLOWED_DOCUMENT_FILENAMES.has(key)) {
+        console.error('Invalid document filename:', key);
+        return jsonResponse(
+          { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+          400
+        );
+      }
+
       // Documents: documents/{filename} (key is already the full filename)
       r2Key = `documents/${key}`;
     } else {
       // Photos: congres/{year}/{sanitized-filename}
       const year = key; // For photos, key is the year
+      if (!isValidPhotoYear(year)) {
+        console.error('Invalid photo year:', year);
+        return jsonResponse(
+          { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+          400
+        );
+      }
+
       const sanitized = sanitizeFilename(file.name, false);
       r2Key = `congres/${year}/${sanitized}`;
 

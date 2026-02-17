@@ -1,5 +1,12 @@
 import type { Env } from '../../env';
 import { jsonResponse } from '../../lib/helpers';
+import { DOCUMENTS } from '../../../src/config/documents';
+
+const ALLOWED_DOCUMENT_FILENAMES = new Set(
+  Object.values(DOCUMENTS)
+    .map((document) => document.path.split('/').pop())
+    .filter((filename): filename is string => Boolean(filename))
+);
 
 /**
  * POST /api/admin/delete-document
@@ -43,6 +50,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     const key = requestBody.key;
+    if (!ALLOWED_DOCUMENT_FILENAMES.has(key)) {
+      console.error('Delete document: invalid document filename');
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
+    }
 
     // Construct R2 key (key is already the full filename)
     const r2Key = `documents/${key}`;

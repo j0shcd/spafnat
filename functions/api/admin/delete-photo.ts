@@ -1,5 +1,6 @@
 import type { Env } from '../../env';
 import { jsonResponse } from '../../lib/helpers';
+import { hasUnsafePathSegments, isValidPhotoYear } from '../../lib/file-validation';
 
 /**
  * POST /api/admin/delete-photo
@@ -43,8 +44,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     const key = requestBody.key;
 
-    // Validate key format (must start with "congres/")
-    if (!key.startsWith('congres/')) {
+    const segments = key.split('/');
+    if (hasUnsafePathSegments(segments)) {
+      console.error('Delete photo: unsafe key path:', key);
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
+    }
+
+    // Validate key format congres/{year}/{filename}
+    if (segments.length !== 3 || segments[0] !== 'congres' || !isValidPhotoYear(segments[1])) {
       console.error('Delete photo: invalid key format:', key);
       return jsonResponse(
         { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },

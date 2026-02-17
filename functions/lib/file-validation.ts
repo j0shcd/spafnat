@@ -35,6 +35,43 @@ const ALLOWED_FILE_TYPES = {
   },
 };
 
+const MIN_PHOTO_YEAR = 2010;
+
+export interface FileLike {
+  name: string;
+  size: number;
+  type: string;
+  slice: (start?: number, end?: number) => Blob;
+  arrayBuffer: () => Promise<ArrayBuffer>;
+}
+
+/**
+ * Validate photo year format and bounds
+ */
+export function isValidPhotoYear(
+  year: string,
+  maxYear = new Date().getFullYear()
+): boolean {
+  if (!/^\d{4}$/.test(year)) return false;
+  const parsed = Number.parseInt(year, 10);
+  return parsed >= MIN_PHOTO_YEAR && parsed <= maxYear;
+}
+
+/**
+ * Basic path segment safety check
+ */
+export function hasUnsafePathSegments(pathSegments: string[]): boolean {
+  return pathSegments.some((segment) => {
+    return (
+      segment === '' ||
+      segment === '.' ||
+      segment === '..' ||
+      segment.includes('\\') ||
+      segment.includes('\0')
+    );
+  });
+}
+
 /**
  * Validate file MIME type against allowlist
  */
@@ -130,7 +167,7 @@ export function validateExtension(filename: string, mimeType: string): boolean {
 /**
  * Read first N bytes from a File/Blob
  */
-export async function readFileHeader(file: File, bytes = 12): Promise<Uint8Array> {
+export async function readFileHeader(file: FileLike, bytes = 12): Promise<Uint8Array> {
   const slice = file.slice(0, bytes);
   const arrayBuffer = await slice.arrayBuffer();
   return new Uint8Array(arrayBuffer);
@@ -143,7 +180,7 @@ export async function readFileHeader(file: File, bytes = 12): Promise<Uint8Array
  * @returns { valid: true } or { valid: false, error: string }
  */
 export async function validateFile(
-  file: File,
+  file: FileLike,
   maxSizeBytes: number
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   // 1. Check file size

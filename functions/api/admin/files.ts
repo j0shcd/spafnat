@@ -1,5 +1,6 @@
 import type { Env } from '../../env';
 import { jsonResponse } from '../../lib/helpers';
+import { isValidPhotoYear } from '../../lib/file-validation';
 
 /**
  * GET /api/admin/files?type=documents
@@ -25,6 +26,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     } else if (type === 'photos') {
       if (!year) {
         return jsonResponse({ error: 'Paramètre "year" requis pour les photos' }, 400);
+      }
+      if (!isValidPhotoYear(year)) {
+        return jsonResponse({ error: 'Année invalide (format: YYYY)' }, 400);
       }
       prefix = `congres/${year}/`;
     } else {

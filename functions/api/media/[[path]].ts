@@ -1,23 +1,45 @@
 import type { Env } from '../../env';
+import { hasUnsafePathSegments } from '../../lib/file-validation';
+
+const ALLOWED_PUBLIC_PREFIXES = ['documents/', 'congres/', 'concours/'] as const;
+
+function getPathSegments(params: Record<string, unknown>): string[] {
+  if (!Array.isArray(params.path)) return [];
+  return params.path.filter((segment): segment is string => typeof segment === 'string');
+}
+
+export function isPublicMediaR2Key(r2Key: string): boolean {
+  return ALLOWED_PUBLIC_PREFIXES.some((prefix) => r2Key.startsWith(prefix));
+}
+
+export function isSafeMediaPath(pathSegments: string[]): boolean {
+  return pathSegments.length > 0 && !hasUnsafePathSegments(pathSegments);
+}
+
+function resolveMediaKey(params: Record<string, unknown>): { key?: string; response?: Response } {
+  const pathSegments = getPathSegments(params);
+  if (!isSafeMediaPath(pathSegments)) {
+    return { response: new Response('Chemin invalide', { status: 400 }) };
+  }
+
+  const r2Key = pathSegments.join('/');
+  if (!isPublicMediaR2Key(r2Key)) {
+    return { response: new Response('Accès non autorisé', { status: 403 }) };
+  }
+
+  return { key: r2Key };
+}
 
 /**
  * Shared logic for checking if file exists in R2
  */
 async function checkFileExists(env: Env, params: Record<string, unknown>): Promise<Response> {
   try {
-    // 1. Get path from params
-    const pathSegments = (params.path as string[]) || [];
-
-    // 2. Path traversal protection
-    if (pathSegments.some((segment) => segment === '..' || segment === '')) {
-      return new Response('Chemin invalide', { status: 400 });
+    const resolved = resolveMediaKey(params);
+    if (!resolved.key) {
+      return resolved.response || new Response('Chemin invalide', { status: 400 });
     }
-
-    const r2Key = pathSegments.join('/');
-
-    if (!r2Key) {
-      return new Response('Chemin requis', { status: 400 });
-    }
+    const r2Key = resolved.key;
 
     // 3. Check if file exists in R2 using head()
     const object = await env.SPAF_MEDIA.head(r2Key);
@@ -74,21 +96,13 @@ export const onRequestHead: PagesFunction<Env> = async ({ env, params }) => {
  * Public endpoint (no auth required)
  * Includes cache headers and path traversal protection
  */
-export const onRequestGet: PagesFunction<Env> = async ({ request, env, params }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
   try {
-    // 1. Get path from params
-    const pathSegments = (params.path as string[]) || [];
-
-    // 2. Path traversal protection
-    if (pathSegments.some((segment) => segment === '..' || segment === '')) {
-      return new Response('Chemin invalide', { status: 400 });
+    const resolved = resolveMediaKey(params);
+    if (!resolved.key) {
+      return resolved.response || new Response('Chemin invalide', { status: 400 });
     }
-
-    const r2Key = pathSegments.join('/');
-
-    if (!r2Key) {
-      return new Response('Chemin requis', { status: 400 });
-    }
+    const r2Key = resolved.key;
 
     // 3. Fetch file from R2
     const object = await env.SPAF_MEDIA.get(r2Key);
