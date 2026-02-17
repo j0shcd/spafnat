@@ -114,8 +114,9 @@ npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
 ```bash
 npm run preflight    # Cloudflare compatibility checks
 npm run typecheck    # TypeScript validation
+npm run typecheck:strict  # Stricter app-only TypeScript checks
 npm run lint         # ESLint (expect 8 shadcn warnings - safe to ignore)
-npm run test:run     # All tests (currently 129 passing)
+npm run test:run     # All tests (currently 134 passing)
 npm run build        # Production build
 ```
 
@@ -216,6 +217,7 @@ Set under **Settings > Environment Variables > Production**:
 | `ADMIN_PASSWORD_HASH`  | Admin password (PBKDF2)        | `npx tsx scripts/generate-password-hash.ts <pass>` |
 | `RESEND_API_KEY`       | Email sending (contact form)   | Get from https://resend.com/api-keys               |
 | `CONTACT_RECIPIENT`    | Contact form destination email | `plecordier@free.fr` (production)                  |
+| `ALLOWED_ORIGINS`      | Allowed origins for contact API/CORS checks | Comma-separated list (e.g. `https://spafnat.com,https://www.spafnat.com`) |
 
 **Important:** Preview environment has separate variables (allows testing with different passwords/emails)
 
@@ -245,6 +247,7 @@ Set under **Settings > Functions > R2 bucket bindings**:
 # Contact Form & Visitor Counter
 RESEND_API_KEY=re_xxxxx
 CONTACT_RECIPIENT=joshua@cohendumani.com  # Test email
+ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 
 # Admin Panel
 JWT_SECRET=base64-encoded-secret-here
@@ -257,6 +260,7 @@ ADMIN_PASSWORD_HASH=salt:hash
 # Contact Form & Visitor Counter
 RESEND_API_KEY=re_xxxxx
 CONTACT_RECIPIENT=plecordier@free.fr  # Production email
+ALLOWED_ORIGINS=https://spafnat.com,https://www.spafnat.com
 
 # Admin Panel
 JWT_SECRET=base64-encoded-secret-here
@@ -423,12 +427,13 @@ npx wrangler r2 object put spaf-media/documents/bulletin_adhesion.pdf --file pub
 - **Visitor counter:** Daily unique visitors with IP+UA deduplication
 - **Contact form:** Honeypot, rate limiting, email via Resend
 - **Security headers:** CSP, CORS, rate limiting
-- **Testing:** 52 tests (28 smoke + 24 security)
+- **Testing baseline:** Smoke + security coverage established and expanded over time
 
 #### Phase 3: Admin Panel + File Management (Complete ✅)
 - **3a - Backend:** Auth, JWT sessions, R2 upload/download, KV session tracking
 - **3b - Admin UI:** Login, dashboard, document manager, photo manager
 - **3c - Frontend Integration:** R2-aware document URLs, photo gallery, cache-busting
+- **3d - Security hardening:** Path validation, document key allowlists, stricter JWT verification
 
 #### Phase 4: Dynamic Content (Complete ✅)
 - **4a - Concours Backend:** KV-based collections for 3 competition categories
@@ -437,7 +442,7 @@ npx wrangler r2 object put spaf-media/documents/bulletin_adhesion.pdf --file pub
 - **4d - Revue Rework:** PDF cover rendering (pdfjs-dist), dynamic titles
 - **4e - Delegations Content:** Payment instructions, treasurer contact
 
-**Current Status:** Production-ready (129 tests passing)
+**Current Status:** Production-ready (134 tests passing)
 
 ---
 
@@ -673,19 +678,12 @@ type ConcoursItem = {
 ### Test Categories
 
 ```bash
-tests/
-├── smoke.test.tsx          # 28 tests - basic rendering
-├── security.test.tsx       # 24 tests - XSS, injection, validation
-├── visitor-counter.test.tsx # 9 tests - dedup, rate limiting
-├── contact-form.test.tsx   # 15 tests - honeypot, rate limiting, email
-├── auth.test.tsx           # 15 tests - JWT, sessions, password hashing
-├── upload.test.tsx         # 18 tests - file validation, R2 integration
-├── media.test.tsx          # 11 tests - R2 proxy, caching
-├── gallery.test.tsx        # 8 tests - photo listing
-└── concours.test.tsx       # 9 tests - collections, reordering
+src/test/                     # UI smoke and routing tests
+src/tests/                    # Feature + API integration tests
+tests/security/               # Security-focused endpoint tests
 ```
 
-**Total:** 129 tests passing
+**Total:** 12 test files, 134 tests passing
 
 ### Run Tests
 
@@ -819,12 +817,12 @@ vi.mock('pdfjs-dist', () => ({
 #### Production Domain Migration
 - **Tasks:**
   - [ ] Configure custom domain `spafnat.com` in Cloudflare Dashboard
-  - [ ] Tighten origin validation to `spafnat.com` only
+  - [x] Add env-based origin allowlist (`ALLOWED_ORIGINS`) in contact/API validation
+  - [ ] Set `ALLOWED_ORIGINS` to production domain(s) only after cutover (`https://spafnat.com`, `https://www.spafnat.com`)
   - [ ] Switch email sender to `contact@spafnat.com`
   - [ ] Switch contact recipient to `plecordier@free.fr` - both cloudflare env var and code var (visible on website)
   - [ ] Test all features on production domain
   - [ ] Add CSP to `public/_headers` once third-party needs are known
-  - [ ] Tighten Origin allowlist to spafnat.com only once custom domain is active
 
 #### R2 Monitoring & Alerts
 - **Setup billing alerts:** $1, $5, $10 thresholds
