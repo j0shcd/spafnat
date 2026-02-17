@@ -18,7 +18,7 @@ export const onRequest: PagesFunction<Env> = async ({ request, env, next }) => {
   // 2. Verify JWT signature and expiration
   try {
     const secret = new TextEncoder().encode(env.JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
 
     // 3. Check if session exists in KV (not revoked)
     const jti = payload.jti;

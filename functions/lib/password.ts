@@ -8,6 +8,21 @@ const ITERATIONS = 100000;
 const SALT_LENGTH = 16; // 16 bytes = 128 bits
 const HASH_LENGTH = 32; // 32 bytes = 256 bits
 
+function decodeBase64(value: string): Uint8Array {
+  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+}
+
+function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i] ^ b[i];
+  }
+
+  return diff === 0;
+}
+
 /**
  * Verify a password against a stored hash
  * @param password - Plain text password to verify
@@ -26,7 +41,11 @@ export async function verifyPassword(
     }
 
     // Decode salt from base64
-    const salt = Uint8Array.from(atob(saltB64), (c) => c.charCodeAt(0));
+    const salt = decodeBase64(saltB64);
+    const expectedHash = decodeBase64(hashB64);
+    if (expectedHash.length !== HASH_LENGTH) {
+      throw new Error('Invalid hash length');
+    }
 
     // Derive key from password using same salt
     const encoder = new TextEncoder();
@@ -51,12 +70,9 @@ export async function verifyPassword(
       HASH_LENGTH * 8 // bits
     );
 
-    // Convert to base64 for comparison
-    const derivedArray = new Uint8Array(derivedBits);
-    const derivedB64 = btoa(String.fromCharCode(...derivedArray));
-
     // Constant-time comparison (mitigate timing attacks)
-    return derivedB64 === hashB64;
+    const derivedArray = new Uint8Array(derivedBits);
+    return timingSafeEqual(derivedArray, expectedHash);
   } catch (error) {
     console.error('Password verification error:', error);
     return false;

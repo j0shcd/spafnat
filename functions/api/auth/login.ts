@@ -5,6 +5,15 @@ import { getClientIP, jsonResponse } from '../../lib/helpers';
 
 const ADMIN_USERNAME = 'admin'; // Single admin account
 
+export function isLocalRequest(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * POST /api/auth/login
  * Authenticates admin user with username + password
@@ -13,8 +22,7 @@ const ADMIN_USERNAME = 'admin'; // Single admin account
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 1. Check if localhost (skip rate limiting for local dev)
-  const origin = request.headers.get('origin') || '';
-  const isLocalDev = origin.includes('localhost') || origin.includes('127.0.0.1');
+  const isLocalDev = isLocalRequest(request.url);
 
   // 2. Rate limiting — 5 attempts per 15 minutes (production only)
   const ip = getClientIP(request);
@@ -23,7 +31,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
   if (!isLocalDev) {
     const attempts = await env.SPAF_KV.get(rateLimitKey);
-    attemptCount = attempts ? parseInt(attempts, 10) : 0;
+    const parsedAttempts = attempts ? Number.parseInt(attempts, 10) : 0;
+    attemptCount = Number.isFinite(parsedAttempts) && parsedAttempts > 0 ? parsedAttempts : 0;
 
     if (attemptCount >= 5) {
       return jsonResponse(
