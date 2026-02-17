@@ -251,6 +251,27 @@ export default function AdminConcours() {
                         {item.title}
                       </CardTitle>
                     </div>
+                    {/* Reorder buttons (icon-only, right side) */}
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        disabled={index === 0}
+                        onClick={() => handleReorder(category, item.r2Key, 'up')}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        disabled={index === categoryData.items.length - 1}
+                        onClick={() => handleReorder(category, item.r2Key, 'down')}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <CardDescription className="text-sm">
@@ -271,28 +292,6 @@ export default function AdminConcours() {
                     >
                       <Eye className="h-4 w-4 mr-2" />
                       Voir
-                    </Button>
-
-                    {/* Up button */}
-                    <Button
-                      variant="outline"
-                      className="min-h-[44px]"
-                      disabled={index === 0}
-                      onClick={() => handleReorder(category, item.r2Key, 'up')}
-                    >
-                      <ChevronUp className="h-4 w-4 mr-2" />
-                      Haut
-                    </Button>
-
-                    {/* Down button */}
-                    <Button
-                      variant="outline"
-                      className="min-h-[44px]"
-                      disabled={index === categoryData.items.length - 1}
-                      onClick={() => handleReorder(category, item.r2Key, 'down')}
-                    >
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      Bas
                     </Button>
 
                     {/* Delete button */}
