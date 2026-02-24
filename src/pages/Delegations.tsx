@@ -8,56 +8,67 @@ const delegations = [
     {
       region: "Auvergne-Rhône-Alpes",
       delegate: "Gael Schmidt",
+      gender: "M" as const,
       address: "64 route de la vieille églises, 74410 Saint-Jorioz",
     },
     {
       region: "Bourgogne-Franche-Comté",
       delegate: "Michel Potier",
+      gender: "M" as const,
       address: "33 rue de Compostelle, Villiers-le-Sec, 58210 Varzy",
     },
     {
       region: "Bretagne",
       delegate: "Loriane Dréan",
+      gender: "F" as const,
       address: "31 Hent Toull Moger, 29000 Quimper",
     },
     {
       region: "Grand Est",
       delegate: "Christine Golleau-Braibant",
+      gender: "F" as const,
       address: "8 rue du Maréchal Foch, 57220 Boulay",
     },
     {
       region: "Île-de-France",
       delegate: "Magali Breton",
+      gender: "F" as const,
       address: "12 Chemin des Boissettes, 77350 Boissise la Bertrand",
     },
     {
       region: "Martinique - Guadeloupe",
       delegate: "Arlette Millon",
+      gender: "F" as const,
       address: "Quartier Lamberton, 97215 Rivière Salée",
     },
     {
       region: "Mascareignes",
       delegate: "Thierry Bertil",
+      gender: "M" as const,
       address: "312 rue Raphaël Douyere Bois-court, 97418 Plaine des Cafres",
     },
     {
       region: "Normandie",
       delegate: "Philippe Pauthonier",
+      gender: "M" as const,
       address: "13 rue de la Mailleray, Rés. de France Imm. Roussillon, 76600 Le Havre"
     },
     {
       region: "Nouvelle Aquitaine",
       delegate: "Christian Littée",
+      gender: "M" as const,
       address: "13 rue des Carmes appt. 14 allée du bon pasteur, 86000 Poitiers",
     },
     {
       region: "Occitanie",
       delegate: "Richard Maggiore",
+      gender: "M" as const,
       address: "9 rue Desmazels Appt 7, 82200 Moissac",
     },
     {
       region: "Provence-Alpes-Côte d'Azur",
       delegate: "Natalie Lauro",
+      gender: "F" as const,
       address: "64 Avenue du 3 septembre, La Lézardière Bat G, 06320 Cap d'ail",
     }
   ];
@@ -104,7 +115,7 @@ const delegations = [
                   </CardTitle>
                 </div>
                 <CardDescription className="font-sans text-foreground">
-                  Délégué·e : <strong>{delegation.delegate}</strong>
+                  {delegation.gender === "F" ? "Déléguée" : "Délégué"} : <strong>{delegation.delegate}</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -168,7 +179,7 @@ const delegations = [
             <div className="space-x-4">
               <Button variant="outline" asChild className="text-primary hover:text-primary-foreground">
                 <a href={`mailto:${CONTACT_EMAIL}`}>
-                  Devenir délégué·e
+                  Devenir délégué
                 </a>
               </Button>
             </div>
