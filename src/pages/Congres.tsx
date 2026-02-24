@@ -242,7 +242,7 @@ const Congres = () => {
                             <img
                               src={currentYearPhotos[selectedPhoto || 0]?.url}
                               alt={`Congrès ${selectedYear} - Photo ${(selectedPhoto || 0) + 1}`}
-                              className="max-w-full max-h-full object-contain rounded-lg"
+                              className="w-full h-full object-contain rounded-lg"
                             />
                           </div>
 
