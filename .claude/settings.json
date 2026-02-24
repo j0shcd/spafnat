@@ -1,8 +1,15 @@
-// .claude/settings.json
 {
   "hooks": {
-    "post-edit": {
-      "command": "grep -rn 'process\\.argv\\|require(\\.\\./\\|fs\\.' src/ && echo 'WARNING: Possible Node.js-only API detected' || true"
-    }
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "grep -rn 'process\\.argv\\|require(\\.\\./\\|fs\\.' src/ && echo 'WARNING: Possible Node.js-only API detected' || true"
+          }
+        ]
+      }
+    ]
   }
 }
