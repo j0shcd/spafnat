@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FileText, Image, LogOut, Menu, Home, Award } from 'lucide-react';
+import { FileText, Image, LogOut, Menu, Home, Award, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
@@ -47,6 +47,19 @@ function Sidebar({ onBackToSite }: { onBackToSite: () => void }) {
       </div>
 
       <div className="p-4 border-t space-y-2">
+        <NavLink
+          to="/admin/guide"
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-4 py-3 min-h-[44px] text-lg rounded-md transition-colors ${
+              isActive
+                ? 'bg-accent text-accent-foreground font-medium'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`
+          }
+        >
+          <HelpCircle className="h-5 w-5" />
+          Aide
+        </NavLink>
         <Button
           variant="outline"
           className="w-full min-h-[44px] text-lg justify-start"
@@ -110,6 +123,10 @@ export function AdminLayout() {
 
           {/* Desktop buttons */}
           <div className="hidden lg:flex gap-2">
+            <Button variant="ghost" onClick={() => navigate('/admin/guide')}>
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Aide
+            </Button>
             <Button variant="ghost" onClick={handleBackToSite}>
               <Home className="h-4 w-4 mr-2" />
               Retour au site
@@ -129,7 +146,7 @@ export function AdminLayout() {
 
       <div className="flex-1 flex">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:block w-64 border-r bg-muted/30">
+        <aside className="hidden lg:flex lg:flex-col w-64 border-r bg-muted/30 sticky top-0 h-[calc(100vh-4rem)] overflow-y-auto">
           <Sidebar onBackToSite={handleBackToSite} />
         </aside>
 

@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { CONCOURS_CATEGORIES } from '@/config/concours';
+import { HelpTip } from '@/components/admin/HelpTip';
 import {
   apiListConcours,
   apiUploadConcours,
@@ -206,7 +207,7 @@ export default function AdminConcours() {
           </div>
 
           {/* Upload button */}
-          <div>
+          <div className="flex items-center gap-1.5">
             <input
               type="file"
               accept=".pdf"
@@ -229,6 +230,7 @@ export default function AdminConcours() {
               <Upload className="h-4 w-4 mr-2" />
               {categoryData.isUploading ? 'Téléversement...' : 'Téléverser PDF'}
             </Button>
+            <HelpTip text="Le titre est créé à partir du nom de fichier. Ex : « Concours 2026.pdf » → « Concours 2026 »" />
           </div>
         </div>
 

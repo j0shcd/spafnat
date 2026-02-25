@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { apiListPhotos, apiUploadPhoto, apiDeletePhoto, PhotoFile } from '@/lib/admin-api';
+import { HelpTip } from '@/components/admin/HelpTip';
 
 export default function AdminPhotos() {
   const currentYear = new Date().getFullYear();
@@ -228,7 +229,10 @@ export default function AdminPhotos() {
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
-            <label className="text-sm font-medium mb-2 block">Année du congrès</label>
+            <div className="flex items-center gap-1.5 mb-2">
+              <label className="text-sm font-medium">Année du congrès</label>
+              <HelpTip text="Sélectionnez l'année du congrès avant d'ajouter des photos." />
+            </div>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-full sm:w-48 h-12 text-lg">
                 <SelectValue placeholder="Sélectionner l'année" />
@@ -258,15 +262,18 @@ export default function AdminPhotos() {
                 e.target.value = '';
               }}
             />
-            <Button
-              size="lg"
-              className="min-h-[48px] text-lg"
-              disabled={isUploading}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="h-5 w-5 mr-2" />
-              {isUploading ? uploadProgress : 'Téléverser des photos'}
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="lg"
+                className="min-h-[48px] text-lg"
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-5 w-5 mr-2" />
+                {isUploading ? uploadProgress : 'Téléverser des photos'}
+              </Button>
+              <HelpTip text="Vous pouvez sélectionner plusieurs photos à la fois." />
+            </div>
             {photos.length > 0 && (
               <Button
                 size="lg"
