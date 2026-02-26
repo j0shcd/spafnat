@@ -197,12 +197,10 @@ export default function AdminGuide() {
         </Tip>
 
         <SubHeading>Téléverser (remplacer) un document</SubHeading>
-        {/* <p className="text-lg text-foreground mb-1"><strong>Quand faire cela ?</strong></p>
-        <ul className="list-disc list-inside space-y-1 text-lg text-foreground pl-2 mb-3">
-          <li>Nouveau bulletin pour l'année en cours</li>
-          <li>Nouvelle revue publiée</li>
-          <li>Mise à jour du formulaire de congrès</li>
-        </ul> */}
+         <Tip>
+          <strong>Le titre qui apparaît sur le site web est généré à partir du nom du fichier PDF. <br /></strong>
+          Exemple : <code>Revue 264 - Janvier 2026.pdf</code> → Titre : « Revue 264 - Janvier 2026 »
+        </Tip>
         <Steps
           steps={[
             'Cliquez sur <strong>« Documents »</strong> dans le menu de gauche',
@@ -222,10 +220,7 @@ export default function AdminGuide() {
           Vous pouvez cliquer sur <strong>« Voir »</strong> pour ouvrir le PDF et vérifier son contenu, ou essayer de le télécharger directement depuis le site.
         </p>
 
-        <Tip>
-          <strong>TBC: préciser que le titre de la section est généré à partir du nom de fichier.</strong>
-          Exemple : <code>Revue 264 - Janvier 2026.pdf</code> → Titre : « Revue 264 - Janvier 2026 »
-        </Tip>
+       
 
         {/* <SubHeading>Vérifier qu'un document est en ligne</SubHeading>
         <p className="text-lg text-foreground mb-2">Regardez le <strong>badge de statut</strong> sous le titre du document :</p>
@@ -336,7 +331,7 @@ export default function AdminGuide() {
           <ul className="list-disc list-inside space-y-1">
             <li>
               Le <strong>titre</strong> du document est créé automatiquement à partir du nom de fichier.
-              Exemple : <code>Concours Normandie 2026.pdf</code> apparaîtra comme « Concours Normandie 2026 » sur le
+              Exemple : <code>Concours Normandie 2026.pdf</code> apparaîtra comme « Concours Normandie 2026 » sur le site public.
             </li>
             <li>
               Si vous téléversez un fichier avec le <strong>même nom</strong> qu'un existant,
