@@ -247,8 +247,9 @@ const Revue = () => {
               La revue permet aux membres, poètes et artistes de faire connaître leurs œuvres gracieusement.
             </p>
             <p className="leading-relaxed">
-              Pour aider à son financement, tout membre peut faire paraître sa photo en couleurs,
-              un poème ou une œuvre, pour la somme de vingt euros.
+              Pour contribuer au financement de la revue, tout membre peut faire paraître sa photo en couleurs,
+              un poème ou une œuvre aux tarifs suivants : vingt euros la page, quinze euros la ½ page,
+              dix euros le ¼ de page. La recension ou l'annonce de parution d'un ouvrage est fixée à quinze euros.
             </p>
           </CardContent>
         </Card>
