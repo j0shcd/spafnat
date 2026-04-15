@@ -12,8 +12,10 @@ import { CONTACT_EMAIL } from "@/config/contact";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -269,7 +271,7 @@ const Index = () => {
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => window.location.href = activity.link}
+                      onClick={() => navigate(activity.link)}
                     >
                       {activity.cta}
                     </Button>

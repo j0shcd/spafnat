@@ -29,6 +29,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  const getSafeRedirectPath = (redirectTo: string): string => {
+    if (redirectTo.startsWith('/')) {
+      return redirectTo;
+    }
+
+    try {
+      const redirectUrl = new URL(redirectTo, window.location.origin);
+      if (redirectUrl.origin === window.location.origin) {
+        return `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`;
+      }
+    } catch {
+      // Fallback handled below.
+    }
+
+    return '/admin/login';
+  };
+
   // On mount: verify existing token
   useEffect(() => {
     const verifyToken = async () => {
@@ -64,12 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = async (redirectTo: string = '/admin/login') => {
     await apiLogout();
     setToken(null);
-    // Use window.location for external navigation (outside admin routes)
-    if (redirectTo.startsWith('/admin')) {
-      navigate(redirectTo);
-    } else {
-      window.location.href = redirectTo;
-    }
+    navigate(getSafeRedirectPath(redirectTo), { replace: true });
   };
 
   return (
