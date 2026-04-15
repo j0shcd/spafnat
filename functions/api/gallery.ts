@@ -1,5 +1,10 @@
 import type { Env } from '../env';
 import { jsonResponse } from '../lib/helpers';
+import { enforceIpRateLimit } from '../lib/rate-limit';
+import { isValidPhotoYear } from '../lib/file-validation';
+
+const GALLERY_RATE_LIMIT = 120;
+const GALLERY_RATE_WINDOW_SECONDS = 60;
 
 /**
  * GET /api/gallery?year=2024
@@ -9,6 +14,17 @@ import { jsonResponse } from '../lib/helpers';
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
+    const rateLimited = await enforceIpRateLimit({
+      request,
+      env,
+      scope: 'gallery:list',
+      limit: GALLERY_RATE_LIMIT,
+      windowSeconds: GALLERY_RATE_WINDOW_SECONDS,
+    });
+    if (rateLimited) {
+      return rateLimited;
+    }
+
     const url = new URL(request.url);
     const year = url.searchParams.get('year');
 
@@ -16,8 +32,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       return jsonResponse({ error: 'Paramètre "year" requis' }, 400);
     }
 
-    // Validate year format (4 digits)
-    if (!/^\d{4}$/.test(year)) {
+    if (!isValidPhotoYear(year)) {
       return jsonResponse({ error: 'Année invalide (format: YYYY)' }, 400);
     }
 

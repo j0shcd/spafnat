@@ -5,6 +5,12 @@ import { onRequestGet as mediaGetHandler } from '../../functions/api/media/[[pat
 type UploadHandlerContext = Parameters<typeof uploadHandler>[0];
 type MediaGetHandlerContext = Parameters<typeof mediaGetHandler>[0];
 
+function createMediaRequest(): Request {
+  return new Request('http://localhost/api/media/test', {
+    method: 'GET',
+  });
+}
+
 function createPdfFile(filename: string): File {
   const pdfBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]); // %PDF-1.7
   return new File([pdfBytes], filename, { type: 'application/pdf' });
@@ -64,6 +70,7 @@ describe('Admin Endpoint Security', () => {
 
   it('blocks public media access outside allowed prefixes', async () => {
     const response = await mediaGetHandler({
+      request: createMediaRequest(),
       env,
       params: { path: ['private', 'backup.zip'] },
     } as unknown as MediaGetHandlerContext);
@@ -74,6 +81,7 @@ describe('Admin Endpoint Security', () => {
 
   it('blocks path traversal attempts on media endpoint', async () => {
     const response = await mediaGetHandler({
+      request: createMediaRequest(),
       env,
       params: { path: ['documents', '..', 'secret.txt'] },
     } as unknown as MediaGetHandlerContext);
@@ -84,6 +92,7 @@ describe('Admin Endpoint Security', () => {
 
   it('allows safe public prefixes to reach storage lookup', async () => {
     const response = await mediaGetHandler({
+      request: createMediaRequest(),
       env,
       params: { path: ['documents', 'bulletin_adhesion.pdf'] },
     } as unknown as MediaGetHandlerContext);
@@ -105,6 +114,7 @@ describe('Admin Endpoint Security', () => {
     });
 
     const response = await mediaGetHandler({
+      request: createMediaRequest(),
       env,
       params: { path: ['documents', 'extrait_revue.pdf'] },
     } as unknown as MediaGetHandlerContext);
@@ -128,6 +138,7 @@ describe('Admin Endpoint Security', () => {
     });
 
     const response = await mediaGetHandler({
+      request: createMediaRequest(),
       env,
       params: { path: ['congres', '2026', 'photo_1.jpg'] },
     } as unknown as MediaGetHandlerContext);

@@ -1,5 +1,6 @@
 import type { Env } from '../../env';
 import { hasUnsafePathSegments } from '../../lib/file-validation';
+import { enforceIpRateLimit } from '../../lib/rate-limit';
 
 const ALLOWED_PUBLIC_PREFIXES = ['documents/', 'congres/', 'concours/'] as const;
 const MUTABLE_PDF_PREFIXES = ['documents/', 'concours/'] as const;
@@ -8,6 +9,8 @@ const EXPOSED_MEDIA_HEADERS = [
   'X-Original-Filename-Encoded',
   'X-Uploaded-At',
 ] as const;
+const MEDIA_READ_RATE_LIMIT = 600;
+const MEDIA_RATE_WINDOW_SECONDS = 60;
 
 function getPathSegments(params: Record<string, unknown>): string[] {
   if (!Array.isArray(params.path)) return [];
@@ -121,7 +124,18 @@ async function checkFileExists(env: Env, params: Record<string, unknown>): Promi
  * Checks if a file exists in R2 storage (used by frontend to check availability)
  * Public endpoint (no auth required)
  */
-export const onRequestHead: PagesFunction<Env> = async ({ env, params }) => {
+export const onRequestHead: PagesFunction<Env> = async ({ request, env, params }) => {
+  const rateLimited = await enforceIpRateLimit({
+    request,
+    env,
+    scope: 'media:head',
+    limit: MEDIA_READ_RATE_LIMIT,
+    windowSeconds: MEDIA_RATE_WINDOW_SECONDS,
+  });
+  if (rateLimited) {
+    return rateLimited;
+  }
+
   return checkFileExists(env, params);
 };
 
@@ -131,8 +145,19 @@ export const onRequestHead: PagesFunction<Env> = async ({ env, params }) => {
  * Public endpoint (no auth required)
  * Includes cache headers and path traversal protection
  */
-export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ request, env, params }) => {
   try {
+    const rateLimited = await enforceIpRateLimit({
+      request,
+      env,
+      scope: 'media:get',
+      limit: MEDIA_READ_RATE_LIMIT,
+      windowSeconds: MEDIA_RATE_WINDOW_SECONDS,
+    });
+    if (rateLimited) {
+      return rateLimited;
+    }
+
     const resolved = resolveMediaKey(params);
     if (!resolved.key) {
       return resolved.response || new Response('Chemin invalide', { status: 400 });
