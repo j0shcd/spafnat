@@ -1,6 +1,8 @@
 import type { Env } from '../../env';
-import { jsonResponse } from '../../lib/helpers';
+import { jsonResponse, parseJsonBodyWithLimit } from '../../lib/helpers';
 import { DOCUMENTS } from '../../../src/config/documents';
+
+const MAX_DELETE_DOCUMENT_BODY_BYTES = 4 * 1024; // 4 KB
 
 const ALLOWED_DOCUMENT_FILENAMES = new Set(
   Object.values(DOCUMENTS)
@@ -19,16 +21,16 @@ const ALLOWED_DOCUMENT_FILENAMES = new Set(
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Parse request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      console.error('Delete document: invalid JSON');
-      return jsonResponse(
-        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
-        400
-      );
+    const parsed = await parseJsonBodyWithLimit<unknown>(
+      request,
+      MAX_DELETE_DOCUMENT_BODY_BYTES,
+      'Corps de requête invalide'
+    );
+    if (!parsed.ok) {
+      console.error('Delete document: invalid JSON body');
+      return parsed.response;
     }
+    const body = parsed.data;
 
     if (typeof body !== 'object' || body === null) {
       console.error('Delete document: body is not an object');

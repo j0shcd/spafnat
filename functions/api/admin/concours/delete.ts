@@ -1,7 +1,14 @@
 import type { Env } from '../../../env';
-import { jsonResponse } from '../../../lib/helpers';
+import { jsonResponse, parseJsonBodyWithLimit } from '../../../lib/helpers';
+import { hasUnsafePathSegments } from '../../../lib/file-validation';
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
-import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../../../src/config/concours';
+import {
+  getConcoursKVKey,
+  getConcoursR2Prefix,
+  CONCOURS_CATEGORIES,
+} from '../../../../src/config/concours';
+
+const MAX_DELETE_CONCOURS_BODY_BYTES = 8 * 1024; // 8 KB
 
 /**
  * POST /api/admin/concours/delete
@@ -13,16 +20,16 @@ import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../../../src/config/co
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Parse request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      console.error('Delete concours: invalid JSON');
-      return jsonResponse(
-        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
-        400
-      );
+    const parsed = await parseJsonBodyWithLimit<unknown>(
+      request,
+      MAX_DELETE_CONCOURS_BODY_BYTES,
+      'Corps de requête invalide'
+    );
+    if (!parsed.ok) {
+      console.error('Delete concours: invalid JSON body');
+      return parsed.response;
     }
+    const body = parsed.data;
 
     if (typeof body !== 'object' || body === null) {
       console.error('Delete concours: body is not an object');
@@ -63,15 +70,22 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       );
     }
 
-    // 1. Delete from R2 (ignore if not found)
-    try {
-      await env.SPAF_MEDIA.delete(r2Key);
-      console.log('R2 delete successful:', r2Key);
-    } catch (error) {
-      console.warn('R2 delete failed (file may not exist):', r2Key, error);
+    const expectedPrefix = getConcoursR2Prefix(category as ConcoursCategory);
+    const pathSegments = r2Key.split('/');
+    const invalidR2Key =
+      hasUnsafePathSegments(pathSegments) ||
+      !r2Key.startsWith(expectedPrefix) ||
+      r2Key.length <= expectedPrefix.length ||
+      !r2Key.toLowerCase().endsWith('.pdf');
+    if (invalidR2Key) {
+      console.error('Delete concours: invalid r2Key for category:', { category, r2Key });
+      return jsonResponse(
+        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
+        400
+      );
     }
 
-    // 2. Remove from KV array
+    // 1. Remove from KV array
     const kvKey = getConcoursKVKey(category as ConcoursCategory);
     const existingData = await env.SPAF_KV.get(kvKey, 'json');
     const items = (existingData as ConcoursItem[]) || [];
@@ -83,6 +97,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       return jsonResponse({ error: 'Document non trouvé' }, 404);
     }
 
+    // 2. Delete from R2 (ignore if already missing)
+    try {
+      await env.SPAF_MEDIA.delete(r2Key);
+      console.log('R2 delete successful:', r2Key);
+    } catch (error) {
+      console.warn('R2 delete failed (file may not exist):', r2Key, error);
+    }
+
+    // 3. Persist updated list
     await env.SPAF_KV.put(kvKey, JSON.stringify(updatedItems));
 
     console.log('KV update successful:', kvKey, updatedItems.length, 'items');

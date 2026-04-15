@@ -1,7 +1,9 @@
 import type { Env } from '../../../env';
-import { jsonResponse } from '../../../lib/helpers';
+import { jsonResponse, parseJsonBodyWithLimit } from '../../../lib/helpers';
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
 import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../../../src/config/concours';
+
+const MAX_REORDER_CONCOURS_BODY_BYTES = 8 * 1024; // 8 KB
 
 /**
  * POST /api/admin/concours/reorder
@@ -13,16 +15,16 @@ import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../../../src/config/co
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
     // Parse request body
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      console.error('Reorder concours: invalid JSON');
-      return jsonResponse(
-        { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
-        400
-      );
+    const parsed = await parseJsonBodyWithLimit<unknown>(
+      request,
+      MAX_REORDER_CONCOURS_BODY_BYTES,
+      'Corps de requête invalide'
+    );
+    if (!parsed.ok) {
+      console.error('Reorder concours: invalid JSON body');
+      return parsed.response;
     }
+    const body = parsed.data;
 
     if (typeof body !== 'object' || body === null) {
       console.error('Reorder concours: body is not an object');

@@ -1,5 +1,11 @@
 import type { Env } from '../env';
-import { getClientIP, isValidOrigin, escapeHtml, jsonResponse } from '../lib/helpers';
+import {
+  getClientIP,
+  isValidOrigin,
+  escapeHtml,
+  jsonResponse,
+  parseJsonBodyWithLimit,
+} from '../lib/helpers';
 
 // Basic email validation
 function isValidEmail(email: string): boolean {
@@ -15,6 +21,8 @@ interface ContactFormData {
   message: string;
   website?: string; // Honeypot field
 }
+
+const MAX_CONTACT_BODY_BYTES = 16 * 1024; // 16 KB
 
 function validateFormData(data: unknown): { valid: boolean; errors?: string[] } {
   const errors: string[] = [];
@@ -61,12 +69,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   // 2. Parse JSON body
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse({ error: 'Corps de requête invalide' }, 400);
+  const parsed = await parseJsonBodyWithLimit<unknown>(request, MAX_CONTACT_BODY_BYTES);
+  if (!parsed.ok) {
+    return parsed.response;
   }
+  const body = parsed.data;
 
   // Type guard for body
   if (typeof body !== 'object' || body === null) {
@@ -114,6 +121,9 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   };
 
   try {
+    // Reserve slot before external provider call to prevent retry storms during outages
+    await env.SPAF_KV.put(rateLimitKey, '1', { expirationTtl: 300 }); // 5 minutes
+
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -140,9 +150,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       console.error('Resend API error:', errorData);
       throw new Error('Failed to send email');
     }
-
-    // 7. Set rate limit key (only after successful send)
-    await env.SPAF_KV.put(rateLimitKey, '1', { expirationTtl: 300 }); // 5 minutes
 
     return jsonResponse({ success: true });
   } catch (error) {

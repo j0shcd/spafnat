@@ -14,6 +14,15 @@ export function getClientIP(request: Request): string {
   );
 }
 
+export function isLocalRequestUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+}
+
 function normalizeOrigin(origin: string): string | null {
   try {
     return new URL(origin).origin.toLowerCase();
@@ -124,4 +133,53 @@ export function jsonResponse(
       ...headers,
     },
   });
+}
+
+type JsonBodyParseResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; response: Response };
+
+/**
+ * Parse JSON payload with a defensive size guard.
+ */
+export async function parseJsonBodyWithLimit<T = Record<string, unknown>>(
+  request: Request,
+  maxBytes: number,
+  invalidBodyMessage = 'Corps de requête invalide'
+): Promise<JsonBodyParseResult<T>> {
+  const contentLength = request.headers.get('Content-Length');
+  if (contentLength) {
+    const parsedLength = Number.parseInt(contentLength, 10);
+    if (Number.isFinite(parsedLength) && parsedLength > maxBytes) {
+      return {
+        ok: false,
+        response: jsonResponse({ error: 'Corps de requête trop volumineux' }, 413),
+      };
+    }
+  }
+
+  let rawBody = '';
+  try {
+    rawBody = await request.text();
+  } catch {
+    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
+  }
+
+  if (!rawBody) {
+    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
+  }
+
+  const bodyBytes = new TextEncoder().encode(rawBody).byteLength;
+  if (bodyBytes > maxBytes) {
+    return {
+      ok: false,
+      response: jsonResponse({ error: 'Corps de requête trop volumineux' }, 413),
+    };
+  }
+
+  try {
+    return { ok: true, data: JSON.parse(rawBody) as T };
+  } catch {
+    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
+  }
 }

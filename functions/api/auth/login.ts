@@ -1,18 +1,11 @@
 import type { Env } from '../../env';
 import { SignJWT } from 'jose';
 import { verifyPassword } from '../../lib/password';
-import { getClientIP, jsonResponse } from '../../lib/helpers';
+import { getClientIP, isLocalRequestUrl, jsonResponse, parseJsonBodyWithLimit } from '../../lib/helpers';
 
 const ADMIN_USERNAME = 'admin'; // Single admin account
-
-export function isLocalRequest(url: string): boolean {
-  try {
-    const hostname = new URL(url).hostname;
-    return hostname === 'localhost' || hostname === '127.0.0.1';
-  } catch {
-    return false;
-  }
-}
+const MAX_LOGIN_BODY_BYTES = 8 * 1024; // 8 KB
+export const isLocalRequest = isLocalRequestUrl;
 
 /**
  * POST /api/auth/login
@@ -22,7 +15,7 @@ export function isLocalRequest(url: string): boolean {
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   // 1. Check if localhost (skip rate limiting for local dev)
-  const isLocalDev = isLocalRequest(request.url);
+  const isLocalDev = isLocalRequestUrl(request.url);
 
   // 2. Rate limiting — 5 attempts per 15 minutes (production only)
   const ip = getClientIP(request);
@@ -43,12 +36,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   }
 
   // 3. Parse request body
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse({ error: 'Corps de requête invalide' }, 400);
+  const parsed = await parseJsonBodyWithLimit<unknown>(request, MAX_LOGIN_BODY_BYTES);
+  if (!parsed.ok) {
+    return parsed.response;
   }
+  const body = parsed.data;
 
   if (typeof body !== 'object' || body === null) {
     return jsonResponse({ error: 'Corps de requête invalide' }, 400);
