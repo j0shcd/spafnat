@@ -24,7 +24,7 @@ describe('Pages Smoke Tests', () => {
     it('displays key sections', () => {
       render(<Index />, { wrapper: RouterWrapper });
       expect(screen.getByText(/Notre communauté/i)).toBeInTheDocument();
-      expect(screen.getByText(/Nos actions/i)).toBeInTheDocument();
+      expect(screen.getByText(/Nos activités/i)).toBeInTheDocument();
       expect(screen.getByText(/Nos documents/i)).toBeInTheDocument();
     });
   });
@@ -65,6 +65,7 @@ describe('Pages Smoke Tests', () => {
       global.fetch = vi.fn(() =>
         Promise.resolve({
           ok: true,
+          headers: { get: () => 'application/json' },
           json: () => Promise.resolve({
             reglements: [],
             'palmares-poetique': [],
@@ -135,7 +136,7 @@ describe('Pages Smoke Tests', () => {
   describe('NotFound Page', () => {
     it('renders without crashing', () => {
       render(<NotFound />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Site en construction/i)).toBeInTheDocument();
+      expect(screen.getByText(/Page introuvable/i)).toBeInTheDocument();
     });
   });
 });

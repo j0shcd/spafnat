@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Configure PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -95,15 +96,16 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
         aria-label={alt}
       />
 
-      {/* Gradient fallback (loading or error) */}
-      {(isLoading || hasError) && (
-        <div className="w-full h-64 md:h-96 rounded-lg shadow-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+      {/* Skeleton loading */}
+      {isLoading && !hasError && (
+        <Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />
+      )}
+
+      {/* Error fallback */}
+      {hasError && (
+        <div className="w-full aspect-[3/4] rounded-lg shadow-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           <div className="text-primary-foreground text-center p-4">
-            {isLoading ? (
-              <p className="text-sm">Chargement...</p>
-            ) : (
-              <p className="text-sm">Aperçu non disponible</p>
-            )}
+            <p className="text-sm">Aperçu non disponible</p>
           </div>
         </div>
       )}
