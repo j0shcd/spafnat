@@ -13,14 +13,14 @@
  * 5. Imports from packages not in dependencies
  */
 
-import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
+import { readFileSync, readdirSync, realpathSync, statSync } from 'fs';
+import { join, relative, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const ROOT = join(__dirname, '..');
+const ROOT = realpathSync(join(__dirname, '..'));
 
 interface ValidationResult {
   passed: boolean;
@@ -79,11 +79,27 @@ const EXCLUDE_PATHS = [
 
 // ========== Utility Functions ==========
 
+function isPathWithinRoot(filePath: string): boolean {
+  return filePath === ROOT || filePath.startsWith(`${ROOT}${sep}`);
+}
+
 function getAllFiles(dir: string, fileList: string[] = []): string[] {
   const files = readdirSync(dir);
 
   files.forEach((file) => {
-    const filePath = join(dir, file);
+    const resolvedPath = resolve(dir, file);
+    let filePath: string;
+    try {
+      filePath = realpathSync(resolvedPath);
+    } catch {
+      return;
+    }
+
+    // Defensive check against path traversal via symlinks.
+    if (!isPathWithinRoot(filePath)) {
+      return;
+    }
+
     const relativePath = relative(ROOT, filePath);
 
     // Skip excluded paths
