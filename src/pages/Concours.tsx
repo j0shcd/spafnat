@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useConcours, type ConcoursItem } from "@/hooks/useConcours";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { CONCOURS_CATEGORIES } from "@/config/concours";
 
 const Concours = () => {
@@ -13,8 +15,25 @@ const Concours = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen py-12 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-muted-foreground">Chargement...</p>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <Skeleton className="h-10 w-64 mx-auto mb-4" />
+            <Skeleton className="h-1 w-24 mx-auto mb-6" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+          <div className="space-y-8">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-8 w-48 mb-2" />
+                  <Skeleton className="h-4 w-72" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-10 w-64" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -112,6 +131,8 @@ const Concours = () => {
   };
 
   return (
+    <>
+    <PageBreadcrumb currentPage="Concours & Palmarès" />
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
@@ -177,6 +198,7 @@ const Concours = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

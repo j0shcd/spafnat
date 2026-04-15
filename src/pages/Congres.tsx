@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Download, Calendar, MapPin, ChevronLeft, ChevronRight, X, Image as ImageIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DOCUMENTS } from "@/config/documents";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 interface Photo {
   key: string;
@@ -90,6 +92,8 @@ const Congres = () => {
   };
 
   return (
+    <>
+    <PageBreadcrumb currentPage="Congrès National" />
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Page Header */}
@@ -162,12 +166,11 @@ const Congres = () => {
           </CardHeader>
           <CardContent>
             {isLoadingYears ? (
-              // Loading years
-              <div className="py-16 text-center bg-muted/30 rounded-lg">
-                <ImageIcon className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4 animate-pulse" />
-                <p className="font-sans text-sm text-muted-foreground">
-                  Chargement...
-                </p>
+              // Skeleton loading for years
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="aspect-square rounded-lg" />
+                ))}
               </div>
             ) : availableYears.length === 0 ? (
               // No years with photos
@@ -207,12 +210,11 @@ const Congres = () => {
                 {/* Photo Grid */}
                 <div className="mt-6">
                   {isLoadingPhotos ? (
-                    // Loading photos
-                    <div className="py-16 text-center bg-muted/30 rounded-lg">
-                      <ImageIcon className="h-16 w-16 text-muted-foreground/40 mx-auto mb-4 animate-pulse" />
-                      <p className="font-sans text-sm text-muted-foreground">
-                        Chargement des photos...
-                      </p>
+                    // Skeleton loading for photos
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <Skeleton key={i} className="aspect-square rounded-lg" />
+                      ))}
                     </div>
                   ) : (
                 // Photo grid (when photos are available)
@@ -227,7 +229,9 @@ const Congres = () => {
                           <img
                             src={photo.url}
                             alt={`Congrès ${selectedYear} - Photo ${index + 1}`}
-                            className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                            loading="lazy"
+                            className="w-full h-full object-cover transition-all duration-500 opacity-0 group-hover:scale-110"
+                            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
                           />
                           {/* Download icon overlay */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
@@ -242,6 +246,7 @@ const Congres = () => {
                             <img
                               src={currentYearPhotos[selectedPhoto || 0]?.url}
                               alt={`Congrès ${selectedYear} - Photo ${(selectedPhoto || 0) + 1}`}
+                              loading="lazy"
                               className="w-full h-full object-contain rounded-lg"
                             />
                           </div>
@@ -303,6 +308,7 @@ const Congres = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

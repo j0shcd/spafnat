@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { CONTACT_EMAIL } from "@/config/contact";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 const Delegations = () => {
 const delegations = [
@@ -74,6 +75,8 @@ const delegations = [
   ];
 
   return (
+    <>
+    <PageBreadcrumb currentPage="Délégations Régionales" />
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Page Header */}
@@ -187,6 +190,7 @@ const delegations = [
         </Card>
       </div>
     </div>
+    </>
   );
 };
 

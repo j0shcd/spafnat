@@ -5,6 +5,7 @@ import { Download, BookOpen, Users } from "lucide-react";
 import { DOCUMENTS } from "@/config/documents";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 import { PdfCover } from "@/components/PdfCover";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 const Revue = () => {
   // Get R2-aware URL for document
@@ -130,6 +131,8 @@ const Revue = () => {
   ].sort();
 
   return (
+    <>
+    <PageBreadcrumb currentPage="Notre Revue" />
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
@@ -282,6 +285,7 @@ const Revue = () => {
         </Card>
       </div>
     </div>
+    </>
   );
 };
 
