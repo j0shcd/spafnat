@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, Mail, MapPin, Trophy, BookOpen, Users, FileText } from "lucide-react";
+import { Download, Mail, MapPin, Trophy, BookOpen, Users, FileText, Loader2 } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,8 +12,10 @@ import { CONTACT_EMAIL } from "@/config/contact";
 import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -23,6 +25,7 @@ const Index = () => {
     website: '', // Honeypot field
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Get R2-aware URLs for documents
   const { url: bulletinUrl, isAvailable: bulletinAvailable } = useDocumentUrl('bulletinAdhesion');
@@ -70,6 +73,7 @@ const Index = () => {
           title: "Message envoyé",
           description: "Votre message a été transmis. Nous vous répondrons rapidement.",
         });
+        setSubmitSuccess(true);
         // Clear form on success
         setFormData({
           name: '',
@@ -104,32 +108,36 @@ const Index = () => {
 
   const activities = [
     {
-      title: "Revue",
+      title: "Revue Art et Poésie",
       description: "Publication de poèmes et d'oeuvres artistiques",
       icon: BookOpen,
       link: "/revue",
-      color: "artistic-yellow"
+      color: "artistic-yellow",
+      cta: "Découvrir la revue"
     },
     {
-      title: "Concours",
+      title: "Concours & Palmarès",
       description: "Concours poétiques et artistiques nationaux et régionaux",
       icon: Trophy,
       link: "/concours",
-      color: "artistic-orange"
+      color: "artistic-orange",
+      cta: "Accéder aux documents"
     },
     {
-      title: "Congrès", 
+      title: "Congrès National",
       description: "Congrès national annuel",
       icon: Users,
       link: "/congres",
-      color: "accent"
+      color: "accent",
+      cta: "Informations et photos"
     },
     {
-      title: "Délégations",
+      title: "Délégations Régionales",
       description: "Activités régionales organisées par nos délégations",
       icon: MapPin,
       link: "/delegations",
-      color: "secondary"
+      color: "secondary",
+      cta: "Trouver ma délégation"
     }
   ];
 
@@ -165,17 +173,17 @@ const Index = () => {
           </p>
 
           <div className="pt-10 flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-6 mb-6">
-            <Button asChild variant="outline">
-              <a href="#contact">
-                <Mail className="h-4 w-4 mr-2" />
-                Nous contacter
+            <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground text-base px-6 py-3 h-auto" disabled={!bulletinAvailable}>
+              <a href={bulletinUrl} download>
+                <Download className="h-5 w-5 mr-2" />
+                Télécharger le bulletin d&apos;adhésion
               </a>
             </Button>
 
-            <Button asChild variant="outline" disabled={!bulletinAvailable}>
-              <a href={bulletinUrl} download>
-                <Download className="h-4 w-4 mr-2" />
-                Télécharger le bulletin d&apos;adhésion
+            <Button asChild variant="outline" className="text-base px-6 py-3 h-auto">
+              <a href="#contact">
+                <Mail className="h-5 w-5 mr-2" />
+                Nous contacter
               </a>
             </Button>
           </div>
@@ -237,7 +245,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-serif-title text-4xl font-bold text-primary mb-4">
-              Nos actions
+              Nos activités
             </h2>
             <div className="w-24 h-1 bg-accent mx-auto mb-6"></div>
           </div>
@@ -263,15 +271,16 @@ const Index = () => {
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => window.location.href = activity.link}
+                      onClick={() => navigate(activity.link)}
                     >
-                      En savoir plus
+                      {activity.cta}
                     </Button>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
+
         </div>
       </section>
 
@@ -352,6 +361,11 @@ const Index = () => {
                       : "Bientôt disponible"}
                   </span>
                 </Button>
+                {!appelAvailable && (
+                  <p className="font-sans text-xs text-muted-foreground mt-2 text-center">
+                    Ce document sera mis en ligne prochainement.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -386,6 +400,11 @@ const Index = () => {
                       : "Bientôt disponible"}
                   </span>
                 </Button>
+                {!haikuAvailable && (
+                  <p className="font-sans text-xs text-muted-foreground mt-2 text-center">
+                    Ce document sera mis en ligne prochainement.
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -663,10 +682,22 @@ const Index = () => {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    <Mail className="h-4 w-4 mr-2" />
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Mail className="h-4 w-4 mr-2" />
+                    )}
                     {isSubmitting ? "Envoi en cours..." : "Envoyer le message"}
                   </Button>
                 </form>
+                {submitSuccess && (
+                  <div className="mt-4 p-4 rounded-lg bg-green-50 border border-green-200 text-green-800">
+                    <p className="font-sans font-medium">Message envoyé avec succès</p>
+                    <p className="font-sans text-sm mt-1">
+                      Nous avons bien reçu votre message et vous répondrons dans les meilleurs délais.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

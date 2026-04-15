@@ -27,6 +27,7 @@ describe('App Routing', () => {
       if (typeof url === 'string' && url.includes('/api/concours')) {
         return Promise.resolve({
           ok: true,
+          headers: { get: () => 'application/json' },
           json: () => Promise.resolve({
             reglements: [],
             'palmares-poetique': [],
@@ -76,6 +77,6 @@ describe('App Routing', () => {
 
   it('renders NotFound page for unknown routes', () => {
     renderWithRouter('/unknown-route');
-    expect(screen.getByText(/Site en construction/i)).toBeInTheDocument();
+    expect(screen.getByText(/Page introuvable/i)).toBeInTheDocument();
   });
 });

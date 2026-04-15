@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 const Historique = () => {
   const pastPresidents = [
@@ -10,6 +11,8 @@ const Historique = () => {
   ];
 
   return (
+    <>
+    <PageBreadcrumb currentPage="Historique" />
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Page Header */}
@@ -101,6 +104,7 @@ const Historique = () => {
         </section>
       </div>
     </div>
+    </>
   );
 };
 

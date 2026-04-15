@@ -81,7 +81,7 @@ describe('Admin UI Smoke Tests', () => {
     it('displays French labels', () => {
       render(<AdminLogin />, { wrapper: AdminWrapper });
       expect(screen.getByLabelText(/Nom d'utilisateur/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Mot de passe/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Mot de passe/i, { selector: 'input' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Se connecter/i })).toBeInTheDocument();
     });
 

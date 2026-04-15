@@ -25,6 +25,11 @@ describe('Visitor Counter Security Tests', () => {
     vi.clearAllMocks();
   });
 
+  const createGetRequest = () =>
+    new Request('http://localhost/api/visit', {
+      method: 'GET',
+    });
+
   describe('Deduplication', () => {
     it('should count same IP+UserAgent only once per day', async () => {
       // Arrange: Counter starts at 100, no previous visit
@@ -117,7 +122,7 @@ describe('Visitor Counter Security Tests', () => {
       (mockEnv.SPAF_KV.get as any).mockResolvedValue(null);
 
       // Act: GET request to read counter
-      const response = await onRequestGet({ env: mockEnv } as any);
+      const response = await onRequestGet({ request: createGetRequest(), env: mockEnv } as any);
       const data = await response.json();
 
       // Expected: Returns INITIAL_COUNT (184161 as of Feb 14, 2026)
@@ -133,7 +138,7 @@ describe('Visitor Counter Security Tests', () => {
       });
 
       // Act: GET request
-      const response = await onRequestGet({ env: mockEnv } as any);
+      const response = await onRequestGet({ request: createGetRequest(), env: mockEnv } as any);
       const data = await response.json();
 
       // Expected: parseInt('not-a-number') returns NaN, which JSON.stringify converts to null
@@ -170,7 +175,7 @@ describe('Visitor Counter Security Tests', () => {
       (mockEnv.SPAF_KV.get as any).mockRejectedValue(new Error('KV Read Error'));
 
       // Act: GET request
-      const response = await onRequestGet({ env: mockEnv } as any);
+      const response = await onRequestGet({ request: createGetRequest(), env: mockEnv } as any);
 
       // Expected: Should return 500 with error message
       expect(response.status).toBe(500);
@@ -210,7 +215,7 @@ describe('Visitor Counter Security Tests', () => {
       (mockEnv.SPAF_KV.get as any).mockResolvedValue('100');
 
       // Act: GET request
-      const response = await onRequestGet({ env: mockEnv } as any);
+      const response = await onRequestGet({ request: createGetRequest(), env: mockEnv } as any);
 
       // Expected: Content-Type: application/json
       expect(response.headers.get('Content-Type')).toBe('application/json');
@@ -226,7 +231,7 @@ describe('Visitor Counter Security Tests', () => {
       (mockEnv.SPAF_KV.get as any).mockRejectedValue(new Error('Internal database connection failed with credentials xyz'));
 
       // Act: GET request
-      const response = await onRequestGet({ env: mockEnv } as any);
+      const response = await onRequestGet({ request: createGetRequest(), env: mockEnv } as any);
       const data = await response.json();
 
       // Expected: Generic error message only

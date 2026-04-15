@@ -42,6 +42,11 @@ export function useConcours(): UseConcoursResult {
         throw new Error('Échec de la récupération des données');
       }
 
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error('Échec de la récupération des données');
+      }
+
       const result = await response.json();
       setData(result as ConcoursData);
     } catch (err) {

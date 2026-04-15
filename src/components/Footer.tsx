@@ -23,8 +23,8 @@ const Footer = () => {
                   <p>10bis rue du 11 novembre</p>
                   <p>86360 Chasseneuil du Poitou</p>
                   <p>France</p>
-                  <p className="text-xs opacity-75 mt-2 italic">
-                    Pour tout courrier destiné au siège social, l'envoyer au Président Lecordier Pascal, 11 rue Juliette Récamier, 69130 Écully. Il n'y a pas de permanence à Chasseneuil du Poitou au moulin.
+                  <p className="text-sm opacity-90 mt-2">
+                    <strong>Important :</strong> Pour tout courrier, l'adresser au Président Lecordier Pascal, 11 rue Juliette Récamier, 69130 Écully. Il n'y a pas de permanence au siège social.
                   </p>
                 </div>
               </div>

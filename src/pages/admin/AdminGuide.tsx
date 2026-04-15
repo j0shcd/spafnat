@@ -86,10 +86,20 @@ function Tip({ children }: { children: React.ReactNode }) {
 }
 
 function Steps({ steps }: { steps: string[] }) {
+  const renderStepContent = (step: string) => {
+    const segments = step.split(/<strong>(.*?)<\/strong>/g);
+    return segments.map((segment, index) => {
+      if (index % 2 === 1) {
+        return <strong key={`strong-${index}`}>{segment}</strong>;
+      }
+      return <span key={`text-${index}`}>{segment}</span>;
+    });
+  };
+
   return (
     <ol className="list-decimal list-inside space-y-2 text-lg text-foreground pl-2">
       {steps.map((step, i) => (
-        <li key={i} dangerouslySetInnerHTML={{ __html: step }} />
+        <li key={i}>{renderStepContent(step)}</li>
       ))}
     </ol>
   );
