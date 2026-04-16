@@ -5,6 +5,9 @@ import { isValidPhotoYear } from '../lib/file-validation';
 
 const GALLERY_RATE_LIMIT = 120;
 const GALLERY_RATE_WINDOW_SECONDS = 60;
+const GALLERY_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
+};
 
 /**
  * GET /api/gallery?year=2024
@@ -58,7 +61,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     // Sort by lastModified (newest first)
     photos.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
 
-    return jsonResponse({ photos, count: photos.length, year });
+    return jsonResponse({ photos, count: photos.length, year }, 200, GALLERY_CACHE_HEADERS);
   } catch (error) {
     console.error('Gallery error:', error);
     return jsonResponse({ error: 'Échec du chargement de la galerie' }, 500);

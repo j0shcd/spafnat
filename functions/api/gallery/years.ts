@@ -14,6 +14,9 @@ import { enforceIpRateLimit } from '../../lib/rate-limit';
 
 const GALLERY_YEARS_RATE_LIMIT = 120;
 const GALLERY_YEARS_RATE_WINDOW_SECONDS = 60;
+const GALLERY_YEARS_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=300, s-maxage=900, stale-while-revalidate=1800',
+};
 
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
@@ -54,7 +57,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     // Sort years in descending order (newest first)
     years.sort((a, b) => b - a);
 
-    return jsonResponse({ years }, 200);
+    return jsonResponse({ years }, 200, GALLERY_YEARS_CACHE_HEADERS);
   } catch (error) {
     console.error('Error fetching gallery years:', error);
     return jsonResponse(
