@@ -2,10 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, BookOpen, Users } from "lucide-react";
-import { DOCUMENTS } from "@/config/documents";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
-import { PdfCover } from "@/components/PdfCover";
+import { Suspense, lazy } from "react";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const PdfCover = lazy(() =>
+  import("@/components/PdfCover").then((module) => ({ default: module.PdfCover }))
+);
 
 const Revue = () => {
   // Get R2-aware URL for document
@@ -149,11 +153,13 @@ const Revue = () => {
           <Card className="overflow-hidden">
             <CardContent className="p-4">
               {extraitAvailable ? (
-                <PdfCover
-                  url={extraitUrl}
-                  alt={revueTitle}
-                  className="w-full"
-                />
+                <Suspense fallback={<Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />}>
+                  <PdfCover
+                    url={extraitUrl}
+                    alt={revueTitle}
+                    className="w-full"
+                  />
+                </Suspense>
               ) : (
                 <div className="aspect-[3/4] bg-gradient-to-br from-primary via-secondary to-accent relative flex items-center justify-center rounded-lg shadow-xl">
                   <div className="text-center text-primary-foreground p-8">
