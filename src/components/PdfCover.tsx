@@ -1,19 +1,13 @@
 /**
  * PDF Cover Component
  *
- * Renders the first page of a PDF as a cover image using pdfjs-dist.
+ * Renders the first page of a PDF as a cover image.
  * Shows gradient fallback while loading or on error.
  */
 
-import { useEffect, useState, useRef } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
+import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+import { getCachedPdfCover, prefetchPdfCover } from '@/lib/pdfCoverCache';
 
 interface PdfCoverProps {
   url: string;
@@ -22,63 +16,39 @@ interface PdfCoverProps {
 }
 
 export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [coverSrc, setCoverSrc] = useState<string | null>(() => getCachedPdfCover(url));
+  const [isLoading, setIsLoading] = useState(() => getCachedPdfCover(url) === null);
   const [hasError, setHasError] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     let isMounted = true;
+    const cachedCover = getCachedPdfCover(url);
 
-    const renderPdfCover = async () => {
-      if (!canvasRef.current) return;
+    if (cachedCover) {
+      setCoverSrc(cachedCover);
+      setHasError(false);
+      setIsLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
 
-      try {
-        setIsLoading(true);
-        setHasError(false);
+    setCoverSrc(null);
+    setIsLoading(true);
+    setHasError(false);
 
-        // Load PDF
-        const loadingTask = pdfjsLib.getDocument(url);
-        const pdf = await loadingTask.promise;
-
+    prefetchPdfCover(url)
+      .then((nextCoverSrc) => {
         if (!isMounted) return;
-
-        // Get first page
-        const page = await pdf.getPage(1);
-
-        if (!isMounted) return;
-
-        // Set canvas dimensions
-        const viewport = page.getViewport({ scale: 1.5 });
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
-
-        if (!context) {
-          throw new Error('Could not get canvas context');
-        }
-
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-
-        // Render page
-        await page.render({
-          canvas,
-          canvasContext: context,
-          viewport,
-        }).promise;
-
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      } catch (error) {
+        setCoverSrc(nextCoverSrc);
+        setIsLoading(false);
+      })
+      .catch((error) => {
         console.error('Failed to render PDF cover:', error);
-        if (isMounted) {
-          setHasError(true);
-          setIsLoading(false);
-        }
-      }
-    };
-
-    renderPdfCover();
+        if (!isMounted) return;
+        setHasError(true);
+        setIsLoading(false);
+      });
 
     return () => {
       isMounted = false;
@@ -87,22 +57,23 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
 
   return (
     <div className={`relative ${className}`}>
-      {/* Canvas for PDF rendering */}
-      <canvas
-        ref={canvasRef}
-        className={`w-full h-auto rounded-lg shadow-xl ${
-          isLoading || hasError ? 'hidden' : 'block'
-        }`}
-        aria-label={alt}
-      />
+      {coverSrc && !hasError && (
+        <img
+          src={coverSrc}
+          alt={alt}
+          loading="eager"
+          decoding="async"
+          className="w-full h-auto rounded-lg shadow-xl"
+        />
+      )}
 
       {/* Skeleton loading */}
-      {isLoading && !hasError && (
+      {isLoading && !hasError && !coverSrc && (
         <Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />
       )}
 
       {/* Error fallback */}
-      {hasError && (
+      {hasError && !coverSrc && (
         <div className="w-full aspect-[3/4] rounded-lg shadow-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
           <div className="text-primary-foreground text-center p-4">
             <p className="text-sm">Aperçu non disponible</p>

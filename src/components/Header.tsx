@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import spafLogo from "@/assets/spaf-logo.png";
+import { warmRevuePreview } from "@/lib/revuePrefetch";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,6 +19,7 @@ const Header = () => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+  const shouldWarmRevue = (path: string) => path === "/revue";
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50">
@@ -46,6 +48,9 @@ const Header = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onMouseEnter={shouldWarmRevue(item.path) ? () => void warmRevuePreview() : undefined}
+                onFocus={shouldWarmRevue(item.path) ? () => void warmRevuePreview() : undefined}
+                onTouchStart={shouldWarmRevue(item.path) ? () => void warmRevuePreview() : undefined}
                 className={`font-sans text-sm font-medium transition-colors hover:text-accent ${
                   isActive(item.path)
                     ? "text-accent border-b-2 border-accent pb-1"
@@ -77,6 +82,9 @@ const Header = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMenuOpen(false)}
+                  onMouseEnter={shouldWarmRevue(item.path) ? () => void warmRevuePreview() : undefined}
+                  onFocus={shouldWarmRevue(item.path) ? () => void warmRevuePreview() : undefined}
+                  onTouchStart={shouldWarmRevue(item.path) ? () => void warmRevuePreview() : undefined}
                   className={`font-sans text-sm font-medium py-2 px-3 rounded transition-colors ${
                     isActive(item.path)
                       ? "bg-accent text-accent-foreground"

@@ -13,6 +13,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Congres from '@/pages/Congres';
+import { resetDocumentUrlCacheForTests } from '@/hooks/useDocumentUrl';
+import { resetGalleryPrefetchCachesForTests } from '@/lib/galleryPrefetch';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -20,6 +22,8 @@ global.fetch = vi.fn();
 describe('Gallery Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetDocumentUrlCacheForTests();
+    resetGalleryPrefetchCachesForTests();
   });
 
   it('fetches photos from API on mount', async () => {

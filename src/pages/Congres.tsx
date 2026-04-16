@@ -1,29 +1,38 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Download, Calendar, MapPin, ChevronLeft, ChevronRight, X, Image as ImageIcon } from "lucide-react";
+import { Download, Calendar, MapPin, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DOCUMENTS } from "@/config/documents";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import {
+  fetchGalleryYear,
+  getCachedGalleryYear,
+  prefetchGalleryImage,
+  prefetchGalleryImages,
+  prefetchGalleryYear,
+  type GalleryPhoto,
+} from "@/lib/galleryPrefetch";
 
-interface Photo {
-  key: string;
-  filename: string;
-  url: string;
-  lastModified: string;
-  size: number;
+function getInitialPhotoBatchSize(): number {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 8;
+  if (window.matchMedia('(min-width: 1024px)').matches) return 8; // 4 columns x 2 rows
+  if (window.matchMedia('(min-width: 768px)').matches) return 6; // 3 columns x 2 rows
+  return 4; // 2 columns x 2 rows
 }
 
 const Congres = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [isLoadingYears, setIsLoadingYears] = useState(true);
+  const [requestedPhotoCount, setRequestedPhotoCount] = useState(0);
+  const initialPhotoBatchSize = useMemo(() => getInitialPhotoBatchSize(), []);
 
   // Get R2-aware URL for inscription document
   const { url: inscriptionUrl, isAvailable: inscriptionAvailable } = useDocumentUrl('inscriptionCongres');
@@ -55,29 +64,63 @@ const Congres = () => {
   // Fetch photos when selectedYear changes
   useEffect(() => {
     if (selectedYear === null) return;
+    let isMounted = true;
+    const targetYear = selectedYear;
+
+    const cached = getCachedGalleryYear(targetYear);
+    if (cached) {
+      setPhotos(cached.photos || []);
+      setIsLoadingPhotos(false);
+      prefetchGalleryImages(cached.photos.map((photo) => photo.url), initialPhotoBatchSize + 2, 2);
+    } else {
+      setIsLoadingPhotos(true);
+      setPhotos([]);
+    }
 
     const fetchPhotos = async () => {
-      setIsLoadingPhotos(true);
-      try {
-        const response = await fetch(`/api/gallery?year=${selectedYear}`);
-        if (response.ok) {
-          const data = await response.json();
-          setPhotos(data.photos || []);
-        } else {
-          setPhotos([]);
-        }
-      } catch (error) {
-        console.error('Failed to fetch photos:', error);
+      const data = await fetchGalleryYear(targetYear);
+      if (!isMounted) return;
+
+      if (data) {
+        setPhotos(data.photos || []);
+        prefetchGalleryImages(data.photos.map((photo) => photo.url), initialPhotoBatchSize + 2, 2);
+      } else {
+        console.error('Failed to fetch photos:', { year: targetYear });
         setPhotos([]);
-      } finally {
-        setIsLoadingPhotos(false);
       }
+      setIsLoadingPhotos(false);
     };
 
     fetchPhotos();
-  }, [selectedYear]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedYear, initialPhotoBatchSize]);
 
   const currentYearPhotos = photos;
+
+  useEffect(() => {
+    const initialCount = Math.min(initialPhotoBatchSize, currentYearPhotos.length);
+    setRequestedPhotoCount(initialCount);
+  }, [currentYearPhotos.length, selectedYear, initialPhotoBatchSize]);
+
+  useEffect(() => {
+    if (selectedYear === null || availableYears.length === 0) return;
+    const currentIndex = availableYears.findIndex((year) => year === selectedYear);
+    if (currentIndex === -1) return;
+
+    const nearbyYears = availableYears.slice(currentIndex + 1, currentIndex + 3);
+    nearbyYears.forEach((year) => {
+      prefetchGalleryYear(year);
+    });
+  }, [availableYears, selectedYear]);
+
+  const handleThumbnailSettled = useCallback(() => {
+    setRequestedPhotoCount((previousCount) => (
+      previousCount < currentYearPhotos.length ? previousCount + 1 : previousCount
+    ));
+  }, [currentYearPhotos.length]);
 
   const handlePrevPhoto = () => {
     if (selectedPhoto !== null && selectedPhoto > 0) {
@@ -192,7 +235,13 @@ const Congres = () => {
                     {availableYears.map((year) => (
                       <button
                         key={year}
-                        onClick={() => setSelectedYear(year)}
+                        onClick={() => {
+                          setSelectedYear(year);
+                          setSelectedPhoto(null);
+                        }}
+                        onMouseEnter={() => prefetchGalleryYear(year)}
+                        onFocus={() => prefetchGalleryYear(year)}
+                        onTouchStart={() => prefetchGalleryYear(year)}
                         className={`
                           px-4 py-2 rounded-lg font-sans font-medium transition-all
                           ${selectedYear === year
@@ -225,14 +274,26 @@ const Congres = () => {
                         <button
                           onClick={() => setSelectedPhoto(index)}
                           className="relative group aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer"
+                          onMouseEnter={() => prefetchGalleryImage(photo.url)}
+                          onFocus={() => prefetchGalleryImage(photo.url)}
+                          onTouchStart={() => prefetchGalleryImage(photo.url)}
                         >
-                          <img
-                            src={photo.url}
-                            alt={`Congrès ${selectedYear} - Photo ${index + 1}`}
-                            loading="lazy"
-                            className="w-full h-full object-cover transition-all duration-500 opacity-0 group-hover:scale-110"
-                            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
-                          />
+                          {index < requestedPhotoCount ? (
+                            <img
+                              src={photo.url}
+                              alt={`Congrès ${selectedYear} - Photo ${index + 1}`}
+                              loading={index < initialPhotoBatchSize ? "eager" : "lazy"}
+                              decoding="async"
+                              className="w-full h-full object-cover transition-all duration-500 opacity-0 group-hover:scale-110"
+                              onLoad={(e) => {
+                                e.currentTarget.classList.remove('opacity-0');
+                                handleThumbnailSettled();
+                              }}
+                              onError={handleThumbnailSettled}
+                            />
+                          ) : (
+                            <div className="w-full h-full animate-pulse bg-muted/60" />
+                          )}
                           {/* Download icon overlay */}
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                             <Download className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -246,7 +307,8 @@ const Congres = () => {
                             <img
                               src={currentYearPhotos[selectedPhoto || 0]?.url}
                               alt={`Congrès ${selectedYear} - Photo ${(selectedPhoto || 0) + 1}`}
-                              loading="lazy"
+                              loading="eager"
+                              decoding="async"
                               className="w-full h-full object-contain rounded-lg"
                             />
                           </div>
