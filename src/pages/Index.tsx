@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 import { useNavigate } from "react-router-dom";
+import { warmRevuePreview } from "@/lib/revuePrefetch";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -254,7 +255,12 @@ const Index = () => {
             {activities.map((activity, index) => {
               const IconComponent = activity.icon;
               return (
-                <Card key={index} className="hover:shadow-lg transition-all duration-300 group cursor-pointer">
+                <Card
+                  key={index}
+                  className="hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                  onMouseEnter={activity.link === "/revue" ? () => void warmRevuePreview() : undefined}
+                  onTouchStart={activity.link === "/revue" ? () => void warmRevuePreview() : undefined}
+                >
                   <CardHeader className="text-center">
                     <div className={`w-16 h-16 rounded-full bg-${activity.color}/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-${activity.color}/20 transition-colors`}>
                       <IconComponent className={`h-8 w-8 text-${activity.color}`} />
@@ -271,6 +277,9 @@ const Index = () => {
                       variant="outline"
                       size="sm"
                       className="w-full"
+                      onMouseEnter={activity.link === "/revue" ? () => void warmRevuePreview() : undefined}
+                      onFocus={activity.link === "/revue" ? () => void warmRevuePreview() : undefined}
+                      onTouchStart={activity.link === "/revue" ? () => void warmRevuePreview() : undefined}
                       onClick={() => navigate(activity.link)}
                     >
                       {activity.cta}
