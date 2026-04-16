@@ -29,3 +29,9 @@ vite.config.ts.timestamp-*.mjs
 # Cloudflare
 .wrangler/
 .dev.vars
+
+# Local AI tooling artifacts
+.agents/
+.claude/skills/frontend-design
+skills-lock.json
+vitest.tmp.config.ts
