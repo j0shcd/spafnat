@@ -21,11 +21,19 @@ function createJpegFile(filename: string): File {
   return new File([jpegBytes], filename, { type: 'image/jpeg' });
 }
 
-function createUploadRequest(file: File, type: 'document' | 'photo', key: string): Request {
+function createUploadRequest(
+  file: File,
+  type: 'document' | 'photo',
+  key: string,
+  cover?: File
+): Request {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', type);
   formData.append('key', key);
+  if (cover) {
+    formData.append('cover', cover);
+  }
 
   return new Request('http://localhost/api/admin/upload', {
     method: 'POST',
@@ -58,6 +66,73 @@ describe('Admin Endpoint Security', () => {
 
     expect(response.status).toBe(400);
     expect(env.SPAF_MEDIA.put).not.toHaveBeenCalled();
+  });
+
+  it('rejects a cover image for non-revue documents', async () => {
+    const request = createUploadRequest(
+      createPdfFile('bulletin.pdf'),
+      'document',
+      'bulletin_adhesion.pdf',
+      createJpegFile('cover.jpg')
+    );
+    const response = await uploadHandler({ request, env } as unknown as UploadHandlerContext);
+
+    expect(response.status).toBe(400);
+    expect(env.SPAF_MEDIA.put).not.toHaveBeenCalled();
+  });
+
+  it('uploads generated cover image when revue PDF is uploaded', async () => {
+    const pdfBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]);
+    const coverBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+
+    const createFileLike = (name: string, type: string, bytes: Uint8Array) => ({
+      name,
+      type,
+      size: bytes.length,
+      slice: (start = 0, end = bytes.length) =>
+        ({
+          arrayBuffer: async () => bytes.slice(start, end).buffer,
+        }) as Blob,
+      arrayBuffer: async () => bytes.slice().buffer,
+    });
+
+    const pdfFileLike = createFileLike('revue.pdf', 'application/pdf', pdfBytes);
+    const coverFileLike = createFileLike('extrait_revue_cover.jpg', 'image/jpeg', coverBytes);
+
+    const mockedFormData = {
+      get: (field: string) => {
+        if (field === 'file') return pdfFileLike;
+        if (field === 'type') return 'document';
+        if (field === 'key') return 'extrait_revue.pdf';
+        if (field === 'cover') return coverFileLike;
+        return null;
+      },
+    } as unknown as FormData;
+
+    const request = {
+      headers: new Headers(),
+      formData: vi.fn().mockResolvedValue(mockedFormData),
+    } as unknown as Request;
+
+    const response = await uploadHandler({ request, env } as unknown as UploadHandlerContext);
+
+    expect(response.status).toBe(200);
+    expect(env.SPAF_MEDIA.put).toHaveBeenNthCalledWith(
+      1,
+      'documents/extrait_revue.pdf',
+      expect.any(ArrayBuffer),
+      expect.objectContaining({
+        httpMetadata: { contentType: 'application/pdf' },
+      })
+    );
+    expect(env.SPAF_MEDIA.put).toHaveBeenNthCalledWith(
+      2,
+      'documents/extrait_revue_cover.jpg',
+      expect.any(ArrayBuffer),
+      expect.objectContaining({
+        httpMetadata: { contentType: 'image/jpeg' },
+      })
+    );
   });
 
   it('rejects invalid photo years during upload', async () => {

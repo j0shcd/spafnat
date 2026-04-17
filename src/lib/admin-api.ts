@@ -117,11 +117,18 @@ export async function apiListDocuments(): Promise<ApiResponse<DocumentFile[]>> {
   return { ...response, data: [] };
 }
 
-export async function apiUploadDocument(file: File, docKey: string, filename: string): Promise<ApiResponse> {
+export async function apiUploadDocument(
+  file: File,
+  filename: string,
+  options?: { coverFile?: File }
+): Promise<ApiResponse> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', 'document');
   formData.append('key', filename); // Use actual filename, not docKey
+  if (options?.coverFile) {
+    formData.append('cover', options.coverFile);
+  }
 
   return adminFetch('/api/admin/upload', {
     method: 'POST',

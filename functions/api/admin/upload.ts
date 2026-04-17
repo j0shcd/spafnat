@@ -9,6 +9,9 @@ import {
 import { DOCUMENTS } from '../../../src/config/documents';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_COVER_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
+const REVUE_DOCUMENT_FILENAME = 'extrait_revue.pdf';
+const REVUE_COVER_FILENAME = 'extrait_revue_cover.jpg';
 const ALLOWED_DOCUMENT_FILENAMES = new Set(
   Object.values(DOCUMENTS)
     .map((document) => document.path.split('/').pop())
@@ -61,9 +64,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const fileEntry = formData.get('file');
     const typeEntry = formData.get('type');
     const keyEntry = formData.get('key');
+    const coverEntry = formData.get('cover');
     const file = isFileLike(fileEntry) ? fileEntry : null;
     const type = typeof typeEntry === 'string' ? typeEntry : null;
     const key = typeof keyEntry === 'string' ? keyEntry : null;
+    const cover = isFileLike(coverEntry) ? coverEntry : null;
 
     if (!file || !type || !key) {
       console.error('Upload validation failed:', { hasFile: !!file, type, key });
@@ -79,6 +84,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
         400
       );
+    }
+
+    if (cover && type !== 'document') {
+      return jsonResponse({ error: 'Paramètre de couverture non autorisé' }, 400);
     }
 
     // 4. Validate file size (actual file, not header)
@@ -109,6 +118,24 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
       // Documents: documents/{filename} (key is already the full filename)
       r2Key = `documents/${key}`;
+
+      if (cover && key !== REVUE_DOCUMENT_FILENAME) {
+        return jsonResponse(
+          { error: 'Image de couverture non autorisée pour ce document' },
+          400
+        );
+      }
+
+      if (cover) {
+        if (!cover.type.startsWith('image/')) {
+          return jsonResponse({ error: 'Type de couverture invalide (image attendue)' }, 400);
+        }
+
+        const coverValidation = await validateFile(cover, MAX_COVER_FILE_SIZE);
+        if (!coverValidation.valid) {
+          return jsonResponse({ error: coverValidation.error }, 400);
+        }
+      }
     } else {
       // Photos: congres/{year}/{sanitized-filename}
       const year = key; // For photos, key is the year
@@ -143,17 +170,37 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
+    const uploadedAt = new Date().toISOString();
+
     await env.SPAF_MEDIA.put(r2Key, arrayBuffer, {
       httpMetadata: {
         contentType: file.type,
       },
       customMetadata: {
         originalFilename: file.name,
-        uploadedAt: new Date().toISOString(),
+        uploadedAt,
       },
     });
 
     console.log('R2 upload successful:', r2Key);
+
+    if (type === 'document' && key === REVUE_DOCUMENT_FILENAME && cover) {
+      const coverBuffer = await cover.arrayBuffer();
+      const coverKey = `documents/${REVUE_COVER_FILENAME}`;
+
+      await env.SPAF_MEDIA.put(coverKey, coverBuffer, {
+        httpMetadata: {
+          contentType: cover.type,
+        },
+        customMetadata: {
+          originalFilename: cover.name,
+          uploadedAt,
+          sourcePdfFilename: file.name,
+        },
+      });
+
+      console.log('R2 cover upload successful:', coverKey);
+    }
 
     return jsonResponse({
       success: true,

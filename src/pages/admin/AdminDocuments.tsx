@@ -24,6 +24,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { DOCUMENTS } from '@/config/documents';
 import { apiListDocuments, apiUploadDocument, apiDeleteDocument, DocumentFile } from '@/lib/admin-api';
+import { generateRevueCoverFromPdf } from '@/lib/revueCoverGenerator';
 
 type DocumentStatus = {
   key: string;
@@ -34,6 +35,8 @@ type DocumentStatus = {
   lastModified?: string;
   originalFilename?: string;
 };
+
+const REVUE_DOCUMENT_KEY = 'extraitRevue';
 
 export default function AdminDocuments() {
   const [documents, setDocuments] = useState<DocumentStatus[]>([]);
@@ -103,7 +106,23 @@ export default function AdminDocuments() {
     }
 
     setUploadingKey(key);
-    const response = await apiUploadDocument(file, key, filename);
+
+    let generatedCoverFile: File | undefined;
+    if (key === REVUE_DOCUMENT_KEY) {
+      try {
+        generatedCoverFile = await generateRevueCoverFromPdf(file);
+      } catch (error) {
+        console.warn('Failed to auto-generate revue cover image:', error);
+        toast({
+          title: 'Aperçu non généré',
+          description: "Le PDF sera téléversé, mais l'image de couverture n'a pas pu être créée automatiquement.",
+        });
+      }
+    }
+
+    const response = await apiUploadDocument(file, filename, {
+      coverFile: generatedCoverFile,
+    });
     setUploadingKey(null);
 
     if (response.ok) {

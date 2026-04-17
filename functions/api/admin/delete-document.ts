@@ -3,6 +3,8 @@ import { jsonResponse, parseJsonBodyWithLimit } from '../../lib/helpers';
 import { DOCUMENTS } from '../../../src/config/documents';
 
 const MAX_DELETE_DOCUMENT_BODY_BYTES = 4 * 1024; // 4 KB
+const REVUE_DOCUMENT_FILENAME = 'extrait_revue.pdf';
+const REVUE_COVER_FILENAME = 'extrait_revue_cover.jpg';
 
 const ALLOWED_DOCUMENT_FILENAMES = new Set(
   Object.values(DOCUMENTS)
@@ -71,6 +73,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     // Delete from R2
     await env.SPAF_MEDIA.delete(r2Key);
+
+    // Keep revue cover in sync with the primary PDF lifecycle.
+    if (key === REVUE_DOCUMENT_FILENAME) {
+      await env.SPAF_MEDIA.delete(`documents/${REVUE_COVER_FILENAME}`);
+    }
 
     return jsonResponse({ success: true, deletedKey: r2Key });
   } catch (error) {
