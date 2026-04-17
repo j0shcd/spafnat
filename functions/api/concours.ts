@@ -3,6 +3,10 @@ import { jsonResponse } from '../lib/helpers';
 import type { ConcoursItem, ConcoursCategory } from '../../src/config/concours';
 import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../src/config/concours';
 
+const CONCOURS_CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+};
+
 /**
  * GET /api/concours?category={category}
  * Public endpoint to fetch concours items
@@ -37,7 +41,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         })
       );
 
-      return jsonResponse(results);
+      return jsonResponse(results, 200, CONCOURS_CACHE_HEADERS);
     }
 
     // Validate single category
@@ -50,7 +54,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     const data = await env.SPAF_KV.get(kvKey, 'json');
     const items = (data as ConcoursItem[]) || [];
 
-    return jsonResponse({ items });
+    return jsonResponse({ items }, 200, CONCOURS_CACHE_HEADERS);
   } catch (error) {
     console.error('Concours fetch error:', error);
     return jsonResponse(
