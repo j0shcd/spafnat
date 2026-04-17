@@ -30,6 +30,33 @@ describe('Visitor Counter Security Tests', () => {
       method: 'GET',
     });
 
+  async function hashIpForToday(ip: string): Promise<string> {
+    const today = new Date().toISOString().split('T')[0];
+    const data = new TextEncoder().encode(`${ip}:${today}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function findIpBySamplingRate(rate: number, shouldBeSampled: boolean): Promise<string> {
+    const threshold = Math.floor(rate * 10_000);
+
+    for (let i = 1; i <= 4096; i += 1) {
+      const octet3 = Math.floor(i / 256) % 256;
+      const octet4 = i % 256;
+      const candidateIp = `10.20.${octet3}.${octet4}`;
+      const hash = await hashIpForToday(candidateIp);
+      const bucket = Number.parseInt(hash.slice(0, 8), 16) % 10_000;
+      const sampled = bucket < threshold;
+
+      if (sampled === shouldBeSampled) {
+        return candidateIp;
+      }
+    }
+
+    throw new Error(`Unable to find IP for sampling state=${shouldBeSampled}`);
+  }
+
   describe('Deduplication', () => {
     it('should count same IP+UserAgent only once per day', async () => {
       // Arrange: Counter starts at 100, no previous visit
@@ -114,6 +141,29 @@ describe('Visitor Counter Security Tests', () => {
       expect(data2.count).toBe(102); // Incremented (different UA)
       expect(data2.incremented).toBe(true);
     });
+
+    it('should not count known bot user agents', async () => {
+      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
+        if (key === 'counter:visitors') return '100';
+        return null;
+      });
+
+      const botRequest = new Request('http://localhost/api/visit', {
+        method: 'POST',
+        headers: {
+          'CF-Connecting-IP': '1.2.3.4',
+          'User-Agent': 'Googlebot/2.1 (+http://www.google.com/bot.html)',
+        },
+      });
+
+      const response = await onRequestPost({ request: botRequest, env: mockEnv } as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.count).toBe(100);
+      expect(data.incremented).toBe(false);
+      expect(mockEnv.SPAF_KV.put).not.toHaveBeenCalled();
+    });
   });
 
   describe('Data Integrity', () => {
@@ -166,6 +216,64 @@ describe('Visitor Counter Security Tests', () => {
 
       // Expected: KV.put called with '101'
       expect(mockEnv.SPAF_KV.put).toHaveBeenCalledWith('counter:visitors', '101');
+    });
+
+    it('should apply weighted sampling above daily threshold when visitor is sampled', async () => {
+      const sampledIp = await findIpBySamplingRate(0.25, true);
+
+      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
+        if (key === 'counter:visitors') return '100';
+        if (key.startsWith('counter:visitors:daily-estimate:')) return '350';
+        if (key.startsWith('rate:visit:')) return null;
+        return null;
+      });
+
+      const request = new Request('http://localhost/api/visit', {
+        method: 'POST',
+        headers: {
+          'CF-Connecting-IP': sampledIp,
+          'User-Agent': 'Mozilla/5.0',
+        },
+      });
+
+      const response = await onRequestPost({ request, env: mockEnv } as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.count).toBe(104);
+      expect(data.incremented).toBe(true);
+      expect(data.estimated).toBe(true);
+      expect(data.sampleRate).toBe(0.25);
+      expect(data.incrementBy).toBe(4);
+      expect(mockEnv.SPAF_KV.put).toHaveBeenCalledWith('counter:visitors', '104');
+    });
+
+    it('should skip increments above daily threshold when visitor is not sampled', async () => {
+      const unsampledIp = await findIpBySamplingRate(0.25, false);
+
+      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
+        if (key === 'counter:visitors') return '100';
+        if (key.startsWith('counter:visitors:daily-estimate:')) return '350';
+        if (key.startsWith('rate:visit:')) return null;
+        return null;
+      });
+
+      const request = new Request('http://localhost/api/visit', {
+        method: 'POST',
+        headers: {
+          'CF-Connecting-IP': unsampledIp,
+          'User-Agent': 'Mozilla/5.0',
+        },
+      });
+
+      const response = await onRequestPost({ request, env: mockEnv } as any);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.count).toBe(100);
+      expect(data.incremented).toBe(false);
+      expect(data.estimated).toBe(true);
+      expect(mockEnv.SPAF_KV.put).not.toHaveBeenCalled();
     });
   });
 
