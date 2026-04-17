@@ -2,6 +2,9 @@ import * as pdfjsLib from 'pdfjs-dist';
 
 const pdfCoverDataUrlCache = new Map<string, string>();
 const inFlightPdfCoverRender = new Map<string, Promise<string>>();
+const MIN_RENDER_SCALE = 0.65;
+const MAX_RENDER_SCALE = 1;
+const TARGET_COVER_WIDTH_PX = 460;
 
 let isPdfWorkerConfigured = false;
 
@@ -35,12 +38,19 @@ export async function prefetchPdfCover(url: string): Promise<string> {
   const renderPromise = (async () => {
     ensurePdfWorkerConfigured();
 
-    const loadingTask = pdfjsLib.getDocument(url);
+    const loadingTask = pdfjsLib.getDocument({
+      url,
+      // We only need page 1 for the cover preview.
+      disableAutoFetch: true,
+    });
     const pdf = await loadingTask.promise;
 
     try {
       const page = await pdf.getPage(1);
-      const viewport = page.getViewport({ scale: 1.4 });
+      const baseViewport = page.getViewport({ scale: 1 });
+      const fittedScale = TARGET_COVER_WIDTH_PX / baseViewport.width;
+      const scale = Math.max(MIN_RENDER_SCALE, Math.min(MAX_RENDER_SCALE, fittedScale));
+      const viewport = page.getViewport({ scale });
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
 
@@ -57,7 +67,7 @@ export async function prefetchPdfCover(url: string): Promise<string> {
         viewport,
       }).promise;
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
       pdfCoverDataUrlCache.set(url, dataUrl);
       return dataUrl;
     } finally {
