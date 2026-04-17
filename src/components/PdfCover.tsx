@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCachedPdfCover, prefetchPdfCover } from '@/lib/pdfCoverCache';
 
@@ -69,7 +70,17 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
 
       {/* Skeleton loading */}
       {isLoading && !hasError && !coverSrc && (
-        <Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />
+        <div className="relative">
+          <Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="rounded-md bg-background/85 px-3 py-2 shadow-sm backdrop-blur-sm">
+              <p className="flex items-center gap-2 text-sm text-foreground">
+                <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                Chargement de l'aperçu...
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Error fallback */}

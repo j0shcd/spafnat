@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, BookOpen, Users } from "lucide-react";
+import { Download, BookOpen, Users, Loader2 } from "lucide-react";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 import { Suspense, lazy } from "react";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
@@ -13,7 +13,12 @@ const PdfCover = lazy(() =>
 
 const Revue = () => {
   // Get R2-aware URL for document
-  const { url: extraitUrl, isAvailable: extraitAvailable, originalFilename } = useDocumentUrl('extraitRevue');
+  const {
+    url: extraitUrl,
+    isLoading: isExtraitLoading,
+    isAvailable: extraitAvailable,
+    originalFilename,
+  } = useDocumentUrl('extraitRevue');
 
   // Derive title from original filename or use fallback
   const revueTitle = originalFilename
@@ -152,7 +157,17 @@ const Revue = () => {
           {/* Magazine Cover */}
           <Card className="overflow-hidden">
             <CardContent className="p-4">
-              {extraitAvailable ? (
+              {isExtraitLoading ? (
+                <div className="relative">
+                  <Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="flex items-center gap-2 rounded-md bg-background/85 px-3 py-2 text-sm text-foreground shadow-sm backdrop-blur-sm">
+                      <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                      Chargement de l'extrait...
+                    </p>
+                  </div>
+                </div>
+              ) : extraitAvailable ? (
                 <Suspense fallback={<Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />}>
                   <PdfCover
                     url={extraitUrl}
@@ -193,7 +208,7 @@ const Revue = () => {
                   <Button
                     variant="default"
                     className="flex items-center space-x-2"
-                    disabled={!extraitAvailable}
+                    disabled={!extraitAvailable || isExtraitLoading}
                     onClick={() => {
                       if (extraitAvailable) {
                         window.open(extraitUrl, '_blank');
@@ -202,7 +217,9 @@ const Revue = () => {
                   >
                     <Download className="h-4 w-4" />
                     <span>
-                      {extraitAvailable
+                      {isExtraitLoading
+                        ? "Chargement..."
+                        : extraitAvailable
                         ? "Télécharger l'extrait"
                         : "Bientôt disponible"}
                     </span>
