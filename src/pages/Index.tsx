@@ -15,6 +15,19 @@ import { useDocumentUrl } from "@/hooks/useDocumentUrl";
 import { useNavigate } from "react-router-dom";
 import { warmRevuePreview } from "@/lib/revuePrefetch";
 
+const VISIT_DAY_STORAGE_KEY = 'spaf_visit_last_utc_day';
+const VISIT_COUNT_STORAGE_KEY = 'spaf_visit_last_count';
+
+function getCurrentUtcDateKey(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+function parseStoredCount(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
@@ -34,8 +47,29 @@ const Index = () => {
   const { url: haikuUrl, isAvailable: haikuAvailable } = useDocumentUrl('haikuNadineNajman');
 
   useEffect(() => {
-    // Fetch and increment visitor count on mount
+    // Increment visitor count at most once per UTC day per browser.
     const incrementVisitorCount = async () => {
+      const utcDateKey = getCurrentUtcDateKey();
+      let shouldPostVisit = true;
+
+      try {
+        const lastVisitUtcDate = localStorage.getItem(VISIT_DAY_STORAGE_KEY);
+        const cachedCount = parseStoredCount(localStorage.getItem(VISIT_COUNT_STORAGE_KEY));
+
+        if (lastVisitUtcDate === utcDateKey) {
+          if (cachedCount !== null) {
+            setVisitorCount(cachedCount);
+          }
+          shouldPostVisit = false;
+        }
+      } catch {
+        // Continue without local cache if storage is unavailable.
+      }
+
+      if (!shouldPostVisit) {
+        return;
+      }
+
       try {
         const response = await fetch('/api/visit', {
           method: 'POST',
@@ -43,7 +77,15 @@ const Index = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setVisitorCount(data.count);
+          if (typeof data.count === 'number' && Number.isFinite(data.count)) {
+            setVisitorCount(data.count);
+            try {
+              localStorage.setItem(VISIT_DAY_STORAGE_KEY, utcDateKey);
+              localStorage.setItem(VISIT_COUNT_STORAGE_KEY, data.count.toString());
+            } catch {
+              // No-op: local storage unavailable.
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to fetch visitor count:', error);
