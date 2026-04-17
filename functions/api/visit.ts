@@ -6,7 +6,7 @@ const INITIAL_COUNT = 184161; // Starting point for visitor count, pulled over f
 const DAILY_ESTIMATE_KEY_PREFIX = 'counter:visitors:daily-estimate:';
 const SAMPLING_BUCKET_COUNT = 10_000;
 const DAILY_ESTIMATE_KEY_TTL_SECONDS = 172800;
-const VISIT_READ_CACHE_TTL_MS = 15_000;
+const VISIT_READ_CACHE_TTL_MS = 120_000;
 const KNOWN_BOT_UA_PATTERN =
   /\b(bot|crawler|spider|crawling|slurp|bingpreview|mediapartners-google|facebookexternalhit|facebot|twitterbot|slackbot|linkedinbot|discordbot|telegrambot|whatsapp|applebot|yandex|baiduspider|duckduckbot|semrushbot|ahrefsbot|mj12bot|petalbot)\b/i;
 
