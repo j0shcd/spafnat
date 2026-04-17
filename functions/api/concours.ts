@@ -1,11 +1,7 @@
 import type { Env } from '../env';
 import { jsonResponse } from '../lib/helpers';
-import { enforceIpRateLimit } from '../lib/rate-limit';
 import type { ConcoursItem, ConcoursCategory } from '../../src/config/concours';
 import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../src/config/concours';
-
-const CONCOURS_RATE_LIMIT = 120;
-const CONCOURS_RATE_WINDOW_SECONDS = 60;
 
 /**
  * GET /api/concours?category={category}
@@ -15,17 +11,6 @@ const CONCOURS_RATE_WINDOW_SECONDS = 60;
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const rateLimited = await enforceIpRateLimit({
-      request,
-      env,
-      scope: 'concours:list',
-      limit: CONCOURS_RATE_LIMIT,
-      windowSeconds: CONCOURS_RATE_WINDOW_SECONDS,
-    });
-    if (rateLimited) {
-      return rateLimited;
-    }
-
     const url = new URL(request.url);
     const category = url.searchParams.get('category');
 

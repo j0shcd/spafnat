@@ -10,27 +10,13 @@
 
 import type { Env } from '../../env';
 import { jsonResponse } from '../../lib/helpers';
-import { enforceIpRateLimit } from '../../lib/rate-limit';
 
-const GALLERY_YEARS_RATE_LIMIT = 120;
-const GALLERY_YEARS_RATE_WINDOW_SECONDS = 60;
 const GALLERY_YEARS_CACHE_HEADERS = {
   'Cache-Control': 'public, max-age=300, s-maxage=900, stale-while-revalidate=1800',
 };
 
-export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
   try {
-    const rateLimited = await enforceIpRateLimit({
-      request,
-      env,
-      scope: 'gallery:years',
-      limit: GALLERY_YEARS_RATE_LIMIT,
-      windowSeconds: GALLERY_YEARS_RATE_WINDOW_SECONDS,
-    });
-    if (rateLimited) {
-      return rateLimited;
-    }
-
     const { SPAF_MEDIA } = env;
 
     // List all objects in the congres/ prefix

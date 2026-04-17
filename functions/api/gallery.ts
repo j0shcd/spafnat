@@ -1,10 +1,7 @@
 import type { Env } from '../env';
 import { jsonResponse } from '../lib/helpers';
-import { enforceIpRateLimit } from '../lib/rate-limit';
 import { isValidPhotoYear } from '../lib/file-validation';
 
-const GALLERY_RATE_LIMIT = 120;
-const GALLERY_RATE_WINDOW_SECONDS = 60;
 const GALLERY_CACHE_HEADERS = {
   'Cache-Control': 'public, max-age=60, s-maxage=300, stale-while-revalidate=600',
 };
@@ -17,17 +14,6 @@ const GALLERY_CACHE_HEADERS = {
  */
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const rateLimited = await enforceIpRateLimit({
-      request,
-      env,
-      scope: 'gallery:list',
-      limit: GALLERY_RATE_LIMIT,
-      windowSeconds: GALLERY_RATE_WINDOW_SECONDS,
-    });
-    if (rateLimited) {
-      return rateLimited;
-    }
-
     const url = new URL(request.url);
     const year = url.searchParams.get('year');
 
