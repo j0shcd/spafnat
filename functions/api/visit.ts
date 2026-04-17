@@ -6,8 +6,17 @@ const INITIAL_COUNT = 184161; // Starting point for visitor count, pulled over f
 const DAILY_ESTIMATE_KEY_PREFIX = 'counter:visitors:daily-estimate:';
 const SAMPLING_BUCKET_COUNT = 10_000;
 const DAILY_ESTIMATE_KEY_TTL_SECONDS = 172800;
+const VISIT_READ_CACHE_TTL_MS = 15_000;
 const KNOWN_BOT_UA_PATTERN =
   /\b(bot|crawler|spider|crawling|slurp|bingpreview|mediapartners-google|facebookexternalhit|facebot|twitterbot|slackbot|linkedinbot|discordbot|telegrambot|whatsapp|applebot|yandex|baiduspider|duckduckbot|semrushbot|ahrefsbot|mj12bot|petalbot)\b/i;
+
+interface NumericCacheEntry {
+  value: number;
+  expiresAt: number;
+}
+
+let counterReadCache: NumericCacheEntry | null = null;
+const dailyEstimateReadCache = new Map<string, NumericCacheEntry>();
 
 function isKnownBotRequest(request: Request): boolean {
   const verifiedBotHeader = request.headers.get('cf-verified-bot');
@@ -32,10 +41,74 @@ function getDailyEstimateKey(dateKey: string): string {
   return `${DAILY_ESTIMATE_KEY_PREFIX}${dateKey}`;
 }
 
+function shouldUseReadCache(request: Request): boolean {
+  try {
+    const hostname = new URL(request.url).hostname;
+    return hostname !== 'localhost' && hostname !== '127.0.0.1';
+  } catch {
+    return true;
+  }
+}
+
 function parsePositiveInt(value: string | null): number {
   if (!value) return 0;
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function readNumericCache(entry: NumericCacheEntry | null): number | null {
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) return null;
+  return entry.value;
+}
+
+function setCounterReadCache(value: number): void {
+  if (!Number.isFinite(value)) return;
+  counterReadCache = {
+    value,
+    expiresAt: Date.now() + VISIT_READ_CACHE_TTL_MS,
+  };
+}
+
+function setDailyEstimateReadCache(key: string, value: number): void {
+  if (!Number.isFinite(value)) return;
+  dailyEstimateReadCache.set(key, {
+    value,
+    expiresAt: Date.now() + VISIT_READ_CACHE_TTL_MS,
+  });
+}
+
+async function getCounterValue(env: Env, useCache: boolean): Promise<number> {
+  if (useCache) {
+    const cached = readNumericCache(counterReadCache);
+    if (cached !== null) {
+      return cached;
+    }
+  }
+
+  const countStr = await env.SPAF_KV.get(COUNTER_KEY);
+  const count = countStr ? parseInt(countStr, 10) : INITIAL_COUNT;
+  if (useCache) {
+    setCounterReadCache(count);
+  }
+  return count;
+}
+
+async function getDailyEstimateValue(env: Env, key: string, useCache: boolean): Promise<number> {
+  if (useCache) {
+    const cachedEntry = dailyEstimateReadCache.get(key) ?? null;
+    const cached = readNumericCache(cachedEntry);
+    if (cached !== null) {
+      return cached;
+    }
+  }
+
+  const dailyEstimateStr = await env.SPAF_KV.get(key);
+  const dailyEstimate = parsePositiveInt(dailyEstimateStr);
+  if (useCache) {
+    setDailyEstimateReadCache(key, dailyEstimate);
+  }
+  return dailyEstimate;
 }
 
 /**
@@ -100,25 +173,23 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
+    const useReadCache = shouldUseReadCache(request);
     const dateKey = getCurrentUtcDateKey();
     const dailyEstimateKey = getDailyEstimateKey(dateKey);
 
     if (isKnownBotRequest(request)) {
-      const countStr = await env.SPAF_KV.get(COUNTER_KEY);
-      const count = countStr ? parseInt(countStr, 10) : INITIAL_COUNT;
+      const count = await getCounterValue(env, useReadCache);
 
       return jsonResponse({ count, incremented: false });
     }
 
     const ip = getClientIP(request);
     const hash = await hashVisitorWithDate(ip);
-    const dailyEstimateStr = await env.SPAF_KV.get(dailyEstimateKey);
-    const dailyEstimate = parsePositiveInt(dailyEstimateStr);
+    const dailyEstimate = await getDailyEstimateValue(env, dailyEstimateKey, useReadCache);
     const sampling = getSamplingConfig(dailyEstimate);
 
     if (!isSampledVisitor(hash, sampling.rate)) {
-      const countStr = await env.SPAF_KV.get(COUNTER_KEY);
-      const count = countStr ? parseInt(countStr, 10) : INITIAL_COUNT;
+      const count = await getCounterValue(env, useReadCache);
       return jsonResponse({
         count,
         incremented: false,
@@ -133,8 +204,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     if (alreadyCounted) {
       // Already counted today, return current count without incrementing
-      const countStr = await env.SPAF_KV.get(COUNTER_KEY);
-      const count = countStr ? parseInt(countStr, 10) : INITIAL_COUNT;
+      const count = await getCounterValue(env, useReadCache);
 
       return jsonResponse({
         count,
@@ -144,8 +214,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Not counted today — increment counter (weighted when sampling is active)
-    const currentCountStr = await env.SPAF_KV.get(COUNTER_KEY);
-    const currentCount = currentCountStr ? parseInt(currentCountStr, 10) : INITIAL_COUNT;
+    const currentCount = await getCounterValue(env, useReadCache);
     const incrementBy = sampling.weight;
     const newCount = currentCount + incrementBy;
     const newDailyEstimate = dailyEstimate + incrementBy;
@@ -158,6 +227,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
         expirationTtl: DAILY_ESTIMATE_KEY_TTL_SECONDS,
       }),
     ]);
+    if (useReadCache) {
+      setCounterReadCache(newCount);
+      setDailyEstimateReadCache(dailyEstimateKey, newDailyEstimate);
+    }
 
     return jsonResponse({
       count: newCount,
