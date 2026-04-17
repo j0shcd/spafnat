@@ -3,13 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, BookOpen, Users, Loader2 } from "lucide-react";
 import { useDocumentUrl } from "@/hooks/useDocumentUrl";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const PdfCover = lazy(() =>
   import("@/components/PdfCover").then((module) => ({ default: module.PdfCover }))
 );
+
+const REVUE_COVER_BASE_URL = '/api/media/documents/extrait_revue_cover.jpg';
+
+function extractVersionToken(url: string): string | null {
+  const query = url.split('?')[1] ?? '';
+  const params = new URLSearchParams(query);
+  const versionToken = params.get('v');
+  return versionToken && versionToken.length > 0 ? versionToken : null;
+}
 
 const Revue = () => {
   // Get R2-aware URL for document
@@ -24,6 +33,19 @@ const Revue = () => {
   const revueTitle = originalFilename
     ? originalFilename.replace(/\.pdf$/i, '')
     : "Extrait de la Revue";
+  const coverUrl = useMemo(() => {
+    const versionToken = extractVersionToken(extraitUrl);
+    if (!versionToken) return REVUE_COVER_BASE_URL;
+    return `${REVUE_COVER_BASE_URL}?v=${encodeURIComponent(versionToken)}`;
+  }, [extraitUrl]);
+  const [shouldUsePdfFallback, setShouldUsePdfFallback] = useState(false);
+  const [isCoverLoading, setIsCoverLoading] = useState(true);
+
+  useEffect(() => {
+    setShouldUsePdfFallback(false);
+    setIsCoverLoading(true);
+  }, [coverUrl]);
+
   const contributors = [
     "Fernand GREGH, de l'Académie Française",
     "Pierre BENOIT",
@@ -168,13 +190,37 @@ const Revue = () => {
                   </div>
                 </div>
               ) : extraitAvailable ? (
-                <Suspense fallback={<Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />}>
-                  <PdfCover
-                    url={extraitUrl}
-                    alt={revueTitle}
-                    className="w-full"
-                  />
-                </Suspense>
+                shouldUsePdfFallback ? (
+                  <Suspense fallback={<Skeleton className="w-full aspect-[3/4] rounded-lg shadow-xl" />}>
+                    <PdfCover
+                      url={extraitUrl}
+                      alt={revueTitle}
+                      className="w-full"
+                    />
+                  </Suspense>
+                ) : (
+                  <div className="relative aspect-[3/4]">
+                    <img
+                      src={coverUrl}
+                      alt={revueTitle}
+                      loading="eager"
+                      decoding="async"
+                      className={`w-full h-full object-cover rounded-lg shadow-xl transition-opacity duration-200 ${
+                        isCoverLoading ? 'opacity-0' : 'opacity-100'
+                      }`}
+                      onLoad={() => setIsCoverLoading(false)}
+                      onError={() => {
+                        setIsCoverLoading(false);
+                        setShouldUsePdfFallback(true);
+                      }}
+                    />
+                    {isCoverLoading && (
+                      <div className="absolute inset-0">
+                        <Skeleton className="w-full h-full rounded-lg shadow-xl" />
+                      </div>
+                    )}
+                  </div>
+                )
               ) : (
                 <div className="aspect-[3/4] bg-gradient-to-br from-primary via-secondary to-accent relative flex items-center justify-center rounded-lg shadow-xl">
                   <div className="text-center text-primary-foreground p-8">
