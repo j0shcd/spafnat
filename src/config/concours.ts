@@ -33,6 +33,12 @@ export const CONCOURS_CATEGORIES: Record<ConcoursCategory, {
   },
 } as const;
 
+export const CONCOURS_CATEGORY_LIST: ConcoursCategory[] = [
+  'reglements',
+  'palmares-poetique',
+  'palmares-artistique',
+];
+
 /**
  * Derive title from filename
  * Example: "Concours Normandie 2026.pdf" → "Concours Normandie 2026"
@@ -48,6 +54,10 @@ export function deriveTitleFromFilename(filename: string): string {
  */
 export function getConcoursKVKey(category: ConcoursCategory): string {
   return `concours:${category}`;
+}
+
+export function getConcoursAllKVKey(): string {
+  return 'concours:all';
 }
 
 /**

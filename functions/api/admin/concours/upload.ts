@@ -7,6 +7,7 @@ import {
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
 import {
   getConcoursKVKey,
+  getConcoursAllKVKey,
   getConcoursR2Prefix,
   deriveTitleFromFilename,
   CONCOURS_CATEGORIES,
@@ -129,11 +130,15 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     // 9. Append to KV array
     const kvKey = getConcoursKVKey(category as ConcoursCategory);
+    const aggregateKey = getConcoursAllKVKey();
     const existingData = await env.SPAF_KV.get(kvKey, 'json');
     const items = (existingData as ConcoursItem[]) || [];
     items.push(item);
 
-    await env.SPAF_KV.put(kvKey, JSON.stringify(items));
+    await Promise.all([
+      env.SPAF_KV.put(kvKey, JSON.stringify(items)),
+      env.SPAF_KV.delete(aggregateKey),
+    ]);
 
     console.log('KV update successful:', kvKey, items.length, 'items');
 

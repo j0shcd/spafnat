@@ -9,6 +9,7 @@ import {
   CONCOURS_CATEGORIES,
   deriveTitleFromFilename,
   getConcoursKVKey,
+  getConcoursAllKVKey,
   getConcoursR2Prefix,
   type ConcoursCategory,
 } from '../config/concours';
@@ -54,6 +55,12 @@ describe('Concours Configuration', () => {
       expect(getConcoursKVKey('reglements')).toBe('concours:reglements');
       expect(getConcoursKVKey('palmares-poetique')).toBe('concours:palmares-poetique');
       expect(getConcoursKVKey('palmares-artistique')).toBe('concours:palmares-artistique');
+    });
+  });
+
+  describe('getConcoursAllKVKey', () => {
+    it('should return aggregate key for all categories', () => {
+      expect(getConcoursAllKVKey()).toBe('concours:all');
     });
   });
 

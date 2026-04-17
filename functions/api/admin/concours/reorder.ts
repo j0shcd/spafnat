@@ -1,7 +1,11 @@
 import type { Env } from '../../../env';
 import { jsonResponse, parseJsonBodyWithLimit } from '../../../lib/helpers';
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
-import { getConcoursKVKey, CONCOURS_CATEGORIES } from '../../../../src/config/concours';
+import {
+  getConcoursKVKey,
+  getConcoursAllKVKey,
+  CONCOURS_CATEGORIES,
+} from '../../../../src/config/concours';
 
 const MAX_REORDER_CONCOURS_BODY_BYTES = 8 * 1024; // 8 KB
 
@@ -76,6 +80,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     // Fetch current items
     const kvKey = getConcoursKVKey(category as ConcoursCategory);
+    const aggregateKey = getConcoursAllKVKey();
     const existingData = await env.SPAF_KV.get(kvKey, 'json');
     const items = (existingData as ConcoursItem[]) || [];
 
@@ -98,7 +103,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     [items[index], items[newIndex]] = [items[newIndex], items[index]];
 
     // Save updated array
-    await env.SPAF_KV.put(kvKey, JSON.stringify(items));
+    await Promise.all([
+      env.SPAF_KV.put(kvKey, JSON.stringify(items)),
+      env.SPAF_KV.delete(aggregateKey),
+    ]);
 
     console.log('Reorder successful:', kvKey, 'moved', r2Key, direction);
 

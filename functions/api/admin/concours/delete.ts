@@ -4,6 +4,7 @@ import { hasUnsafePathSegments } from '../../../lib/file-validation';
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
 import {
   getConcoursKVKey,
+  getConcoursAllKVKey,
   getConcoursR2Prefix,
   CONCOURS_CATEGORIES,
 } from '../../../../src/config/concours';
@@ -87,6 +88,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     // 1. Remove from KV array
     const kvKey = getConcoursKVKey(category as ConcoursCategory);
+    const aggregateKey = getConcoursAllKVKey();
     const existingData = await env.SPAF_KV.get(kvKey, 'json');
     const items = (existingData as ConcoursItem[]) || [];
 
@@ -106,7 +108,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // 3. Persist updated list
-    await env.SPAF_KV.put(kvKey, JSON.stringify(updatedItems));
+    await Promise.all([
+      env.SPAF_KV.put(kvKey, JSON.stringify(updatedItems)),
+      env.SPAF_KV.delete(aggregateKey),
+    ]);
 
     console.log('KV update successful:', kvKey, updatedItems.length, 'items');
 
