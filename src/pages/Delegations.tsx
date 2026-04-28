@@ -5,7 +5,13 @@ import { CONTACT_EMAIL } from "@/config/contact";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
 
 const Delegations = () => {
-const delegations = [
+  const delegations: Array<{
+    region: string;
+    delegate: string;
+    gender: "F" | "M";
+    address: string;
+    website?: string;
+  }> = [
     {
       region: "Auvergne-Rhône-Alpes",
       delegate: "Gael Schmidt",
@@ -65,6 +71,7 @@ const delegations = [
       delegate: "Richard Maggiore",
       gender: "M" as const,
       address: "9 rue Desmazels Appt 7, 82200 Moissac",
+      website: "https://spafoccitanie.eklablog.com",
     },
     {
       region: "Provence-Alpes-Côte d'Azur",
@@ -73,6 +80,49 @@ const delegations = [
       address: "64 Avenue du 3 septembre, La Lézardière Bat G, 06320 Cap d'ail",
     }
   ];
+  const leftColumnDelegations = delegations.filter((_, index) => index % 2 === 0);
+  const rightColumnDelegations = delegations.filter((_, index) => index % 2 !== 0);
+
+  const renderDelegationCard = (
+    delegation: (typeof delegations)[number],
+    index: number
+  ) => (
+    <Card key={`${delegation.region}-${index}`} className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex justify-between items-start mb-2">
+          <CardTitle className="font-serif-title text-2xl text-primary">
+            {delegation.region}
+          </CardTitle>
+        </div>
+        <CardDescription className="font-sans text-foreground">
+          {delegation.gender === "F" ? "Déléguée" : "Délégué"} : <strong>{delegation.delegate}</strong>
+        </CardDescription>
+        {delegation.website ? (
+          <div className="pt-3">
+            <Button variant="outline" size="sm" asChild>
+              <a
+                href={delegation.website}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Accéder au site web
+              </a>
+            </Button>
+          </div>
+        ) : null}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="border-t pt-4 space-y-2">
+          <div className="flex items-center space-x-2 text-sm">
+            <MapPin className="h-4 w-4 text-accent" />
+            <span className="font-sans text-foreground">
+              {delegation.address}
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <>
@@ -108,31 +158,16 @@ const delegations = [
         </Card>
 
         {/* Delegations Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {delegations.map((delegation, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start mb-2">
-                  <CardTitle className="font-serif-title text-2xl text-primary">
-                    {delegation.region}
-                  </CardTitle>
-                </div>
-                <CardDescription className="font-sans text-foreground">
-                  {delegation.gender === "F" ? "Déléguée" : "Délégué"} : <strong>{delegation.delegate}</strong>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex items-center space-x-2 text-sm">
-                    <MapPin className="h-4 w-4 text-accent" />
-                    <span className="font-sans text-foreground">
-                      {delegation.address}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="lg:hidden space-y-6">
+          {delegations.map(renderDelegationCard)}
+        </div>
+        <div className="hidden lg:grid lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {leftColumnDelegations.map(renderDelegationCard)}
+          </div>
+          <div className="space-y-6">
+            {rightColumnDelegations.map(renderDelegationCard)}
+          </div>
         </div>
 
         {/* Payment Instructions */}
