@@ -32,9 +32,9 @@ const Delegations = () => {
     },
     {
       region: "Grand Est",
-      delegate: "Christine Golleau-Braibant",
-      gender: "F" as const,
-      address: "8 rue du Maréchal Foch, 57220 Boulay",
+      delegate: "Armand Bemer",
+      gender: "M" as const,
+      address: "12 rue Haut des Ambes, 57530 Bazoncourt",
     },
     {
       region: "Île-de-France",
