@@ -40,7 +40,7 @@ const Delegations = () => {
       region: "Île-de-France",
       delegate: "Magali Breton",
       gender: "F" as const,
-      address: "12 Chemin des Boissettes, 77350 Boissise la Bertrand",
+      address: "4 rue du château, 89140 Evry",
     },
     {
       region: "Martinique - Guadeloupe",
