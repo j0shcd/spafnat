@@ -1,85 +1,44 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import { CONTACT_EMAIL } from "@/config/contact";
 import { PageBreadcrumb } from "@/components/PageBreadcrumb";
+import { DEFAULT_DELEGATIONS, type Delegation } from "@/config/delegations";
 
 const Delegations = () => {
-  const delegations: Array<{
-    region: string;
-    delegate: string;
-    gender: "F" | "M";
-    address: string;
-    website?: string;
-  }> = [
-    {
-      region: "Auvergne-Rhône-Alpes",
-      delegate: "Gael Schmidt",
-      gender: "M" as const,
-      address: "64 route de la vieille églises, 74410 Saint-Jorioz",
-    },
-    {
-      region: "Bourgogne-Franche-Comté",
-      delegate: "Michel Potier",
-      gender: "M" as const,
-      address: "33 rue de Compostelle, Villiers-le-Sec, 58210 Varzy",
-    },
-    {
-      region: "Bretagne",
-      delegate: "Loriane Dréan",
-      gender: "F" as const,
-      address: "31 Hent Toull Moger, 29000 Quimper",
-    },
-    {
-      region: "Grand Est",
-      delegate: "Armand Bemer",
-      gender: "M" as const,
-      address: "12 rue Haut des Ambes, 57530 Bazoncourt",
-    },
-    {
-      region: "Île-de-France",
-      delegate: "Magali Breton",
-      gender: "F" as const,
-      address: "4 rue du château, 89140 Evry",
-    },
-    {
-      region: "Martinique - Guadeloupe",
-      delegate: "Arlette Millon",
-      gender: "F" as const,
-      address: "Quartier Lamberton, 97215 Rivière Salée",
-    },
-    {
-      region: "Mascareignes",
-      delegate: "Thierry Bertil",
-      gender: "M" as const,
-      address: "312 rue Raphaël Douyere Bois-court, 97418 Plaine des Cafres",
-    },
-    {
-      region: "Normandie",
-      delegate: "Philippe Pauthonier",
-      gender: "M" as const,
-      address: "13 rue de la Mailleray, Rés. de France Imm. Roussillon, 76600 Le Havre"
-    },
-    {
-      region: "Nouvelle Aquitaine",
-      delegate: "Christian Littée",
-      gender: "M" as const,
-      address: "13 rue des Carmes appt. 14 allée du bon pasteur, 86000 Poitiers",
-    },
-    {
-      region: "Occitanie",
-      delegate: "Richard Maggiore",
-      gender: "M" as const,
-      address: "9 rue Desmazels Appt 7, 82200 Moissac",
-      website: "https://spafoccitanie.eklablog.com",
-    },
-    {
-      region: "Provence-Alpes-Côte d'Azur",
-      delegate: "Natalie Lauro",
-      gender: "F" as const,
-      address: "64 Avenue du 3 septembre, La Lézardière Bat G, 06320 Cap d'ail",
+  const [delegations, setDelegations] = useState<Delegation[]>(DEFAULT_DELEGATIONS);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (typeof fetch === 'undefined') {
+      return () => {
+        isMounted = false;
+      };
     }
-  ];
+
+    fetch('/api/delegations')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Unable to fetch delegations');
+        }
+        return response.json() as Promise<{ delegations?: Delegation[] }>;
+      })
+      .then((data) => {
+        if (isMounted && Array.isArray(data.delegations)) {
+          setDelegations(data.delegations);
+        }
+      })
+      .catch(() => {
+        // Keep the bundled defaults visible if the API is unavailable.
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const leftColumnDelegations = delegations.filter((_, index) => index % 2 === 0);
   const rightColumnDelegations = delegations.filter((_, index) => index % 2 !== 0);
 
@@ -87,7 +46,7 @@ const Delegations = () => {
     delegation: (typeof delegations)[number],
     index: number
   ) => (
-    <Card key={`${delegation.region}-${index}`} className="hover:shadow-lg transition-shadow">
+    <Card key={delegation.id || `${delegation.region}-${index}`} className="hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start mb-2">
           <CardTitle className="font-serif-title text-2xl text-primary">

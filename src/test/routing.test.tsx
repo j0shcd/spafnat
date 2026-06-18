@@ -35,6 +35,13 @@ describe('App Routing', () => {
           }),
         });
       }
+      if (typeof url === 'string' && url.includes('/api/delegations')) {
+        return Promise.resolve({
+          ok: true,
+          headers: { get: () => 'application/json' },
+          json: () => Promise.resolve({ delegations: [] }),
+        });
+      }
       return Promise.reject(new Error('Not found'));
     }) as unknown as typeof fetch;
   });

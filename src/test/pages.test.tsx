@@ -114,6 +114,10 @@ describe('Pages Smoke Tests', () => {
   });
 
   describe('Delegations Page', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('renders without crashing', () => {
       render(<Delegations />, { wrapper: RouterWrapper });
       expect(screen.getAllByText(/Délégations Régionales/i)[0]).toBeInTheDocument();
@@ -121,8 +125,8 @@ describe('Pages Smoke Tests', () => {
 
     it('displays delegations list', () => {
       render(<Delegations />, { wrapper: RouterWrapper });
-      expect(screen.getByText(/Bretagne/i)).toBeInTheDocument();
-      expect(screen.getByText(/Occitanie/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Bretagne/i)[0]).toBeInTheDocument();
+      expect(screen.getAllByText(/Occitanie/i)[0]).toBeInTheDocument();
     });
 
     it('does not display duplicate Occitanie entries', () => {
@@ -130,6 +134,33 @@ describe('Pages Smoke Tests', () => {
       const occitanieElements = screen.getAllByText(/Occitanie/i);
       // Should appear only once in the page (plus potentially in headers/footers)
       expect(occitanieElements.length).toBeLessThan(3);
+    });
+
+    it('replaces bundled defaults with API delegations without stale duplicates', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          headers: { get: () => 'application/json' },
+          json: () => Promise.resolve({
+            delegations: [
+              {
+                id: 'test-region',
+                region: 'Région Test',
+                delegate: 'Camille Martin',
+                gender: 'F',
+                address: '1 rue du Test',
+              },
+            ],
+          }),
+        })
+      ) as unknown as typeof fetch;
+
+      render(<Delegations />, { wrapper: RouterWrapper });
+
+      expect(screen.getAllByText(/Bretagne/i)[0]).toBeInTheDocument();
+      await screen.findAllByText(/Région Test/i);
+      expect(screen.queryAllByText(/Bretagne/i)).toHaveLength(0);
+      expect(screen.getAllByText(/Région Test/i)).toHaveLength(2);
     });
   });
 
