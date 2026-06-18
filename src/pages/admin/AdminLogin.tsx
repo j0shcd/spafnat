@@ -71,7 +71,7 @@ export default function AdminLogin() {
             Administration SPAF
           </CardTitle>
           <CardDescription className="text-base">
-            Connectez-vous pour gérer les documents et photos
+            Connectez-vous pour gérer le contenu du site
           </CardDescription>
         </CardHeader>
         <CardContent>
