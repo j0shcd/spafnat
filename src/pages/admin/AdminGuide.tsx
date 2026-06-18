@@ -21,6 +21,7 @@ const TOC_ITEMS = [
   { id: 'documents', label: 'Documents' },
   { id: 'photos', label: 'Photos' },
   { id: 'concours', label: 'Concours' },
+  { id: 'delegations', label: 'Délégations' },
   { id: 'deconnexion', label: 'Déconnexion' },
   { id: 'faq', label: 'FAQ' },
   { id: 'bonnes-pratiques', label: 'Bonnes Pratiques' },
@@ -149,6 +150,7 @@ export default function AdminGuide() {
           <li>Téléverser et remplacer les documents PDF</li>
           <li>Ajouter et supprimer des photos de congrès</li>
           <li>Gérer les documents des concours (règlements et palmarès)</li>
+          <li>Mettre à jour les délégations régionales</li>
           <li>Réorganiser l'ordre d'affichage des documents</li>
         </ul>
 
@@ -188,6 +190,7 @@ export default function AdminGuide() {
           <li><strong>Documents</strong> — Gérer les PDFs téléchargeables</li>
           <li><strong>Photos</strong> — Gérer les photos de congrès</li>
           <li><strong>Concours</strong> — Gérer les règlements et palmarès</li>
+          <li><strong>Délégations</strong> — Gérer les représentants régionaux</li>
           <li><strong>Retour au site</strong> — Quitter le mode admin et revenir au site public</li>
         </ol>
 
@@ -381,7 +384,40 @@ export default function AdminGuide() {
           ✅ Le document disparaît de la liste et du site public.
         </p>
 
-        {/* ── Section 5 : Déconnexion ── */}
+        {/* ── Section 5 : Délégations ── */}
+        <SectionHeading id="delegations">📍 Gérer les Délégations</SectionHeading>
+        <p className="text-lg text-foreground mb-4">
+          Cette section permet de modifier les <strong>délégués régionaux</strong> affichés sur la page
+          « Délégations » du site public.
+        </p>
+
+        <SubHeading>Modifier une délégation</SubHeading>
+        <Steps
+          steps={[
+            'Cliquez sur <strong>« Délégations »</strong> dans le menu de gauche',
+            'Trouvez la région à modifier',
+            'Corrigez le nom, le titre, l\'adresse ou le site web si besoin',
+            'Cliquez sur <strong>« Enregistrer »</strong>',
+          ]}
+        />
+        <p className="text-lg text-foreground mt-2">
+          ✅ La modification apparaît ensuite sur la page publique des délégations.
+        </p>
+
+        <SubHeading>Ajouter ou supprimer une délégation</SubHeading>
+        <Steps
+          steps={[
+            'Pour ajouter : cliquez sur <strong>« Ajouter une délégation »</strong>, remplissez les champs, puis cliquez sur <strong>« Enregistrer »</strong>',
+            'Pour supprimer : cliquez sur <strong>« Supprimer »</strong> sous la délégation concernée',
+            'Une fenêtre de confirmation s\'ouvre : cliquez sur <strong>« Supprimer »</strong> pour confirmer',
+          ]}
+        />
+        <Tip>
+          Le champ « Site web » est facultatif. Vous pouvez écrire une adresse simple comme <code>exemple.fr</code> :
+          le site ajoutera <code>https://</code> automatiquement.
+        </Tip>
+
+        {/* ── Section 6 : Déconnexion ── */}
         <SectionHeading id="deconnexion">🚪 Se Déconnecter</SectionHeading>
         <p className="text-lg text-foreground mb-3">
           <strong>Toujours se déconnecter quand vous avez terminé</strong>, surtout si vous utilisez un ordinateur partagé.
@@ -508,6 +544,7 @@ export default function AdminGuide() {
           <li>Utiliser des noms de fichiers clairs (ex : <code>Concours Bretagne 2026.pdf</code>)</li>
           <li>Compresser les fichiers lourds avant téléversement</li>
           <li>Sélectionner la bonne année pour les photos de congrès</li>
+          <li>Vérifier la page publique après une modification importante</li>
         </ul>
 
         <p className="text-lg font-semibold text-destructive mb-2">❌ À éviter :</p>
