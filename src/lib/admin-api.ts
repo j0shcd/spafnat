@@ -15,6 +15,49 @@ interface ApiResponse<T = unknown> {
   details?: string[];
 }
 
+async function parseResponseBody(response: Response): Promise<unknown> {
+  const contentType = response.headers.get('Content-Type') || '';
+  const rawBody = await response.text();
+
+  if (!rawBody) {
+    return null;
+  }
+
+  if (contentType.includes('application/json')) {
+    return JSON.parse(rawBody);
+  }
+
+  return rawBody;
+}
+
+function getApiErrorMessage(response: Response, data: unknown): string {
+  if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
+    return data.error;
+  }
+
+  if (typeof data === 'string' && data.trim()) {
+    return data.trim().startsWith('<!doctype html') || data.trim().startsWith('<html')
+      ? 'Le serveur API ne répond pas. Lancez le serveur Cloudflare Pages Functions pour utiliser l’administration.'
+      : data.trim();
+  }
+
+  if (response.status === 404) {
+    return 'Endpoint API introuvable. Lancez le serveur Cloudflare Pages Functions pour utiliser l’administration.';
+  }
+
+  return response.ok
+    ? 'Réponse API vide'
+    : 'Le serveur API ne répond pas correctement. Veuillez réessayer.';
+}
+
+function getApiErrorDetails(data: unknown): string[] | undefined {
+  if (data && typeof data === 'object' && 'details' in data && Array.isArray(data.details)) {
+    return data.details.filter((detail): detail is string => typeof detail === 'string');
+  }
+
+  return undefined;
+}
+
 /**
  * Fetch wrapper that adds JWT Authorization header
  */
@@ -47,18 +90,20 @@ async function adminFetch<T = unknown>(
       localStorage.removeItem(TOKEN_KEY);
     }
 
-    const data = await response.json();
+    const data = await parseResponseBody(response) as T;
 
     return {
       ok: response.ok,
       data: response.ok ? data : undefined,
-      error: !response.ok ? data.error : undefined,
-      details: !response.ok ? data.details : undefined,
+      error: !response.ok ? getApiErrorMessage(response, data) : undefined,
+      details: !response.ok ? getApiErrorDetails(data) : undefined,
     };
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : 'Network error',
+      error: error instanceof SyntaxError
+        ? 'Réponse API invalide. Vérifiez que le serveur Cloudflare Pages Functions est lancé.'
+        : error instanceof Error ? error.message : 'Network error',
     };
   }
 }
@@ -223,6 +268,47 @@ export async function apiReorderConcours(category: ConcoursCategory, r2Key: stri
   return adminFetch('/api/admin/concours/reorder', {
     method: 'POST',
     body: JSON.stringify({ category, r2Key, direction }),
+  });
+}
+
+// ===== Delegations API =====
+
+export type Gender = 'F' | 'M';
+
+export interface Delegation {
+  id: string;
+  region: string;
+  delegate: string;
+  gender: Gender;
+  address: string;
+  website?: string;
+}
+
+export type DelegationPayload = Omit<Delegation, 'id'> & { id?: string };
+
+export async function apiListDelegations(): Promise<ApiResponse<Delegation[]>> {
+  const response = await adminFetch<{ delegations: Delegation[] }>('/api/delegations', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+
+  if (response.ok && response.data) {
+    return { ...response, data: response.data.delegations };
+  }
+  return { ...response, data: [] };
+}
+
+export async function apiSaveDelegation(delegation: DelegationPayload): Promise<ApiResponse<{ delegation: Delegation; delegations: Delegation[] }>> {
+  return adminFetch('/api/admin/delegations/save', {
+    method: 'POST',
+    body: JSON.stringify(delegation),
+  });
+}
+
+export async function apiDeleteDelegation(id: string): Promise<ApiResponse<{ delegations: Delegation[] }>> {
+  return adminFetch('/api/admin/delegations/delete', {
+    method: 'POST',
+    body: JSON.stringify({ id }),
   });
 }
 

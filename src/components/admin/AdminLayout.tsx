@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { FileText, Image, LogOut, Menu, Home, Award, HelpCircle } from 'lucide-react';
+import { FileText, Image, LogOut, Menu, Home, Award, HelpCircle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,6 +17,7 @@ const navItems = [
   { to: '/admin/documents', label: 'Documents', icon: FileText },
   { to: '/admin/concours', label: 'Concours', icon: Award },
   { to: '/admin/photos', label: 'Photos', icon: Image },
+  { to: '/admin/delegations', label: 'Délégations', icon: MapPin },
 ];
 
 function Sidebar({ onBackToSite }: { onBackToSite: () => void }) {

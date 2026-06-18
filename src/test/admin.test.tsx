@@ -1,13 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import AdminLogin from '../pages/admin/AdminLogin';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import AdminDocuments from '../pages/admin/AdminDocuments';
 import AdminPhotos from '../pages/admin/AdminPhotos';
+import AdminDelegations from '../pages/admin/AdminDelegations';
 import { RequireAuth } from '../components/admin/RequireAuth';
 import { AuthProvider } from '../contexts/AuthContext';
 import { DOCUMENTS } from '../config/documents';
+import * as adminApi from '../lib/admin-api';
 
 // Mock API calls
 vi.mock('../lib/admin-api', () => ({
@@ -20,6 +23,9 @@ vi.mock('../lib/admin-api', () => ({
   apiListPhotos: vi.fn(() => Promise.resolve({ ok: true, data: [] })),
   apiUploadPhoto: vi.fn(),
   apiDeletePhoto: vi.fn(),
+  apiListDelegations: vi.fn(() => Promise.resolve({ ok: true, data: [] })),
+  apiSaveDelegation: vi.fn(),
+  apiDeleteDelegation: vi.fn(),
   getToken: vi.fn(() => null),
   clearToken: vi.fn(),
 }));
@@ -70,6 +76,7 @@ describe('Admin UI Smoke Tests', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorageMock.clear();
+    vi.mocked(adminApi.apiListDelegations).mockResolvedValue({ ok: true, data: [] });
   });
 
   describe('Admin Login Page', () => {
@@ -170,6 +177,61 @@ describe('Admin UI Smoke Tests', () => {
       await waitFor(() => {
         expect(screen.getByText(/Aucune photo pour l'année/i)).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Admin Delegations Page', () => {
+    it('renders without crashing', async () => {
+      render(<AdminDelegations />, { wrapper: AdminWrapper });
+      await waitFor(() => {
+        expect(screen.getByText(/Gestion des délégations/i)).toBeInTheDocument();
+      });
+    });
+
+    it('displays add button and empty state', async () => {
+      render(<AdminDelegations />, { wrapper: AdminWrapper });
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Ajouter une délégation/i })).toBeInTheDocument();
+      });
+      expect(screen.getByText(/Aucune délégation enregistrée/i)).toBeInTheDocument();
+    });
+
+    it('opens a dialog for adding a delegation instead of inserting a draft card', async () => {
+      const user = userEvent.setup();
+      render(<AdminDelegations />, { wrapper: AdminWrapper });
+
+      await user.click(await screen.findByRole('button', { name: /Ajouter une délégation/i }));
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Ajouter une délégation/i })).toBeInTheDocument();
+      expect(screen.getByText(/Aucune délégation enregistrée/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Enregistrer/i })).toBeDisabled();
+    });
+
+    it('enables save on an existing delegation only after a change', async () => {
+      const user = userEvent.setup();
+      vi.mocked(adminApi.apiListDelegations).mockResolvedValueOnce({
+        ok: true,
+        data: [
+          {
+            id: 'bretagne',
+            region: 'Bretagne',
+            delegate: 'Loriane Dréan',
+            gender: 'F',
+            address: '31 Hent Toull Moger, 29000 Quimper',
+          },
+        ],
+      });
+
+      render(<AdminDelegations />, { wrapper: AdminWrapper });
+
+      const saveButton = await screen.findByRole('button', { name: /Enregistrer/i });
+      expect(saveButton).toBeDisabled();
+
+      await user.clear(screen.getByLabelText(/Nom du délégué/i));
+      await user.type(screen.getByLabelText(/Nom du délégué/i), 'Loriane Test');
+
+      expect(saveButton).toBeEnabled();
     });
   });
 
