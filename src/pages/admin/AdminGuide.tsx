@@ -413,8 +413,7 @@ export default function AdminGuide() {
           ]}
         />
         <Tip>
-          Le champ « Site web » est facultatif. Vous pouvez écrire une adresse simple comme <code>exemple.fr</code> :
-          le site ajoutera <code>https://</code> automatiquement.
+          Le champ « Site web » est facultatif. 
         </Tip>
 
         {/* ── Section 6 : Déconnexion ── */}
