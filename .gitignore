@@ -33,6 +33,7 @@ vite.config.ts.timestamp-*.mjs
 # Local AI tooling artifacts
 .agents/
 .claude/
+.codex/
 .claude/skills/frontend-design
 skills-lock.json
 vitest.tmp.config.ts
