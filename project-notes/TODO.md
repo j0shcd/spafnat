@@ -1,5 +1,16 @@
 # SPAF Website — Task List
 
+## Maintainability and security audit — 22 October 2026
+
+- [x] Run the three requested independent read-only reviews against the entire checkout.
+- [x] Fix bounded request, upload, content consistency, cache, pagination and security-header defects; patch compatible dependencies.
+- [x] Verify regressions by reintroducing the bugs, then restore the fixes and run all checks.
+- [ ] Release and verify the deployed revision when authorized; no push/deployment is part of this audit.
+
+The [maintainer audit record](../README.md#maintainability-and-security-audit-22-october-2026)
+owns findings, evidence and remaining risks. Zero operating cost is a hard constraint;
+no storage/platform migration is authorized. The HEIC plan below remains unimplemented.
+
 ## Photo uploads — October 2026
 
 - [x] Add confirmation before compressing photos over 5 MiB; cancel sends nothing
@@ -15,7 +26,7 @@ User documentation: the in-app guide now explains automatic photo reduction usin
 
 Verification: 182 tests passed, including a 180-photo sequential batch. The two added regression boundaries were deliberately broken and their tests failed before restoring the implementation. Preflight/typecheck/build passed; lint has zero errors and eight pre-existing Fast Refresh warnings. A production-build browser run under the production CSP used dummy authentication, the real upload handler and in-memory storage: cancellation wrote nothing; a 55,323,807-byte synthetic 48 MP JPEG became a 3,476,141-byte 3,200×2,400 JPEG; a small JPEG was byte-for-byte unchanged; a corrupt photo was skipped and the next file uploaded. This proves the path with fixtures, not photographic quality or peak memory on older iPhones. No production upload was made. The warning uses plain French, with no JPEG or local-original/copy explanation, for the approximately 70-year-old admin audience.
 
-Known pre-existing boundary to address separately: unchanged files extremely close to 5 MiB can exceed the upload handler's multipart Content-Length check even though the file itself fits (`functions/api/admin/upload.ts`). Newly compressed 4 MiB copies have ample headroom. Do not raise backend file-size limits as a workaround for compression.
+The October 2026 security audit fixed multipart request headroom while retaining the 5 MiB per-file limit. Both document upload handlers now allow framing and the permitted cover separately; full-size-file regressions cover this boundary.
 
 ### HEIC acceptance — researched, not accepted for implementation
 
@@ -31,6 +42,12 @@ Acceptance gates before choosing the decoder:
 - Preserve codec licensing/notices and source/build information, keep assets self-hosted, and prove no photo data leaves the browser before the normal upload.
 
 Open decision: the fallback decoder is provisional until those gates pass. If a maintained fork is needed for lifecycle or primary-image correctness, compare direct decoder control again. Expected work is roughly 1–3 days after representative fixtures are available. Browser conversion adds no Cloudflare transformation service; retained JPEG storage and normal requests still count toward shared allowances.
+
+## Historical implementation record
+
+The sections below preserve the original phase plan and verification snapshots.
+They are not current architecture, deployment or test-count evidence; use the
+maintainer README and the current status above.
 
 **NOTE**: Taking a gradual approach - keeping Phase 2+ features (counter, contact form) as placeholders even though they're not fully functional yet. Always ask before modifying components.
 

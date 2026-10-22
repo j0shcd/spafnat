@@ -12,7 +12,7 @@ Website for the **Société des Poètes et Artistes de France (SPAF)**, a French
 - **PBKDF2 max iterations: 100k** (not 600k like OWASP recommends) - Workers enforces lower limit
 - **R2/KV bindings**: Must be configured in Cloudflare Dashboard separately for Production and Preview - `wrangler.toml` only affects `wrangler dev`
 - **No Node.js APIs**: Use Web Crypto API (`crypto.subtle`), not Node.js `crypto` module
-- **Document R2 keys**: Must match filenames from `documents.ts` exactly (e.g., `bulletin_adhesion_2026.pdf`, not `bulletinAdhesion.pdf`)
+- **Document R2 keys**: Must match filenames from `documents.ts` exactly (e.g., `bulletin_adhesion.pdf`, not `bulletinAdhesion.pdf`)
 
 ## Implementation Scope Discipline
 
@@ -64,7 +64,7 @@ Test framework: Vitest + React Testing Library (configured in Phase 1).
 - **Stack**: Vite + React 18 + TypeScript + TailwindCSS + shadcn-ui + React Router
 - **Path alias**: `@` maps to `./src` (configured in vite.config.ts and tsconfig)
 - **Layout**: `src/components/Layout.tsx` wraps all routes with `Header` + `Footer`
-- **Routing**: `src/App.tsx` — all routes defined here under `<Layout>`. Add custom routes above the catch-all `*` route.
+- **Routing**: `src/AppRoutes.tsx` owns public and admin routes. Add custom routes above the catch-all `*` route.
 - **Pages**: `src/pages/` — Index, Historique, Congres, Revue, Delegations, NotFound
 - **UI components**: `src/components/ui/` — shadcn-ui primitives (do not edit directly; managed via shadcn CLI)
 - **Styling**: CSS variables for the SPAF design system defined in `src/index.css` (`:root` block). Custom colors include `artistic-yellow`, `artistic-orange`, `artistic-warm-orange` and brown/red tones for primary/secondary/accent.
@@ -73,23 +73,23 @@ Test framework: Vitest + React Testing Library (configured in Phase 1).
 ## Hosting & Deployment
 
 - **Migration**: From spafnat.com (10€/month) to Cloudflare Pages (free tier)
-- **Deployment**: Static site with Cloudflare Pages Functions for backend features (Phase 2+)
-- **Storage**: No traditional database — using Cloudflare KV (counters/sessions) and R2 (file storage) in later phases
-- **SPA Routing**: `public/_redirects` configures fallback to index.html for client-side routing
+- **Deployment**: Static site with Cloudflare Pages Functions for backend features
+- **Storage**: Cloudflare KV (sessions, best-effort rate limits, visitor estimates and content arrays) and R2 (files). Zero operating cost is a hard constraint; no storage/platform migration is authorized.
+- **SPA Routing**: Pages automatically falls back to index.html when no top-level 404.html exists. `public/_redirects` contains a legacy fallback rule ignored by current Wrangler; see the README audit record.
 
 ## Key Conventions
 
 ### Document Management
 - **Centralized config**: All downloadable PDFs defined once in `src/config/documents.ts`
 - **Static files**: PDFs live in `public/documents/` (not bundled as assets)
-- **Future**: In Phase 3, documents will be served from Cloudflare R2 with local fallback
+- **Runtime**: Documents are served from Cloudflare R2 with availability checks; no local fallback. Shared revue filenames and version relationships live in `documents.ts`.
 
 ### Content
 - **Language**: All user-facing content must be in French
 - **Primary contact**: plecordier@free.fr (president's email)
 - **Test email**: jcohendumani7@gmail.com for development/testing only
 
-### Admin Panel (Phase 3)
+### Admin Panel
 - **Approach**: Custom minimal panel, NOT Decap CMS (GitHub OAuth too complex for non-technical president)
 - **Authentication**: Single admin account with JWT sessions in KV
 - **File upload**: Via R2 with validation (MIME type + magic bytes)
@@ -118,3 +118,7 @@ All five must pass clean. The preflight script catches:
 - Missing dependencies
 - Hardcoded values that should use config
 - Environment variable mismatches with wrangler.toml
+
+## Current audit status
+
+`README.md` owns the maintainability/security audit findings, remaining KV/admin-quota limitations and verification evidence. `project-notes/TODO.md` owns release status and accepted future work. Keep historical phase notes distinct from current behavior.
