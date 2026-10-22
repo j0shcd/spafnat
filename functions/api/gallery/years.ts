@@ -1,3 +1,4 @@
+import { listR2Objects } from '../../lib/r2';
 /**
  * GET /api/gallery/years
  *
@@ -20,7 +21,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env }) => {
     const { SPAF_MEDIA } = env;
 
     // List all objects in the congres/ prefix
-    const listed = await SPAF_MEDIA.list({
+    const listed = await listR2Objects(SPAF_MEDIA, {
       prefix: 'congres/',
       delimiter: '/',
     });

@@ -1,10 +1,8 @@
 import type { Env } from '../../env';
 import { jsonResponse, parseJsonBodyWithLimit } from '../../lib/helpers';
-import { DOCUMENTS } from '../../../src/config/documents';
+import { DOCUMENTS, REVUE_DOCUMENT_FILENAME, REVUE_COVER_FILENAME } from '../../../src/config/documents';
 
 const MAX_DELETE_DOCUMENT_BODY_BYTES = 4 * 1024; // 4 KB
-const REVUE_DOCUMENT_FILENAME = 'extrait_revue.pdf';
-const REVUE_COVER_FILENAME = 'extrait_revue_cover.jpg';
 
 const ALLOWED_DOCUMENT_FILENAMES = new Set(
   Object.values(DOCUMENTS)

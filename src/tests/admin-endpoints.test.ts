@@ -1,3 +1,5 @@
+// @vitest-environment node
+import { Blob } from 'node:buffer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { onRequestPost as uploadHandler } from '../../functions/api/admin/upload';
 import { onRequestGet as mediaGetHandler } from '../../functions/api/media/[[path]]';
@@ -47,6 +49,7 @@ describe('Admin Endpoint Security', () => {
       head: ReturnType<typeof vi.fn>;
       put: ReturnType<typeof vi.fn>;
       get: ReturnType<typeof vi.fn>;
+      delete: ReturnType<typeof vi.fn>;
     };
   };
 
@@ -56,6 +59,7 @@ describe('Admin Endpoint Security', () => {
         head: vi.fn().mockResolvedValue(null),
         put: vi.fn().mockResolvedValue(undefined),
         get: vi.fn().mockResolvedValue(null),
+        delete: vi.fn().mockResolvedValue(undefined),
       },
     };
   });
@@ -85,34 +89,20 @@ describe('Admin Endpoint Security', () => {
     const pdfBytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]);
     const coverBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
 
-    const createFileLike = (name: string, type: string, bytes: Uint8Array) => ({
-      name,
-      type,
-      size: bytes.length,
-      slice: (start = 0, end = bytes.length) =>
-        ({
-          arrayBuffer: async () => bytes.slice(start, end).buffer,
-        }) as Blob,
-      arrayBuffer: async () => bytes.slice().buffer,
+    const boundary = 'spaf-cover-test';
+    const prefix = (name: string, filename: string, type: string) =>
+      `--${boundary}\r\nContent-Disposition: form-data; name="${name}"; filename="${filename}"\r\nContent-Type: ${type}\r\n\r\n`;
+    const body = new Blob([
+      prefix('file', 'revue.pdf', 'application/pdf'), pdfBytes, '\r\n',
+      prefix('cover', 'extrait_revue_cover.jpg', 'image/jpeg'), coverBytes, '\r\n',
+      `--${boundary}\r\nContent-Disposition: form-data; name="type"\r\n\r\ndocument\r\n`,
+      `--${boundary}\r\nContent-Disposition: form-data; name="key"\r\n\r\nextrait_revue.pdf\r\n--${boundary}--\r\n`,
+    ]);
+    const request = new Request('http://localhost/api/admin/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+      body: await body.arrayBuffer(),
     });
-
-    const pdfFileLike = createFileLike('revue.pdf', 'application/pdf', pdfBytes);
-    const coverFileLike = createFileLike('extrait_revue_cover.jpg', 'image/jpeg', coverBytes);
-
-    const mockedFormData = {
-      get: (field: string) => {
-        if (field === 'file') return pdfFileLike;
-        if (field === 'type') return 'document';
-        if (field === 'key') return 'extrait_revue.pdf';
-        if (field === 'cover') return coverFileLike;
-        return null;
-      },
-    } as unknown as FormData;
-
-    const request = {
-      headers: new Headers(),
-      formData: vi.fn().mockResolvedValue(mockedFormData),
-    } as unknown as Request;
 
     const response = await uploadHandler({ request, env } as unknown as UploadHandlerContext);
 

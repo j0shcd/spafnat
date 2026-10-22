@@ -113,10 +113,10 @@ npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
 
 ```bash
 npm run preflight    # Cloudflare compatibility checks
-npm run typecheck    # TypeScript validation
-npm run typecheck:strict  # Stricter app-only TypeScript checks
+npm run typecheck    # Strict frontend, Vite configuration and Functions checks
+npm run typecheck:strict  # Strict frontend-only checks
 npm run lint         # ESLint (expect 8 shadcn warnings - safe to ignore)
-npm run test:run     # All tests (currently 134 passing)
+npm run test:run     # All tests
 npm run build        # Production build
 ```
 
@@ -320,7 +320,7 @@ The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide
 **File Validation:**
 - MIME type check (client-side)
 - Magic bytes verification (server-side, prevents file type spoofing)
-- Max file size: 5 MiB; generated photo and PDF copies target at most 4 MiB, leaving multipart request headroom
+- Max file size: 5 MiB; generated photo and PDF copies target at most 4 MiB. Request limits separately allow multipart framing and an optional revue cover
 - Photo compression runs locally with native browser APIs; it adds no dependency, conversion service or Cloudflare image transformations
 - PDF compression lazy-loads self-hosted `@neslinesli93/qpdf-wasm@0.3.0` (qpdf 12.2.0, about 1.38 MB of worker/WASM assets) after confirmation. It recompresses streams and eligible embedded images at JPEG quality 90, without rasterizing pages or downsampling them. Text, links, forms and page structure remain PDF objects. Small PDFs are passed through unchanged
 - A single disposable worker processes one PDF at a time, with a 50 MiB input ceiling, 30-second deadline and 4 MiB output ceiling. Navigation aborts preparation and terminates the worker. Signed/encrypted PDFs, malformed structures, qpdf warnings and oversized results fail without upload; some image-heavy PDFs cannot fit these bounds
@@ -842,8 +842,8 @@ vi.mock('pdfjs-dist', () => ({
 - **Setup billing alerts:** $1, $5, $10 thresholds
 - **Monitor usage:** Dashboard → Analytics → R2
 - **Free allowances (checked 22 October 2026):** [R2 Standard](https://developers.cloudflare.com/r2/pricing/) includes 10 GB-month storage, 1 million Class A operations/month and 10 million Class B operations/month. These allowances are shared with other account usage, apply only to Standard storage, and are not a hard spending cap. [Workers Free](https://developers.cloudflare.com/workers/platform/limits/) has 100,000 requests/day; [KV Free](https://developers.cloudflare.com/kv/platform/pricing/) has 100,000 reads/day and 1,000 writes/day.
-- **Observed public archive (22 October 2026):** 1,146 surviving photos across 16 years, totaling 757,005,660 bytes (0.757 GB). Object timestamps group into February 2026 (962 files, 535,780,333 bytes) and October 2026 (184 files, 221,225,327 bytes); no surviving objects have March–September timestamps. This is not a full upload or billing history: deleted/replaced files, documents, preview storage, other buckets and account operations are not visible. Each year's public listing is limited to 1,000 objects; all returned years are below that ceiling.
-- **Photo batch estimate:** 180 oversized photos compressed to at most 4 MiB add at most 754,974,720 bytes (0.755 GB), 180 upload requests, 180 R2 PUTs, 180 collision-check HEADs and 180 KV session reads, plus the existing gallery refresh and thumbnail requests. Uploads add no KV writes. Photos already under the 5 MiB limit are unchanged, so a mixed batch can use more than 4 MiB per unchanged file. Repeated imports accumulate storage.
+- **Observed public archive (22 October 2026):** 1,146 surviving photos across 16 years, totaling 757,005,660 bytes (0.757 GB). Object timestamps group into February 2026 (962 files, 535,780,333 bytes) and October 2026 (184 files, 221,225,327 bytes); no surviving objects have March–September timestamps. This is not a full upload or billing history: deleted/replaced files, documents, preview storage, other buckets and account operations are not visible. The inventory used the pre-release listing's 1,000-object ceiling; all returned years were below it. The local security fixes now traverse bounded listing pages.
+- **Photo batch estimate:** 180 oversized photos compressed to at most 4 MiB add at most 754,974,720 bytes (0.755 GB), 180 upload requests, 180 conditional R2 PUT attempts and 180 KV session reads, plus the existing gallery refresh and thumbnail requests. A filename collision permits one extra PUT attempt per file (at most 360 attempts for the batch); no collision-check HEADs or upload KV writes are added. Photos already under the 5 MiB limit are unchanged, so a mixed batch can use more than 4 MiB per unchanged file. Repeated imports accumulate storage.
 - **Account usage remains unverified:** the local CLI was not authenticated; the owner chose estimates for this change. No plan, billing setting, storage class or remote data was changed. Check account-level storage and operation totals before treating these estimates as a zero-cost guarantee. There is no new quota polling, automatic upload retry or paid image-processing path.
 - **PDF compression:** computation stays in the browser; engine assets are ordinary static files. No conversion API, paid Worker CPU or Cloudflare transformation is added. Each accepted compressed PDF stores at most 4 MiB through the existing upload endpoint; revue covers and existing concours KV writes still apply. Failed preparation makes no upload request. This reduces per-file storage but cannot guarantee account-wide free-tier headroom.
 

@@ -1,3 +1,7 @@
+import { invalidateGalleryYear } from '@/lib/galleryPrefetch';
+import type { ConcoursItem, ConcoursCategory } from '@/config/concours';
+import type { Delegation } from '@/config/delegations';
+
 /**
  * Admin API Helper
  *
@@ -200,6 +204,7 @@ export interface PhotoFile {
 export async function apiListPhotos(year: string): Promise<ApiResponse<PhotoFile[]>> {
   const response = await adminFetch<{ photos: PhotoFile[]; count: number; year: string }>(`/api/gallery?year=${year}`, {
     method: 'GET',
+    cache: 'no-store',
   });
 
   // Unwrap photos array from response
@@ -215,30 +220,26 @@ export async function apiUploadPhoto(file: File, year: string): Promise<ApiRespo
   formData.append('type', 'photo');
   formData.append('key', year);
 
-  return adminFetch('/api/admin/upload', {
+  const result = await adminFetch('/api/admin/upload', {
     method: 'POST',
     body: formData,
   });
+  if (result.ok) invalidateGalleryYear(Number(year));
+  return result;
 }
 
 export async function apiDeletePhoto(r2Key: string): Promise<ApiResponse> {
-  return adminFetch('/api/admin/delete-photo', {
+  const result = await adminFetch('/api/admin/delete-photo', {
     method: 'POST',
     body: JSON.stringify({ key: r2Key }),
   });
+  if (result.ok) invalidateGalleryYear(Number(r2Key.split('/')[1]));
+  return result;
 }
 
 // ===== Concours API =====
 
-export interface ConcoursItem {
-  r2Key: string;
-  title: string;
-  originalFilename: string;
-  uploadedAt: string;
-  size: number;
-}
-
-export type ConcoursCategory = 'reglements' | 'palmares-poetique' | 'palmares-artistique';
+export type { ConcoursItem, ConcoursCategory } from '@/config/concours';
 
 export async function apiListConcours(category: ConcoursCategory | 'all'): Promise<ApiResponse<Record<ConcoursCategory, ConcoursItem[]> | { items: ConcoursItem[] }>> {
   return adminFetch(`/api/concours?category=${category}`, {
@@ -273,16 +274,7 @@ export async function apiReorderConcours(category: ConcoursCategory, r2Key: stri
 
 // ===== Delegations API =====
 
-export type Gender = 'F' | 'M';
-
-export interface Delegation {
-  id: string;
-  region: string;
-  delegate: string;
-  gender: Gender;
-  address: string;
-  website?: string;
-}
+export type { Gender, Delegation } from '@/config/delegations';
 
 export type DelegationPayload = Omit<Delegation, 'id'> & { id?: string };
 

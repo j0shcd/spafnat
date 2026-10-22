@@ -2,11 +2,13 @@
 
 ## Predeployment review — 22 October 2026
 
-Reviewed release candidate `64318de` against `fde1dee` (the local `origin/main` reference) with three independent GPT-6.1 Sol agents at medium effort. Thermo-Nuclear and Ponytail found no introduced defects or structural blockers; Matt Pocock Standards and Spec each reported zero introduced findings. A fresh run passed all 216 tests. No production behavior, deployed revision or account-level Cloudflare allowance was verified.
+The initial review of `64318de` against `fde1dee` found no introduced compression defects, but blocked deployment because four existing security-audit commits were absent. The owner authorized their integration.
 
-**Hold deployment:** this candidate does not include `a5e2b99`, `4df2764`, `72a7309` and `dea23e3` from the separate `codex/maintainability-security-audit` branch. Those commits contain dependency patches and request/storage/cache/security-header fixes. Fresh npm audit on this candidate reports 34 affected package entries (2 critical development-tool entries, 24 high, 8 moderate); `--omit=dev` reports 12 entries (9 high, 3 moderate), including build-chain packages present in that dependency tree. These counts are dependency advisories, not proof that every issue is exploitable in the deployed site. They predate the compression work.
+**Integration complete locally:** `a5e2b99`, `4df2764`, `72a7309` and `dea23e3` are included with photo/PDF compression, guide printing and the declined HEIC decision. API and static security policies now share the WebAssembly permission required by PDF compression. The existing policy oracle failed 96 cases before that correction and passed afterward. Three independent GPT-6.1 Sol reviewers at medium effort found no new integration issues across Thermo-Nuclear, Ponytail and Matt Pocock Standards/Spec.
 
-Next bounded step: integrate the existing security-audit commits into the release branch, preserve the PDF/photo changes and declined HEIC decision, resolve conflicts, then run all required checks and review the combined result before deployment. Read that branch's README audit record for retained KV concurrency/admin-quota limits; integrating it does not establish an account-wide zero-cost guarantee. No implementation changes, security-branch merge, push or deployment were performed in this review.
+All 338 tests, strict typechecks, preflight and build pass; lint has zero errors and eight existing warnings. Ten isolated local Cloudflare API checks pass. Browser uploads through those handlers reduced the PDF fixture to 3,044,935 bytes and the 48 MP photo to 3,476,141 bytes; PDF text/form/link/bookmark and its linked cover survived, and the small photo stayed byte-for-byte unchanged. The production dependency audit reports zero advisories; the full audit retains seven build-chain entries, none critical. The baseline had 34 entries, including two critical development-tool entries.
+
+Next bounded step: deploy only when authorized, then verify the deployed revision, security headers and upload/replacement flows. The README owns retained KV concurrency/admin-quota and build-dependency risks. No account-level Cloudflare allowance, production configuration or live revision was verified; no push or deployment was performed. Integration does not establish an account-wide zero-cost guarantee.
 
 ## PDF uploads — October 2026
 
@@ -16,13 +18,24 @@ Bounds: 50 MiB input, 30 seconds, 4 MiB output; preserve PDF objects rather than
 
 Research choice: [qpdf](https://qpdf.readthedocs.io/en/stable/cli.html) preserves existing PDF objects and includes image optimization. The alternatives were a custom image optimizer on [pdf-lib](https://pdf-lib.js.org/), the newer [browser-qpdf wrapper](https://github.com/lipoe/browser-qpdf), [MuPDF](https://mupdfjs.readthedocs.io/en/latest/faq/index.html) and [Ghostscript](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html) with licensing/rewrite tradeoffs, and PDF.js page rasterization, which would lose document features. The selected wrapper is [release 0.3.0](https://github.com/neslinesli93/qpdf-wasm/releases/tag/0.3.0); its older engine is an explicit maintenance constraint, not a claim to current parser hardening.
 
-Verification: all 216 tests pass, including 33 PDF helper/worker/upload tests. Reintroducing the empty-signature bug and removing the output-size guard each produced the expected failing regression. Preflight, standard typecheck and build pass; lint has zero errors and eight existing Fast Refresh warnings. An extra application-wide typecheck still reports existing errors in untouched functions/tests; none refer to the new PDF files.
+Feature verification before security integration: all 216 tests passed, including 33 PDF helper/worker/upload tests. Reintroducing the empty-signature bug and removing the output-size guard each produced the expected failing regression. The combined release verification above supersedes that snapshot; the normal typecheck now covers strict frontend source, Vite configuration and Functions.
 
 A production-build browser run used the production CSP, dummy authentication, real upload handlers and in-memory storage. Cancellation loaded no WASM and wrote nothing. A 7,814,566-byte fixture became a 3,044,935-byte PDF; page count, selectable text, filled form value, link URI and bookmark survived. Concours accepted the equivalent form with an empty signature field; a small PDF remained byte-for-byte unchanged. Signed, password-protected, corrupt and unreducible fixtures made no upload request. No browser warnings/errors or production writes occurred. This verifies fixtures on the desktop browser, not peak memory on older mobile devices. Thermo-nuclear, Ponytail and Matt Pocock Standards/Spec rechecks have no remaining findings; Claude's independent subscription review was unavailable because no subscription login was present.
 
 The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete. HEIC support was subsequently declined below. Before extending the PDF engine, evaluate a reproducible build on current qpdf and retain the protection/resource-boundary tests. No push or deployment requested.
 
-Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), on `codex/compress-pdf-uploads`. Local merge target is `main`; the primary checkout's separate security-audit branch is left unchanged.
+Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), included in local `main` with the security fixes. The primary checkout's separate security-audit branch is left unchanged.
+
+## Maintainability and security audit — 22 October 2026
+
+- [x] Run the three requested independent read-only reviews against the entire checkout.
+- [x] Fix bounded request, upload, content consistency, cache, pagination and security-header defects; patch compatible dependencies.
+- [x] Verify regressions by reintroducing the bugs, then restore the fixes and run all checks.
+- [ ] Release and verify the deployed revision when authorized; no push/deployment is part of this audit.
+
+The [maintainer audit record](../README.md#maintainability-and-security-audit-22-october-2026)
+owns findings, evidence and remaining risks. Zero operating cost is a hard constraint;
+no storage/platform migration is authorized. HEIC support was declined below.
 
 ## Photo uploads — October 2026
 
@@ -39,13 +52,19 @@ User documentation: the in-app guide now explains automatic photo reduction usin
 
 Verification: 182 tests passed, including a 180-photo sequential batch. The two added regression boundaries were deliberately broken and their tests failed before restoring the implementation. Preflight/typecheck/build passed; lint has zero errors and eight pre-existing Fast Refresh warnings. A production-build browser run under the production CSP used dummy authentication, the real upload handler and in-memory storage: cancellation wrote nothing; a 55,323,807-byte synthetic 48 MP JPEG became a 3,476,141-byte 3,200×2,400 JPEG; a small JPEG was byte-for-byte unchanged; a corrupt photo was skipped and the next file uploaded. This proves the path with fixtures, not photographic quality or peak memory on older iPhones. No production upload was made. The warning uses plain French, with no JPEG or local-original/copy explanation, for the approximately 70-year-old admin audience.
 
-Known pre-existing boundary to address separately: unchanged files extremely close to 5 MiB can exceed the upload handler's multipart Content-Length check even though the file itself fits (`functions/api/admin/upload.ts`). Newly compressed 4 MiB copies have ample headroom. Do not raise backend file-size limits as a workaround for compression.
+The October 2026 security audit fixed multipart request headroom while retaining the 5 MiB per-file limit. Both document upload handlers now allow framing and the permitted cover separately; full-size-file regressions cover this boundary.
 
 ### HEIC support — declined on 22 October 2026
 
 The owner chose to omit this optional feature rather than add a decoder dependency and its maintenance/security burden. Browser-native conversion is possible only where HEIC decoding is already supported; it would not provide reliable support across browsers. No further HEIC implementation step is planned.
 
 The earlier `heic-to@1.6.6` candidate bundles libde265 1.0.16, affected by [published security advisories](https://github.com/strukturag/libde265/security/advisories/GHSA-ccfw-29x7-rrx3). A maintained alternative had current codecs but added a 15.4 MB WASM engine. The in-progress implementation, dependency and generated build assets were removed before any commit or deployment. No HEIC conversion code, decoder assets, dependency or CSP changes are retained. Existing JPEG/PNG/WebP uploads and automatic photo/PDF compression are unchanged. The user guide already lists only the supported formats.
+
+## Historical implementation record
+
+The sections below preserve the original phase plan and verification snapshots.
+They are not current architecture, deployment or test-count evidence; use the
+maintainer README and the current status above.
 
 **NOTE**: Taking a gradual approach - keeping Phase 2+ features (counter, contact form) as placeholders even though they're not fully functional yet. Always ask before modifying components.
 

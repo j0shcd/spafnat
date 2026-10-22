@@ -54,9 +54,17 @@ export default function AdminPhotos() {
   const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const selectedYearRef = useRef(selectedYear);
+  selectedYearRef.current = selectedYear;
+  const photoRequestId = useRef(0);
+
   const loadPhotos = async (year: string) => {
+    if (year !== selectedYearRef.current) return;
+    const requestId = ++photoRequestId.current;
     setIsLoading(true);
+    setPhotos([]);
     const response = await apiListPhotos(year);
+    if (requestId !== photoRequestId.current || year !== selectedYearRef.current) return;
     setIsLoading(false);
 
     if (!response.ok) {

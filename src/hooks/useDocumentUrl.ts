@@ -222,9 +222,7 @@ export function useDocumentUrl(docKey: DocumentKey): UseDocumentUrlResult {
     }
 
     const checkR2 = async () => {
-      const latestCached = documentAvailabilityCache.get(baseUrl);
-      const cacheAge = latestCached ? Date.now() - latestCached.checkedAt : Number.POSITIVE_INFINITY;
-      const shouldForceRefresh = checkTrigger > 0 && cacheAge >= DOCUMENT_CACHE_TTL_MS;
+      const shouldForceRefresh = checkTrigger > 0;
       const availability = await fetchDocumentAvailability(baseUrl, filename, {
         forceRefresh: shouldForceRefresh,
       });

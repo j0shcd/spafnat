@@ -1,35 +1,21 @@
+import { putNewR2Object } from '../../lib/r2';
 import type { Env } from '../../env';
-import { jsonResponse } from '../../lib/helpers';
+import { jsonResponse, parseMultipartBodyWithLimit } from '../../lib/helpers';
 import {
   validateFile,
   sanitizeFilename,
   isValidPhotoYear,
-  type FileLike,
+  isFileLike,
 } from '../../lib/file-validation';
-import { DOCUMENTS } from '../../../src/config/documents';
+import { DOCUMENTS, REVUE_DOCUMENT_FILENAME, REVUE_COVER_FILENAME } from '../../../src/config/documents';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_COVER_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
-const REVUE_DOCUMENT_FILENAME = 'extrait_revue.pdf';
-const REVUE_COVER_FILENAME = 'extrait_revue_cover.jpg';
 const ALLOWED_DOCUMENT_FILENAMES = new Set(
   Object.values(DOCUMENTS)
     .map((document) => document.path.split('/').pop())
     .filter((filename): filename is string => Boolean(filename))
 );
-
-function isFileLike(value: unknown): value is FileLike {
-  if (!value || typeof value !== 'object') return false;
-
-  const candidate = value as Partial<FileLike>;
-  return (
-    typeof candidate.name === 'string' &&
-    typeof candidate.type === 'string' &&
-    typeof candidate.size === 'number' &&
-    typeof candidate.slice === 'function' &&
-    typeof candidate.arrayBuffer === 'function'
-  );
-}
 
 /**
  * POST /api/admin/upload
@@ -43,22 +29,9 @@ function isFileLike(value: unknown): value is FileLike {
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    // 1. Check Content-Length header (early reject, but don't trust it)
-    const contentLength = request.headers.get('Content-Length');
-    if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
-      return jsonResponse(
-        { error: `Fichier trop volumineux (max ${MAX_FILE_SIZE / (1024 * 1024)} MB)` },
-        413
-      );
-    }
-
-    // 2. Parse multipart form data
-    let formData: FormData;
-    try {
-      formData = await request.formData();
-    } catch {
-      return jsonResponse({ error: 'Échec du parsing du formulaire' }, 400);
-    }
+    const parsed = await parseMultipartBodyWithLimit(request, MAX_FILE_SIZE + MAX_COVER_FILE_SIZE + 64 * 1024);
+    if (!parsed.ok) return parsed.response;
+    const formData = parsed.data;
 
     // 3. Extract fields
     const fileEntry = formData.get('file');
@@ -88,6 +61,13 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     if (cover && type !== 'document') {
       return jsonResponse({ error: 'Paramètre de couverture non autorisé' }, 400);
+    }
+
+    if (type === 'document' && file.type !== 'application/pdf') {
+      return jsonResponse({ error: 'Seuls les fichiers PDF sont autorisés pour les documents' }, 400);
+    }
+    if (type === 'photo' && !file.type.startsWith('image/')) {
+      return jsonResponse({ error: 'Seules les images sont autorisées pour les photos' }, 400);
     }
 
     // 4. Validate file size (actual file, not header)
@@ -150,12 +130,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       const sanitized = sanitizeFilename(file.name, false);
       r2Key = `congres/${year}/${sanitized}`;
 
-      // Check for collision and add timestamp if needed
-      const existing = await env.SPAF_MEDIA.head(r2Key);
-      if (existing) {
-        const timestampedName = sanitizeFilename(file.name, true);
-        r2Key = `congres/${year}/${timestampedName}`;
-      }
+
     }
 
     // 7. Upload to R2
@@ -171,16 +146,21 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     const arrayBuffer = await file.arrayBuffer();
     const uploadedAt = new Date().toISOString();
+    const uploadVersion = crypto.randomUUID();
 
-    await env.SPAF_MEDIA.put(r2Key, arrayBuffer, {
-      httpMetadata: {
-        contentType: file.type,
-      },
-      customMetadata: {
-        originalFilename: file.name,
-        uploadedAt,
-      },
-    });
+    if (type === 'document' && key === REVUE_DOCUMENT_FILENAME) {
+      await env.SPAF_MEDIA.delete(`documents/${REVUE_COVER_FILENAME}`);
+    }
+
+    const metadata: R2PutOptions = {
+      httpMetadata: { contentType: file.type },
+      customMetadata: { originalFilename: file.name, uploadedAt, uploadVersion },
+    };
+    if (type === 'photo') {
+      r2Key = await putNewR2Object(env.SPAF_MEDIA, r2Key, arrayBuffer, metadata);
+    } else {
+      await env.SPAF_MEDIA.put(r2Key, arrayBuffer, metadata);
+    }
 
     console.log('R2 upload successful:', r2Key);
 
@@ -196,6 +176,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           originalFilename: cover.name,
           uploadedAt,
           sourcePdfFilename: file.name,
+          sourcePdfVersion: uploadVersion,
         },
       });
 

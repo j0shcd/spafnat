@@ -1,16 +1,17 @@
+import { putNewR2Object } from '../../../lib/r2';
 import type { Env } from '../../../env';
-import { jsonResponse } from '../../../lib/helpers';
+import { jsonResponse, parseMultipartBodyWithLimit } from '../../../lib/helpers';
 import {
   validateFile,
   sanitizeFilename,
+  isFileLike,
 } from '../../../lib/file-validation';
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
 import {
   getConcoursKVKey,
-  getConcoursAllKVKey,
   getConcoursR2Prefix,
   deriveTitleFromFilename,
-  CONCOURS_CATEGORIES,
+  isConcoursCategory,
 } from '../../../../src/config/concours';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -26,26 +27,14 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
  */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    // 1. Check Content-Length header
-    const contentLength = request.headers.get('Content-Length');
-    if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
-      return jsonResponse(
-        { error: `Fichier trop volumineux (max ${MAX_FILE_SIZE / (1024 * 1024)} MB)` },
-        413
-      );
-    }
-
-    // 2. Parse multipart form data
-    let formData: FormData;
-    try {
-      formData = await request.formData();
-    } catch {
-      return jsonResponse({ error: 'Échec du parsing du formulaire' }, 400);
-    }
+    const parsed = await parseMultipartBodyWithLimit(request, MAX_FILE_SIZE + 64 * 1024);
+    if (!parsed.ok) return parsed.response;
+    const formData = parsed.data;
 
     // 3. Extract fields
-    const file = formData.get('file') as File | null;
-    const category = formData.get('category') as string | null;
+    const fileEntry = formData.get('file');
+    const file = isFileLike(fileEntry) ? fileEntry : null;
+    const category = formData.get('category');
 
     if (!file || !category) {
       console.error('Upload validation failed:', { hasFile: !!file, category });
@@ -56,7 +45,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     // Validate category
-    if (!(category in CONCOURS_CATEGORIES)) {
+    if (!isConcoursCategory(category)) {
       console.error('Invalid concours category:', category);
       return jsonResponse(
         { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
@@ -87,12 +76,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const r2Prefix = getConcoursR2Prefix(category as ConcoursCategory);
     let r2Key = `${r2Prefix}${sanitized}`;
 
-    // Check for collision and add timestamp if needed
-    const existing = await env.SPAF_MEDIA.head(r2Key);
-    if (existing) {
-      const timestampedName = sanitizeFilename(file.name, true);
-      r2Key = `${r2Prefix}${timestampedName}`;
-    }
 
     // 7. Upload to R2
     console.log('Uploading to R2:', { r2Key, size: file.size, type: file.type });
@@ -106,7 +89,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    await env.SPAF_MEDIA.put(r2Key, arrayBuffer, {
+    r2Key = await putNewR2Object(env.SPAF_MEDIA, r2Key, arrayBuffer, {
       httpMetadata: {
         contentType: file.type,
       },
@@ -130,15 +113,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     // 9. Append to KV array
     const kvKey = getConcoursKVKey(category as ConcoursCategory);
-    const aggregateKey = getConcoursAllKVKey();
     const existingData = await env.SPAF_KV.get(kvKey, 'json');
     const items = (existingData as ConcoursItem[]) || [];
     items.push(item);
 
-    await Promise.all([
-      env.SPAF_KV.put(kvKey, JSON.stringify(items)),
-      env.SPAF_KV.delete(aggregateKey),
-    ]);
+    await env.SPAF_KV.put(kvKey, JSON.stringify(items));
 
     console.log('KV update successful:', kvKey, items.length, 'items');
 

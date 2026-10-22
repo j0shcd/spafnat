@@ -1,3 +1,4 @@
+import { REVUE_DOCUMENT_FILENAME, REVUE_COVER_FILENAME } from '../../../src/config/documents';
 import type { Env } from '../../env';
 import { hasUnsafePathSegments } from '../../lib/file-validation';
 
@@ -37,6 +38,7 @@ function getUploadedAtValue(
 }
 
 export function getMediaCacheControl(r2Key: string): string {
+  if (r2Key === `documents/${REVUE_COVER_FILENAME}`) return 'no-cache, no-store, must-revalidate';
   const isMutablePdf =
     r2Key.toLowerCase().endsWith('.pdf') &&
     MUTABLE_PDF_PREFIXES.some((prefix) => r2Key.startsWith(prefix));
@@ -62,6 +64,13 @@ function resolveMediaKey(params: Record<string, unknown>): { key?: string; respo
   return { key: r2Key };
 }
 
+async function isCurrentRevueCover(env: Env, key: string, object: R2Object): Promise<boolean> {
+  if (key !== `documents/${REVUE_COVER_FILENAME}`) return true;
+  const pdf = await env.SPAF_MEDIA.head(`documents/${REVUE_DOCUMENT_FILENAME}`);
+  const sourceVersion = object.customMetadata?.sourcePdfVersion;
+  return Boolean(sourceVersion && sourceVersion === pdf?.customMetadata?.uploadVersion);
+}
+
 /**
  * Shared logic for checking if file exists in R2
  */
@@ -76,7 +85,7 @@ async function checkFileExists(env: Env, params: Record<string, unknown>): Promi
     // 3. Check if file exists in R2 using head()
     const object = await env.SPAF_MEDIA.head(r2Key);
 
-    if (!object) {
+    if (!object || !(await isCurrentRevueCover(env, r2Key, object))) {
       return new Response('Fichier non trouvé', { status: 404 });
     }
 
@@ -142,7 +151,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ env, params }) => {
     // 3. Fetch file from R2
     const object = await env.SPAF_MEDIA.get(r2Key);
 
-    if (!object) {
+    if (!object || !(await isCurrentRevueCover(env, r2Key, object))) {
       return new Response('Fichier non trouvé', { status: 404 });
     }
 

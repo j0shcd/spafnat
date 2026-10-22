@@ -3,8 +3,7 @@ import { jsonResponse } from '../lib/helpers';
 import type { ConcoursItem, ConcoursCategory } from '../../src/config/concours';
 import {
   getConcoursKVKey,
-  getConcoursAllKVKey,
-  CONCOURS_CATEGORIES,
+  isConcoursCategory,
   CONCOURS_CATEGORY_LIST,
 } from '../../src/config/concours';
 
@@ -18,22 +17,6 @@ function createEmptyConcoursResults(): Record<ConcoursCategory, ConcoursItem[]> 
     'palmares-poetique': [],
     'palmares-artistique': [],
   };
-}
-
-function parseAggregateData(data: unknown): Record<ConcoursCategory, ConcoursItem[]> | null {
-  if (!data || typeof data !== 'object') {
-    return null;
-  }
-
-  const parsed = createEmptyConcoursResults();
-  const payload = data as Partial<Record<ConcoursCategory, unknown>>;
-
-  for (const category of CONCOURS_CATEGORY_LIST) {
-    const categoryItems = payload[category];
-    parsed[category] = Array.isArray(categoryItems) ? (categoryItems as ConcoursItem[]) : [];
-  }
-
-  return parsed;
 }
 
 /**
@@ -53,17 +36,9 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     // Handle "all" category
     if (category === 'all') {
-      const aggregateKey = getConcoursAllKVKey();
-      const aggregateData = await env.SPAF_KV.get(aggregateKey, 'json');
-      const parsedAggregate = parseAggregateData(aggregateData);
-
-      if (parsedAggregate) {
-        return jsonResponse(parsedAggregate, 200, CONCOURS_CACHE_HEADERS);
-      }
-
       const results = createEmptyConcoursResults();
 
-      // Aggregate miss: rebuild from category keys, then cache.
+      // Read only the canonical category keys; a derived KV cache can outlive edits.
       await Promise.all(
         CONCOURS_CATEGORY_LIST.map(async (cat) => {
           const kvKey = getConcoursKVKey(cat);
@@ -72,15 +47,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
         })
       );
 
-      env.SPAF_KV.put(aggregateKey, JSON.stringify(results)).catch((error) => {
-        console.warn('Concours aggregate cache write failed:', error);
-      });
-
       return jsonResponse(results, 200, CONCOURS_CACHE_HEADERS);
     }
 
     // Validate single category
-    if (!(category in CONCOURS_CATEGORIES)) {
+    if (!isConcoursCategory(category)) {
       return jsonResponse({ error: 'Catégorie invalide' }, 400);
     }
 

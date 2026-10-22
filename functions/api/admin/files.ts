@@ -1,3 +1,4 @@
+import { listR2Objects } from '../../lib/r2';
 import type { Env } from '../../env';
 import { jsonResponse } from '../../lib/helpers';
 import { isValidPhotoYear } from '../../lib/file-validation';
@@ -46,22 +47,16 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       );
     }
 
-    const listed = await env.SPAF_MEDIA.list({ prefix });
+    const listed = await listR2Objects(env.SPAF_MEDIA, { prefix, include: ['customMetadata'] });
     console.log('R2 list result:', { prefix, count: listed.objects.length });
 
-    // Fetch customMetadata for each file with head() since list() doesn't include it
-    const files = await Promise.all(
-      listed.objects.map(async (obj) => {
-        const metadata = await env.SPAF_MEDIA.head(obj.key);
-        return {
-          key: obj.key,
-          size: obj.size,
-          lastModified: obj.uploaded.toISOString(),
-          url: `/api/media/${obj.key}`,
-          originalFilename: metadata?.customMetadata?.originalFilename || null,
-        };
-      })
-    );
+    const files = listed.objects.map((obj) => ({
+      key: obj.key,
+      size: obj.size,
+      lastModified: obj.uploaded.toISOString(),
+      url: `/api/media/${obj.key}`,
+      originalFilename: obj.customMetadata?.originalFilename || null,
+    }));
 
     return jsonResponse({ files, count: files.length });
   } catch (error) {

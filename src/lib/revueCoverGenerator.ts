@@ -1,4 +1,4 @@
-const REVUE_COVER_FILENAME = 'extrait_revue_cover.jpg';
+import { REVUE_COVER_FILENAME } from '@/config/documents';
 const TARGET_COVER_WIDTH_PX = 900;
 const MIN_RENDER_SCALE = 0.8;
 const MAX_RENDER_SCALE = 1.8;

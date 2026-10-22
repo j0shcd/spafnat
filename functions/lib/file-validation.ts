@@ -76,7 +76,7 @@ export function hasUnsafePathSegments(pathSegments: string[]): boolean {
  * Validate file MIME type against allowlist
  */
 export function isValidMimeType(mimeType: string): boolean {
-  return mimeType in ALLOWED_FILE_TYPES;
+  return Object.prototype.hasOwnProperty.call(ALLOWED_FILE_TYPES, mimeType);
 }
 
 /**
@@ -209,4 +209,17 @@ export async function validateFile(
   }
 
   return { valid: true };
+}
+
+export function isFileLike(value: unknown): value is FileLike {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as Partial<FileLike>;
+  return (
+    typeof candidate.name === 'string' &&
+    typeof candidate.type === 'string' &&
+    typeof candidate.size === 'number' &&
+    typeof candidate.slice === 'function' &&
+    typeof candidate.arrayBuffer === 'function'
+  );
 }

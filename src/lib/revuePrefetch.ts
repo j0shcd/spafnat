@@ -1,7 +1,8 @@
+import { REVUE_COVER_FILENAME } from '@/config/documents';
 import { prefetchDocumentUrl } from '@/hooks/useDocumentUrl';
 
 let inFlightRevueWarmup: Promise<void> | null = null;
-const REVUE_COVER_BASE_URL = '/api/media/documents/extrait_revue_cover.jpg';
+const REVUE_COVER_BASE_URL = `/api/media/documents/${REVUE_COVER_FILENAME}`;
 
 function extractVersionToken(url: string): string | null {
   const query = url.split('?')[1] ?? '';
