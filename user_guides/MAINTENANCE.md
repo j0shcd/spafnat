@@ -309,7 +309,7 @@ The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide
    - Photos at or below 5 MiB and local originals are unchanged; compressed viewing copies are not full-resolution archives
    - Preparation and upload run one photo at a time; failed photos do not stop the batch, and the result names up to three failures
    - Keep the page open until completion; there is no automatic retry or persistence across reloads
-   - HEIC/HEIF is not supported yet; see the research plan in `project-notes/TODO.md`
+   - HEIC/HEIF is not supported; the owner declined conversion to avoid an additional decoder dependency. See `project-notes/TODO.md`
 4. **Concours:**
    - Navigate to "Concours" tab
    - Choose category (Règlements, Palmarès Poétique, Palmarès Artistique)
@@ -848,7 +848,7 @@ vi.mock('pdfjs-dist', () => ({
 - **PDF compression:** computation stays in the browser; engine assets are ordinary static files. No conversion API, paid Worker CPU or Cloudflare transformation is added. Each accepted compressed PDF stores at most 4 MiB through the existing upload endpoint; revue covers and existing concours KV writes still apply. Failed preparation makes no upload request. This reduces per-file storage but cannot guarantee account-wide free-tier headroom.
 
 #### Performance Optimizations
-- **Image optimization:** Oversized congress photos are compressed in the browser after confirmation; see the upload workflow above. HEIC conversion remains planned, not implemented.
+- **Image optimization:** Oversized congress photos are compressed in the browser after confirmation; see the upload workflow above. HEIC conversion was declined and is not planned.
 - **PDF optimization:** Oversized documents and concours PDFs use the bounded browser compression described above; files that cannot be reduced safely are refused with a help message
 - **Bundle size:** Currently ~1MB due to pdfjs-dist, consider lazy loading
 

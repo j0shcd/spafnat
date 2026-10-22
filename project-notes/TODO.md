@@ -12,7 +12,7 @@ Verification: all 216 tests pass, including 33 PDF helper/worker/upload tests. R
 
 A production-build browser run used the production CSP, dummy authentication, real upload handlers and in-memory storage. Cancellation loaded no WASM and wrote nothing. A 7,814,566-byte fixture became a 3,044,935-byte PDF; page count, selectable text, filled form value, link URI and bookmark survived. Concours accepted the equivalent form with an empty signature field; a small PDF remained byte-for-byte unchanged. Signed, password-protected, corrupt and unreducible fixtures made no upload request. No browser warnings/errors or production writes occurred. This verifies fixtures on the desktop browser, not peak memory on older mobile devices. Thermo-nuclear, Ponytail and Matt Pocock Standards/Spec rechecks have no remaining findings; Claude's independent subscription review was unavailable because no subscription login was present.
 
-The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete; next bounded feature step remains the HEIC decoder spike below. Before extending the PDF engine, evaluate a reproducible build on current qpdf and retain the protection/resource-boundary tests. No push or deployment requested.
+The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete. HEIC support was subsequently declined below. Before extending the PDF engine, evaluate a reproducible build on current qpdf and retain the protection/resource-boundary tests. No push or deployment requested.
 
 Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), on `codex/compress-pdf-uploads`. Local merge target is `main`; the primary checkout's separate security-audit branch is left unchanged.
 
@@ -25,7 +25,7 @@ Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upl
 - [x] Verify the change and complete thermo-nuclear, ponytail, and Matt Pocock Standards/Spec reviews; all returned no substantive findings
 - [x] Save the verified feature and HEIC research record as separate local commits; no push/deployment requested
 
-Implementation: `6935a41` on `codex/compress-photo-uploads`; not deployed. The HEIC plan below remains research only. Next implementation step is the bounded decoder spike, subject to the acceptance gates below.
+Implementation: `6935a41` on `codex/compress-photo-uploads`; not deployed. HEIC support was subsequently declined below; accepted photo formats remain JPEG, PNG and WebP.
 
 User documentation: the in-app guide now explains automatic photo reduction using the actual "Réduire et envoyer" button label. Its "Imprimer ou enregistrer en PDF" button uses the browser print window; all FAQ answers are included in the printable guide. No separate PDF source, conversion service or dependency is added. Verified with 183 passing tests and a rendered 10-page PDF, including all five FAQ answers and excluding admin navigation. Local only; not deployed.
 
@@ -33,20 +33,11 @@ Verification: 182 tests passed, including a 180-photo sequential batch. The two 
 
 Known pre-existing boundary to address separately: unchanged files extremely close to 5 MiB can exceed the upload handler's multipart Content-Length check even though the file itself fits (`functions/api/admin/upload.ts`). Newly compressed 4 MiB copies have ample headroom. Do not raise backend file-size limits as a workaround for compression.
 
-### HEIC acceptance — researched, not accepted for implementation
+### HEIC support — declined on 22 October 2026
 
-Next bounded step: a browser compatibility and memory spike with permission-safe 12/24/48 MP iPhone HEIC fixtures, corrupt inputs, rotation/mirrors, HDR and primary/auxiliary images. Try native decoding first, then evaluate a separately lazy-loaded, pinned `heic-to/csp` fallback. Reuse the photo JPEG encoder and keep server HEIC acceptance closed; only generated JPEGs would reach the existing validation/upload path. Small HEIC files also need conversion. No HEIC code, dependency or CSP change is included in the photo compression feature.
+The owner chose to omit this optional feature rather than add a decoder dependency and its maintenance/security burden. Browser-native conversion is possible only where HEIC decoding is already supported; it would not provide reliable support across browsers. No further HEIC implementation step is planned.
 
-The research candidate is `heic-to@1.6.6/csp` (about 3 MB raw, LGPL-3.0), embedding libheif 1.23.6. Recheck exact distributed codecs and versions before implementation: [libheif 1.23.6 is a security release](https://github.com/strukturag/libheif/releases/tag/v1.23.6); the inspected `libheif-js` build still pinned 1.23.5. See [heic-to source](https://github.com/hoppergee/heic-to), [libheif-js build](https://github.com/catdad-experiments/libheif-js/blob/master/scripts/install.js) and [Safari's native HEIC support](https://webkit.org/blog/14445/webkit-features-in-safari-17-0/).
-
-Acceptance gates before choosing the decoder:
-- Verify orientation, primary-image choice and HDR-to-SDR colors against the original; do not promise preservation of Live Photo motion/depth/HDR or EXIF/GPS metadata.
-- Measure memory over a 180-file run on target devices. One 48 MP RGBA buffer alone is about 192 MB; resizing afterwards cannot remove full-size decode peaks.
-- Prove decoder termination/recreation after a hang. The candidate's singleton worker has no exported termination API; a timeout alone cannot stop its CPU/memory work. Its source selects the first decoded image rather than an explicit primary image.
-- Test production CSP. The candidate's CSP build is compiled JavaScript/asm.js and creates a Blob worker; it may need narrowly scoped `worker-src 'self' blob:`. Never introduce general `unsafe-eval`.
-- Preserve codec licensing/notices and source/build information, keep assets self-hosted, and prove no photo data leaves the browser before the normal upload.
-
-Open decision: the fallback decoder is provisional until those gates pass. If a maintained fork is needed for lifecycle or primary-image correctness, compare direct decoder control again. Expected work is roughly 1–3 days after representative fixtures are available. Browser conversion adds no Cloudflare transformation service; retained JPEG storage and normal requests still count toward shared allowances.
+The earlier `heic-to@1.6.6` candidate bundles libde265 1.0.16, affected by [published security advisories](https://github.com/strukturag/libde265/security/advisories/GHSA-ccfw-29x7-rrx3). A maintained alternative had current codecs but added a 15.4 MB WASM engine. The in-progress implementation, dependency and generated build assets were removed before any commit or deployment. No HEIC conversion code, decoder assets, dependency or CSP changes are retained. Existing JPEG/PNG/WebP uploads and automatic photo/PDF compression are unchanged. The user guide already lists only the supported formats.
 
 **NOTE**: Taking a gradual approach - keeping Phase 2+ features (counter, contact form) as placeholders even though they're not fully functional yet. Always ask before modifying components.
 
