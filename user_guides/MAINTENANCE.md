@@ -289,6 +289,8 @@ echo "ADMIN_PASSWORD_HASH=<new-hash>" >> .dev.vars
 
 ### Upload Documents/Photos via Admin Panel
 
+The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide`. Its "Imprimer ou enregistrer en PDF" button opens the browser print window; choose a printer or the PDF destination. Print styles omit admin navigation and include all FAQ answers, even when collapsed on screen. Keep user instructions in that guide; no separate PDF source needs maintaining.
+
 1. **Login:** Visit `/admin` with credentials (admin/admin123 in dev)
 2. **Documents:**
    - Navigate to "Documents" tab

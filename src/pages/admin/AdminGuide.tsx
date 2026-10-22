@@ -1,12 +1,14 @@
 /**
  * AdminGuide — full user guide for the SPAF admin panel.
  *
- * Content ported from user_guides/GUIDE_UTILISATEUR.md.
+ * Canonical user guide, shared by the screen and printable PDF view.
  * FAQ rendered as an interactive Accordion for elderly-friendly UX.
  * Large text, generous spacing — same conventions as other admin pages.
  */
 
 import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import './AdminGuide.css';
 import {
   Accordion,
   AccordionContent,
@@ -132,7 +134,7 @@ export default function AdminGuide() {
   }, []);
 
   return (
-    <div className="flex gap-8 p-4 sm:p-6 max-w-4xl mx-auto pb-16">
+    <div className="admin-guide flex gap-8 p-4 sm:p-6 max-w-4xl mx-auto pb-16">
       {/* Main guide content */}
       <div className="flex-1 min-w-0">
         {/* Header */}
@@ -143,6 +145,14 @@ export default function AdminGuide() {
           <p className="text-lg text-muted-foreground">
             Comment gérer le contenu du site SPAF au quotidien.
           </p>
+          <div className="admin-guide-print-controls mt-4">
+            <Button variant="outline" className="min-h-[48px] h-auto py-3 text-lg whitespace-normal" onClick={() => window.print()}>
+              Imprimer ou enregistrer en PDF
+            </Button>
+            <p className="text-base text-muted-foreground mt-2">
+              Dans la fenêtre qui s’ouvre, choisissez votre imprimante ou l’option PDF.
+            </p>
+          </div>
         </div>
 
         <p className="text-lg text-foreground mb-2">Ce guide vous explique comment :</p>
@@ -286,6 +296,7 @@ export default function AdminGuide() {
             'Une fenêtre s\'ouvre pour choisir vos fichiers',
             'Vous pouvez sélectionner <strong>plusieurs photos à la fois</strong>',
             'Cliquez sur <strong>« Ouvrir »</strong>',
+            'Si le site vous propose de réduire les grandes photos, cliquez sur <strong>« Réduire et envoyer »</strong>',
             '<strong>Attendez que toutes les photos soient téléversées</strong>',
             'Les photos s\'affichent automatiquement dans la galerie',
           ]}
@@ -293,9 +304,8 @@ export default function AdminGuide() {
         <Tip>
           <p className="font-semibold mb-1">Formats acceptés et limites :</p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Formats : <strong>JPG, PNG</strong></li>
-            <li>Taille maximum : <strong>5 Mo par photo</strong></li>
-            <li>Si une photo est trop lourde, contacter Flore pour compresser l'image avant téléversement.</li>
+            <li>Formats : <strong>JPG, PNG, WebP</strong></li>
+            <li>Les photos trop volumineuses sont réduites automatiquement après votre confirmation.</li>
           </ul>
         </Tip>
 
@@ -442,7 +452,7 @@ export default function AdminGuide() {
             <AccordionTrigger className="text-lg text-left">
               « Je ne vois pas mes changements sur le site public »
             </AccordionTrigger>
-            <AccordionContent className="text-lg">
+            <AccordionContent forceMount className="text-lg">
               <ol className="list-decimal list-inside space-y-2 pl-2">
                 <li>Retournez sur la page d'administration</li>
                 <li>Cliquez sur <strong>« Retour au site »</strong></li>
@@ -459,15 +469,15 @@ export default function AdminGuide() {
             <AccordionTrigger className="text-lg text-left">
               « Mon fichier est refusé lors du téléversement »
             </AccordionTrigger>
-            <AccordionContent className="text-lg">
+            <AccordionContent forceMount className="text-lg">
               <p className="font-semibold mb-2">Causes possibles :</p>
               <ul className="list-disc list-inside space-y-3 pl-2">
                 <li>
-                  <strong>Fichier trop lourd (&gt; 5 Mo)</strong> — Compressez votre PDF avec
-                  {' '}<strong>iLovePDF</strong> (ilovepdf.com) ou votre image avec <strong>iLoveIMG</strong> (iloveimg.com).
+                  <strong>PDF trop volumineux (plus de 5 Mo)</strong> — Contactez Flore pour le réduire avant l’envoi.
+                  Pour les photos, le site vous propose de les réduire automatiquement.
                 </li>
                 <li>
-                  <strong>Mauvais format</strong> — Documents et concours : PDF uniquement. Photos : JPG ou PNG uniquement.
+                  <strong>Mauvais format</strong> — Documents et concours : PDF uniquement. Photos : JPG, PNG ou WebP.
                 </li>
                 <li>
                   <strong>Nom de fichier identique à un existant</strong> — Renommez votre fichier
@@ -481,7 +491,7 @@ export default function AdminGuide() {
             <AccordionTrigger className="text-lg text-left">
               « Le téléversement semble bloqué »
             </AccordionTrigger>
-            <AccordionContent className="text-lg">
+            <AccordionContent forceMount className="text-lg">
               <p className="mb-2">Si le message de succès ne s'affiche pas après 30 secondes :</p>
               <ol className="list-decimal list-inside space-y-2 pl-2">
                 <li><strong>Ne fermez pas la page</strong> — le téléversement continue en arrière-plan</li>
@@ -498,7 +508,7 @@ export default function AdminGuide() {
             <AccordionTrigger className="text-lg text-left">
               « Je me suis trompé 5 fois de mot de passe »
             </AccordionTrigger>
-            <AccordionContent className="text-lg">
+            <AccordionContent forceMount className="text-lg">
               <p className="mb-2">
                 Le système bloque l'accès pendant <strong>15 minutes</strong> pour des raisons de sécurité.
               </p>
@@ -515,7 +525,7 @@ export default function AdminGuide() {
             <AccordionTrigger className="text-lg text-left">
               « Une photo ou un document a disparu »
             </AccordionTrigger>
-            <AccordionContent className="text-lg">
+            <AccordionContent forceMount className="text-lg">
               <p className="font-semibold mb-2">Causes possibles :</p>
               <ul className="list-disc list-inside space-y-2 pl-2">
                 <li>
@@ -541,7 +551,7 @@ export default function AdminGuide() {
           <li>Toujours vérifier le document/photo après téléversement (bouton « Voir »)</li>
           <li>Se déconnecter après chaque session (bouton « Retour au site »)</li>
           <li>Utiliser des noms de fichiers clairs (ex : <code>Concours Bretagne 2026.pdf</code>)</li>
-          <li>Compresser les fichiers lourds avant téléversement</li>
+          <li>Demander de l’aide à Flore si un PDF dépasse 5 Mo</li>
           <li>Sélectionner la bonne année pour les photos de congrès</li>
           <li>Vérifier la page publique après une modification importante</li>
         </ul>

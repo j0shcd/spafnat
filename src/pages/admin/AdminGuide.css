@@ -1,0 +1,43 @@
+/* Keep FAQ answers mounted for print, but collapsed on screen. */
+.admin-guide [role='region'][data-state='closed'] {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 15mm;
+  }
+
+  body:has(.admin-guide) header,
+  body:has(.admin-guide) aside,
+  body:has(.admin-guide) [role='status'],
+  .admin-guide nav,
+  .admin-guide-print-controls,
+  .admin-guide button svg {
+    display: none;
+  }
+
+  body:has(.admin-guide) main,
+  .admin-guide [role='region'][data-state] {
+    display: block;
+    height: auto;
+    overflow: visible;
+    animation: none;
+  }
+
+  .admin-guide {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+
+  .admin-guide h1,
+  .admin-guide h2,
+  .admin-guide h3 {
+    break-after: avoid;
+  }
+
+  .admin-guide li {
+    break-inside: avoid;
+  }
+}
