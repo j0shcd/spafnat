@@ -4,9 +4,8 @@ import { hasUnsafePathSegments } from '../../../lib/file-validation';
 import type { ConcoursItem, ConcoursCategory } from '../../../../src/config/concours';
 import {
   getConcoursKVKey,
-  getConcoursAllKVKey,
   getConcoursR2Prefix,
-  CONCOURS_CATEGORIES,
+  isConcoursCategory,
 } from '../../../../src/config/concours';
 
 const MAX_DELETE_CONCOURS_BODY_BYTES = 8 * 1024; // 8 KB
@@ -63,7 +62,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     const r2Key = requestBody.r2Key;
 
     // Validate category
-    if (!(category in CONCOURS_CATEGORIES)) {
+    if (!isConcoursCategory(category)) {
       console.error('Delete concours: invalid category:', category);
       return jsonResponse(
         { error: 'Une erreur technique s\'est produite. Veuillez contacter joshua@cohendumani.com' },
@@ -88,7 +87,6 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
 
     // 1. Remove from KV array
     const kvKey = getConcoursKVKey(category as ConcoursCategory);
-    const aggregateKey = getConcoursAllKVKey();
     const existingData = await env.SPAF_KV.get(kvKey, 'json');
     const items = (existingData as ConcoursItem[]) || [];
 
@@ -99,19 +97,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
       return jsonResponse({ error: 'Document non trouvé' }, 404);
     }
 
-    // 2. Delete from R2 (ignore if already missing)
-    try {
-      await env.SPAF_MEDIA.delete(r2Key);
-      console.log('R2 delete successful:', r2Key);
-    } catch (error) {
-      console.warn('R2 delete failed (file may not exist):', r2Key, error);
-    }
+    // R2 delete is idempotent for missing objects. Preserve the index on storage errors.
+    await env.SPAF_MEDIA.delete(r2Key);
 
     // 3. Persist updated list
-    await Promise.all([
-      env.SPAF_KV.put(kvKey, JSON.stringify(updatedItems)),
-      env.SPAF_KV.delete(aggregateKey),
-    ]);
+    await env.SPAF_KV.put(kvKey, JSON.stringify(updatedItems));
 
     console.log('KV update successful:', kvKey, updatedItems.length, 'items');
 

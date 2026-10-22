@@ -9,7 +9,7 @@ import {
   CONCOURS_CATEGORIES,
   deriveTitleFromFilename,
   getConcoursKVKey,
-  getConcoursAllKVKey,
+  isConcoursCategory,
   getConcoursR2Prefix,
   type ConcoursCategory,
 } from '../config/concours';
@@ -58,9 +58,11 @@ describe('Concours Configuration', () => {
     });
   });
 
-  describe('getConcoursAllKVKey', () => {
-    it('should return aggregate key for all categories', () => {
-      expect(getConcoursAllKVKey()).toBe('concours:all');
+  describe('isConcoursCategory', () => {
+    it('rejects inherited object property names', () => {
+      expect(isConcoursCategory('reglements')).toBe(true);
+      expect(isConcoursCategory('constructor')).toBe(false);
+      expect(isConcoursCategory('__proto__')).toBe(false);
     });
   });
 

@@ -75,3 +75,7 @@ export function getAvailableDocuments(): Document[] {
 export function getAllDocuments(): Document[] {
   return Object.values(DOCUMENTS);
 }
+
+// Revue assets share an upload version; stale covers must never illustrate a newer PDF.
+export const REVUE_DOCUMENT_FILENAME = 'extrait_revue.pdf';
+export const REVUE_COVER_FILENAME = 'extrait_revue_cover.jpg';

@@ -69,11 +69,7 @@ function matchesAllowedOrigin(origin: string, allowedOrigin: string): boolean {
   }
 }
 
-/**
- * Validate request origin
- * Allows localhost (dev) and *.pages.dev (preview) initially
- * TODO: Tighten to spafnat.com only after custom domain is active
- */
+/** Validate contact origins; ALLOWED_ORIGINS can restrict preview and production separately. */
 export function isValidOrigin(origin: string | null, allowedOrigins?: string): boolean {
   if (!origin) return true; // Some clients omit Origin header
 
@@ -92,13 +88,9 @@ export function isValidOrigin(origin: string | null, allowedOrigins?: string): b
     // Allow localhost for development
     if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
 
-    // Allow Cloudflare Pages preview deployments
-    if (hostname.endsWith('.pages.dev')) return true;
-
-    // TODO: Once custom domain is active, tighten to only spafnat.com
-    // if (hostname === 'spafnat.com' || hostname === 'www.spafnat.com') return true;
-
-    return false;
+    if (url.protocol !== 'https:') return false;
+    return hostname === 'spafnat.com' || hostname === 'www.spafnat.com' ||
+      hostname === 'spafnat.pages.dev' || hostname.endsWith('.spafnat.pages.dev');
   } catch {
     return false;
   }
@@ -147,39 +139,68 @@ export async function parseJsonBodyWithLimit<T = Record<string, unknown>>(
   maxBytes: number,
   invalidBodyMessage = 'Corps de requête invalide'
 ): Promise<JsonBodyParseResult<T>> {
-  const contentLength = request.headers.get('Content-Length');
-  if (contentLength) {
-    const parsedLength = Number.parseInt(contentLength, 10);
-    if (Number.isFinite(parsedLength) && parsedLength > maxBytes) {
-      return {
-        ok: false,
-        response: jsonResponse({ error: 'Corps de requête trop volumineux' }, 413),
-      };
+  const body = await readBodyWithLimit(request, maxBytes);
+  if (!body.ok) return body;
+  try {
+    return { ok: true, data: JSON.parse(new TextDecoder().decode(body.data)) as T };
+  } catch {
+    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
+  }
+}
+
+/** Bound bytes while reading, even when Content-Length is absent or dishonest. */
+export async function readBodyWithLimit(
+  request: Request,
+  maxBytes: number
+): Promise<JsonBodyParseResult<ArrayBuffer>> {
+  const tooLarge = () => ({
+    ok: false as const,
+    response: jsonResponse({ error: 'Corps de requête trop volumineux' }, 413),
+  });
+  const declaredSize = Number(request.headers.get('Content-Length'));
+  if (declaredSize > maxBytes) return tooLarge();
+  if (!request.body) {
+    return { ok: false, response: jsonResponse({ error: 'Corps de requête invalide' }, 400) };
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        void reader.cancel().catch(() => {});
+        return tooLarge();
+      }
+      chunks.push(value);
     }
-  }
-
-  let rawBody = '';
-  try {
-    rawBody = await request.text();
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return { ok: true, data: bytes.buffer };
   } catch {
-    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
+    return { ok: false, response: jsonResponse({ error: 'Corps de requête invalide' }, 400) };
+  } finally {
+    reader.releaseLock();
   }
+}
 
-  if (!rawBody) {
-    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
-  }
-
-  const bodyBytes = new TextEncoder().encode(rawBody).byteLength;
-  if (bodyBytes > maxBytes) {
-    return {
-      ok: false,
-      response: jsonResponse({ error: 'Corps de requête trop volumineux' }, 413),
-    };
-  }
-
+export async function parseMultipartBodyWithLimit(
+  request: Request,
+  maxBytes: number
+): Promise<JsonBodyParseResult<FormData>> {
+  const body = await readBodyWithLimit(request, maxBytes);
+  if (!body.ok) return body;
   try {
-    return { ok: true, data: JSON.parse(rawBody) as T };
+    const response = new Response(body.data, { headers: request.headers });
+    return { ok: true, data: await response.formData() };
   } catch {
-    return { ok: false, response: jsonResponse({ error: invalidBodyMessage }, 400) };
+    return { ok: false, response: jsonResponse({ error: 'Échec du parsing du formulaire' }, 400) };
   }
 }

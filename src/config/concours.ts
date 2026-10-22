@@ -56,8 +56,8 @@ export function getConcoursKVKey(category: ConcoursCategory): string {
   return `concours:${category}`;
 }
 
-export function getConcoursAllKVKey(): string {
-  return 'concours:all';
+export function isConcoursCategory(value: unknown): value is ConcoursCategory {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(CONCOURS_CATEGORIES, value);
 }
 
 /**

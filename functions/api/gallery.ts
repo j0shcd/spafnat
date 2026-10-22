@@ -1,3 +1,4 @@
+import { listR2Objects } from '../lib/r2';
 import type { Env } from '../env';
 import { jsonResponse } from '../lib/helpers';
 import { isValidPhotoYear } from '../lib/file-validation';
@@ -27,7 +28,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
 
     // List photos from R2 with prefix congres/{year}/
     const prefix = `congres/${year}/`;
-    const listed = await env.SPAF_MEDIA.list({ prefix });
+    const listed = await listR2Objects(env.SPAF_MEDIA, { prefix });
 
     // Map to photo objects with metadata
     const photos = listed.objects.map((obj) => {
