@@ -299,7 +299,14 @@ echo "ADMIN_PASSWORD_HASH=<new-hash>" >> .dev.vars
    - Navigate to "Photos" tab
    - Select year from dropdown
    - Click "Téléverser des photos"
-   - Select multiple images (JPEG/PNG/WebP, max 5MB each)
+   - Select multiple images (JPEG/PNG/WebP)
+   - If any exceed 5 MiB, confirm "Réduire et envoyer" or cancel before any file is uploaded
+   - The confirmation explains only that large photos must be reduced to send them. This admin audience is around 70 years old; keep encoding formats and the local-original/uploaded-copy distinction out of the popup
+   - Oversized photos become JPEG viewing copies: up to 3,200 px on the long edge, JPEG quality 0.9, reduced further only if the encoded file exceeds 4 MiB; transparent areas become white
+   - Photos at or below 5 MiB and local originals are unchanged; compressed viewing copies are not full-resolution archives
+   - Preparation and upload run one photo at a time; failed photos do not stop the batch, and the result names up to three failures
+   - Keep the page open until completion; there is no automatic retry or persistence across reloads
+   - HEIC/HEIF is not supported yet; see the research plan in `project-notes/TODO.md`
 4. **Concours:**
    - Navigate to "Concours" tab
    - Choose category (Règlements, Palmarès Poétique, Palmarès Artistique)
@@ -310,7 +317,8 @@ echo "ADMIN_PASSWORD_HASH=<new-hash>" >> .dev.vars
 **File Validation:**
 - MIME type check (client-side)
 - Magic bytes verification (server-side, prevents file type spoofing)
-- Max size: 5MB per file
+- Max file size: 5 MiB; generated photo copies target at most 4 MiB, leaving multipart request headroom
+- Photo compression runs locally with native browser APIs; it adds no dependency, conversion service or Cloudflare image transformations
 
 ---
 
@@ -827,10 +835,13 @@ vi.mock('pdfjs-dist', () => ({
 #### R2 Monitoring & Alerts
 - **Setup billing alerts:** $1, $5, $10 thresholds
 - **Monitor usage:** Dashboard → Analytics → R2
-- **Expected:** ~50MB storage, ~100 writes/month, ~5k reads/month (well within free tier)
+- **Free allowances (checked 22 October 2026):** [R2 Standard](https://developers.cloudflare.com/r2/pricing/) includes 10 GB-month storage, 1 million Class A operations/month and 10 million Class B operations/month. These allowances are shared with other account usage, apply only to Standard storage, and are not a hard spending cap. [Workers Free](https://developers.cloudflare.com/workers/platform/limits/) has 100,000 requests/day; [KV Free](https://developers.cloudflare.com/kv/platform/pricing/) has 100,000 reads/day and 1,000 writes/day.
+- **Observed public archive (22 October 2026):** 1,146 surviving photos across 16 years, totaling 757,005,660 bytes (0.757 GB). Object timestamps group into February 2026 (962 files, 535,780,333 bytes) and October 2026 (184 files, 221,225,327 bytes); no surviving objects have March–September timestamps. This is not a full upload or billing history: deleted/replaced files, documents, preview storage, other buckets and account operations are not visible. Each year's public listing is limited to 1,000 objects; all returned years are below that ceiling.
+- **Photo batch estimate:** 180 oversized photos compressed to at most 4 MiB add at most 754,974,720 bytes (0.755 GB), 180 upload requests, 180 R2 PUTs, 180 collision-check HEADs and 180 KV session reads, plus the existing gallery refresh and thumbnail requests. Uploads add no KV writes. Photos already under the 5 MiB limit are unchanged, so a mixed batch can use more than 4 MiB per unchanged file. Repeated imports accumulate storage.
+- **Account usage remains unverified:** the local CLI was not authenticated; the owner chose estimates for this change. No plan, billing setting, storage class or remote data was changed. Check account-level storage and operation totals before treating these estimates as a zero-cost guarantee. There is no new quota polling, automatic upload retry or paid image-processing path.
 
 #### Performance Optimizations
-- **Image optimization:** Compress congress photos before upload (admin-side tool?)
+- **Image optimization:** Oversized congress photos are compressed in the browser after confirmation; see the upload workflow above. HEIC conversion remains planned, not implemented.
 - **PDF optimization:** Compress large PDFs (admin warning if >5MB?)
 - **Bundle size:** Currently ~1MB due to pdfjs-dist, consider lazy loading
 

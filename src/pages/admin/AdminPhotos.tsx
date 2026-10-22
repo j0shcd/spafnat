@@ -31,6 +31,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { apiListPhotos, apiUploadPhoto, apiDeletePhoto, PhotoFile } from '@/lib/admin-api';
 import { HelpTip } from '@/components/admin/HelpTip';
+import { compressPhoto, PHOTO_UPLOAD_LIMIT_BYTES } from '@/lib/photo-compression';
 
 export default function AdminPhotos() {
   const currentYear = new Date().getFullYear();
@@ -45,6 +46,7 @@ export default function AdminPhotos() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [pendingUpload, setPendingUpload] = useState<{ files: File[]; year: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoFile | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -75,7 +77,8 @@ export default function AdminPhotos() {
     setSelectedPhotos(new Set());
   }, [selectedYear]);
 
-  const handleUpload = async (files: FileList) => {
+  const handleUpload = (files: FileList) => {
+    if (isUploading || pendingUpload) return;
     const fileArray = Array.from(files);
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     const invalidFiles = fileArray.filter((f) => !validTypes.includes(f.type));
@@ -89,35 +92,43 @@ export default function AdminPhotos() {
       return;
     }
 
-    const oversizedFiles = fileArray.filter((f) => f.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      toast({
-        title: 'Erreur',
-        description: 'Chaque fichier ne doit pas dépasser 5 Mo',
-        variant: 'destructive',
-      });
+    if (fileArray.some((file) => file.size > PHOTO_UPLOAD_LIMIT_BYTES)) {
+      setPendingUpload({ files: fileArray, year: selectedYear });
       return;
     }
 
+    void uploadPhotos(fileArray, selectedYear);
+  };
+
+  const uploadPhotos = async (files: File[], year: string) => {
     setIsUploading(true);
     let successCount = 0;
-    let errorCount = 0;
+    const failedNames: string[] = [];
 
-    for (let i = 0; i < fileArray.length; i++) {
-      setUploadProgress(`Envoi de ${i + 1}/${fileArray.length} photos...`);
-      const response = await apiUploadPhoto(fileArray[i], selectedYear);
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        try {
+          setUploadProgress(`Préparation de ${i + 1}/${files.length} photos...`);
+          const prepared = await compressPhoto(file);
+          setUploadProgress(`Envoi de ${i + 1}/${files.length} photos...`);
+          const response = await apiUploadPhoto(prepared, year);
 
-      if (response.ok) {
-        successCount++;
-      } else {
-        errorCount++;
+          if (response.ok) {
+            successCount++;
+          } else {
+            failedNames.push(file.name);
+          }
+        } catch {
+          failedNames.push(file.name);
+        }
       }
+    } finally {
+      setIsUploading(false);
+      setUploadProgress('');
     }
 
-    setIsUploading(false);
-    setUploadProgress('');
-
-    if (errorCount === 0) {
+    if (failedNames.length === 0) {
       toast({
         title: 'Succès',
         description: `${successCount} photo(s) téléversée(s) avec succès`,
@@ -125,12 +136,12 @@ export default function AdminPhotos() {
     } else {
       toast({
         title: 'Téléversement partiel',
-        description: `${successCount} réussie(s), ${errorCount} échouée(s)`,
+        description: `${successCount} réussie(s), ${failedNames.length} échouée(s) : ${failedNames.slice(0, 3).join(', ')}${failedNames.length > 3 ? '…' : ''}`,
         variant: 'destructive',
       });
     }
 
-    loadPhotos(selectedYear);
+    void loadPhotos(year);
   };
 
   const handleDelete = async () => {
@@ -233,7 +244,7 @@ export default function AdminPhotos() {
               <label className="text-sm font-medium">Année du congrès</label>
               <HelpTip text="Sélectionnez l'année du congrès avant d'ajouter des photos." />
             </div>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <Select value={selectedYear} onValueChange={setSelectedYear} disabled={isUploading || !!pendingUpload}>
               <SelectTrigger className="w-full sm:w-48 h-12 text-lg">
                 <SelectValue placeholder="Sélectionner l'année" />
               </SelectTrigger>
@@ -252,6 +263,7 @@ export default function AdminPhotos() {
               type="file"
               accept="image/jpeg,image/png,image/webp"
               multiple
+              disabled={isUploading || !!pendingUpload}
               ref={fileInputRef}
               className="hidden"
               onChange={(e) => {
@@ -266,7 +278,7 @@ export default function AdminPhotos() {
               <Button
                 size="lg"
                 className="min-h-[48px] text-lg"
-                disabled={isUploading}
+                disabled={isUploading || !!pendingUpload}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-5 w-5 mr-2" />
@@ -303,6 +315,8 @@ export default function AdminPhotos() {
           </div>
         )}
       </div>
+
+      <p role="status" className="sr-only">{uploadProgress}</p>
 
       {/* Photos grid */}
       {isLoading ? (
@@ -372,6 +386,28 @@ export default function AdminPhotos() {
           })}
         </div>
       )}
+
+      <AlertDialog open={!!pendingUpload} onOpenChange={(open) => { if (!open) setPendingUpload(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Réduire les grandes photos ?</AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              Les photos trop volumineuses seront réduites automatiquement pour pouvoir être envoyées.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-[48px] text-lg">Annuler</AlertDialogCancel>
+            <AlertDialogAction className="min-h-[48px] text-lg" onClick={() => {
+              if (!pendingUpload) return;
+              const { files, year } = pendingUpload;
+              setPendingUpload(null);
+              void uploadPhotos(files, year);
+            }}>
+              Réduire et envoyer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete confirmation dialog (single photo) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
