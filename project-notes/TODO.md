@@ -1,5 +1,35 @@
 # SPAF Website — Task List
 
+## Photo uploads — October 2026
+
+- [x] Add confirmation before compressing photos over 5 MiB; cancel sends nothing
+- [x] Generate JPEG viewing copies in the browser at quality 0.9, up to 3,200 px, with a 4 MiB ceiling; keep smaller files and local originals unchanged
+- [x] Process preparation and uploads sequentially; continue after individual failures; no automatic retries or paid transformation service
+- [x] Record a public archive inventory and bounded Cloudflare estimates in `user_guides/MAINTENANCE.md`; account billing/usage remains unverified by the owner's choice
+- [x] Verify the change and complete thermo-nuclear, ponytail, and Matt Pocock Standards/Spec reviews; all returned no substantive findings
+- [x] Save the verified feature and HEIC research record as separate local commits; no push/deployment requested
+
+Implementation: `6935a41` on `codex/compress-photo-uploads`; not deployed. The HEIC plan below remains research only. Next implementation step is the bounded decoder spike, subject to the acceptance gates below.
+
+Verification: 182 tests passed, including a 180-photo sequential batch. The two added regression boundaries were deliberately broken and their tests failed before restoring the implementation. Preflight/typecheck/build passed; lint has zero errors and eight pre-existing Fast Refresh warnings. A production-build browser run under the production CSP used dummy authentication, the real upload handler and in-memory storage: cancellation wrote nothing; a 55,323,807-byte synthetic 48 MP JPEG became a 3,476,141-byte 3,200×2,400 JPEG; a small JPEG was byte-for-byte unchanged; a corrupt photo was skipped and the next file uploaded. This proves the path with fixtures, not photographic quality or peak memory on older iPhones. No production upload was made. The warning uses plain French, with no JPEG or local-original/copy explanation, for the approximately 70-year-old admin audience.
+
+Known pre-existing boundary to address separately: unchanged files extremely close to 5 MiB can exceed the upload handler's multipart Content-Length check even though the file itself fits (`functions/api/admin/upload.ts`). Newly compressed 4 MiB copies have ample headroom. Do not raise backend file-size limits as a workaround for compression.
+
+### HEIC acceptance — researched, not accepted for implementation
+
+Next bounded step: a browser compatibility and memory spike with permission-safe 12/24/48 MP iPhone HEIC fixtures, corrupt inputs, rotation/mirrors, HDR and primary/auxiliary images. Try native decoding first, then evaluate a separately lazy-loaded, pinned `heic-to/csp` fallback. Reuse the photo JPEG encoder and keep server HEIC acceptance closed; only generated JPEGs would reach the existing validation/upload path. Small HEIC files also need conversion. No HEIC code, dependency or CSP change is included in the compression feature.
+
+The research candidate is `heic-to@1.6.6/csp` (about 3 MB raw, LGPL-3.0), embedding libheif 1.23.6. Recheck exact distributed codecs and versions before implementation: [libheif 1.23.6 is a security release](https://github.com/strukturag/libheif/releases/tag/v1.23.6); the inspected `libheif-js` build still pinned 1.23.5. See [heic-to source](https://github.com/hoppergee/heic-to), [libheif-js build](https://github.com/catdad-experiments/libheif-js/blob/master/scripts/install.js) and [Safari's native HEIC support](https://webkit.org/blog/14445/webkit-features-in-safari-17-0/).
+
+Acceptance gates before choosing the decoder:
+- Verify orientation, primary-image choice and HDR-to-SDR colors against the original; do not promise preservation of Live Photo motion/depth/HDR or EXIF/GPS metadata.
+- Measure memory over a 180-file run on target devices. One 48 MP RGBA buffer alone is about 192 MB; resizing afterwards cannot remove full-size decode peaks.
+- Prove decoder termination/recreation after a hang. The candidate's singleton worker has no exported termination API; a timeout alone cannot stop its CPU/memory work. Its source selects the first decoded image rather than an explicit primary image.
+- Test production CSP. The candidate's CSP build is compiled JavaScript/asm.js and creates a Blob worker; it may need narrowly scoped `worker-src 'self' blob:`. Never introduce general `unsafe-eval`.
+- Preserve codec licensing/notices and source/build information, keep assets self-hosted, and prove no photo data leaves the browser before the normal upload.
+
+Open decision: the fallback decoder is provisional until those gates pass. If a maintained fork is needed for lifecycle or primary-image correctness, compare direct decoder control again. Expected work is roughly 1–3 days after representative fixtures are available. Browser conversion adds no Cloudflare transformation service; retained JPEG storage and normal requests still count toward shared allowances.
+
 **NOTE**: Taking a gradual approach - keeping Phase 2+ features (counter, contact form) as placeholders even though they're not fully functional yet. Always ask before modifying components.
 
 ## Phase 0: Project Setup ✅
