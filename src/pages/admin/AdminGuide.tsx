@@ -216,7 +216,7 @@ export default function AdminGuide() {
         </ul>
 
         <Tip>
-          Tous les documents doivent être des fichiers de type <code>.pdf</code>, et ne doivent pas dépasser 5 Mo. Si votre fichier est trop lourd, contacter Flore pour le compresser avant téléversement.
+          Tous les documents doivent être des fichiers de type <code>.pdf</code>. Si votre fichier dépasse 5 Mo, le site vous propose de le réduire. Si cela ne suffit pas, contactez Flore pour vous aider.
         </Tip>
 
         <SubHeading>Téléverser (remplacer) un document</SubHeading>
@@ -232,6 +232,7 @@ export default function AdminGuide() {
             'Une fenêtre s\'ouvre pour choisir votre fichier',
             'Sélectionnez le nouveau PDF sur votre ordinateur',
             'Cliquez sur <strong>« Ouvrir »</strong>',
+            'Si le site vous propose de réduire le document, cliquez sur <strong>« Réduire et envoyer »</strong>',
             '<strong>Attendez quelques secondes</strong> — un message « Document téléversé avec succès » apparaît en bas à droite',
           ]}
         />
@@ -346,6 +347,7 @@ export default function AdminGuide() {
             'Cliquez sur le bouton <strong>« Téléverser PDF »</strong> en haut à droite',
             'Choisissez votre fichier PDF',
             'Cliquez sur <strong>« Ouvrir »</strong>',
+            'Si le site vous propose de réduire le document, cliquez sur <strong>« Réduire et envoyer »</strong>',
             'Le document apparaît dans la liste',
           ]}
         />
@@ -473,7 +475,7 @@ export default function AdminGuide() {
               <p className="font-semibold mb-2">Causes possibles :</p>
               <ul className="list-disc list-inside space-y-3 pl-2">
                 <li>
-                  <strong>PDF trop volumineux (plus de 5 Mo)</strong> — Contactez Flore pour le réduire avant l’envoi.
+                  <strong>PDF trop volumineux (plus de 5 Mo)</strong> — Le site vous propose de le réduire. Si le PDF reste refusé, contactez Flore pour vous aider.
                   Pour les photos, le site vous propose de les réduire automatiquement.
                 </li>
                 <li>
@@ -551,7 +553,7 @@ export default function AdminGuide() {
           <li>Toujours vérifier le document/photo après téléversement (bouton « Voir »)</li>
           <li>Se déconnecter après chaque session (bouton « Retour au site »)</li>
           <li>Utiliser des noms de fichiers clairs (ex : <code>Concours Bretagne 2026.pdf</code>)</li>
-          <li>Demander de l’aide à Flore si un PDF dépasse 5 Mo</li>
+          <li>Demander de l’aide à Flore si le site ne parvient pas à réduire un PDF</li>
           <li>Sélectionner la bonne année pour les photos de congrès</li>
           <li>Vérifier la page publique après une modification importante</li>
         </ul>

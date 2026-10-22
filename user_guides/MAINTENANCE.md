@@ -295,7 +295,8 @@ The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide
 2. **Documents:**
    - Navigate to "Documents" tab
    - Click "Téléverser" on the document card
-   - Select PDF (max 5MB)
+   - Select PDF; if it exceeds 5 MiB, confirm "Réduire et envoyer" before preparation or upload
+   - The browser tries to reduce the PDF; if it cannot, nothing is uploaded and the message asks for Flore's help
    - File replaces existing document at that key
 3. **Photos:**
    - Navigate to "Photos" tab
@@ -312,15 +313,18 @@ The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide
 4. **Concours:**
    - Navigate to "Concours" tab
    - Choose category (Règlements, Palmarès Poétique, Palmarès Artistique)
-   - Upload PDF
+   - Upload PDF; oversized files use the same confirmation and local preparation as Documents
    - Reorder with up/down arrows
    - Delete with confirmation dialog
 
 **File Validation:**
 - MIME type check (client-side)
 - Magic bytes verification (server-side, prevents file type spoofing)
-- Max file size: 5 MiB; generated photo copies target at most 4 MiB, leaving multipart request headroom
+- Max file size: 5 MiB; generated photo and PDF copies target at most 4 MiB, leaving multipart request headroom
 - Photo compression runs locally with native browser APIs; it adds no dependency, conversion service or Cloudflare image transformations
+- PDF compression lazy-loads self-hosted `@neslinesli93/qpdf-wasm@0.3.0` (qpdf 12.2.0, about 1.38 MB of worker/WASM assets) after confirmation. It recompresses streams and eligible embedded images at JPEG quality 90, without rasterizing pages or downsampling them. Text, links, forms and page structure remain PDF objects. Small PDFs are passed through unchanged
+- A single disposable worker processes one PDF at a time, with a 50 MiB input ceiling, 30-second deadline and 4 MiB output ceiling. Navigation aborts preparation and terminates the worker. Signed/encrypted PDFs, malformed structures, qpdf warnings and oversized results fail without upload; some image-heavy PDFs cannot fit these bounds
+- The production CSP permits WebAssembly with `script-src 'wasm-unsafe-eval'`; it does not permit JavaScript `unsafe-eval`. Third-party notices ship at `/licenses/qpdf.txt`. The pinned wrapper embeds an older engine: evaluate a reproducible rebuild on current qpdf before extending this feature, and retain corruption/resource-limit fixtures when upgrading
 
 ---
 
@@ -841,10 +845,11 @@ vi.mock('pdfjs-dist', () => ({
 - **Observed public archive (22 October 2026):** 1,146 surviving photos across 16 years, totaling 757,005,660 bytes (0.757 GB). Object timestamps group into February 2026 (962 files, 535,780,333 bytes) and October 2026 (184 files, 221,225,327 bytes); no surviving objects have March–September timestamps. This is not a full upload or billing history: deleted/replaced files, documents, preview storage, other buckets and account operations are not visible. Each year's public listing is limited to 1,000 objects; all returned years are below that ceiling.
 - **Photo batch estimate:** 180 oversized photos compressed to at most 4 MiB add at most 754,974,720 bytes (0.755 GB), 180 upload requests, 180 R2 PUTs, 180 collision-check HEADs and 180 KV session reads, plus the existing gallery refresh and thumbnail requests. Uploads add no KV writes. Photos already under the 5 MiB limit are unchanged, so a mixed batch can use more than 4 MiB per unchanged file. Repeated imports accumulate storage.
 - **Account usage remains unverified:** the local CLI was not authenticated; the owner chose estimates for this change. No plan, billing setting, storage class or remote data was changed. Check account-level storage and operation totals before treating these estimates as a zero-cost guarantee. There is no new quota polling, automatic upload retry or paid image-processing path.
+- **PDF compression:** computation stays in the browser; engine assets are ordinary static files. No conversion API, paid Worker CPU or Cloudflare transformation is added. Each accepted compressed PDF stores at most 4 MiB through the existing upload endpoint; revue covers and existing concours KV writes still apply. Failed preparation makes no upload request. This reduces per-file storage but cannot guarantee account-wide free-tier headroom.
 
 #### Performance Optimizations
 - **Image optimization:** Oversized congress photos are compressed in the browser after confirmation; see the upload workflow above. HEIC conversion remains planned, not implemented.
-- **PDF optimization:** Compress large PDFs (admin warning if >5MB?)
+- **PDF optimization:** Oversized documents and concours PDFs use the bounded browser compression described above; files that cannot be reduced safely are refused with a help message
 - **Bundle size:** Currently ~1MB due to pdfjs-dist, consider lazy loading
 
 #### Accessibility Improvements

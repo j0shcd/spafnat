@@ -1,5 +1,21 @@
 # SPAF Website — Task List
 
+## PDF uploads — October 2026
+
+Implemented locally for Documents and Concours: PDFs over 5 MiB prompt "Réduire le document ?" before any preparation or upload. "Réduire et envoyer" runs one disposable browser worker using pinned `@neslinesli93/qpdf-wasm@0.3.0` (qpdf 12.2.0); smaller PDFs remain unchanged. Revue covers use the prepared PDF. No paid conversion service or backend limit increase is involved.
+
+Bounds: 50 MiB input, 30 seconds, 4 MiB output; preserve PDF objects rather than rasterizing pages, use JPEG quality 90 for eligible embedded images, and refuse encrypted/signed/unreadable PDFs, parser warnings and results that remain too large. Empty signature fields are allowed. See `user_guides/MAINTENANCE.md` for deployment CSP, notices, account-usage estimates and the older engine's upgrade follow-up.
+
+Research choice: [qpdf](https://qpdf.readthedocs.io/en/stable/cli.html) preserves existing PDF objects and includes image optimization. The alternatives were a custom image optimizer on [pdf-lib](https://pdf-lib.js.org/), the newer [browser-qpdf wrapper](https://github.com/lipoe/browser-qpdf), [MuPDF](https://mupdfjs.readthedocs.io/en/latest/faq/index.html) and [Ghostscript](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html) with licensing/rewrite tradeoffs, and PDF.js page rasterization, which would lose document features. The selected wrapper is [release 0.3.0](https://github.com/neslinesli93/qpdf-wasm/releases/tag/0.3.0); its older engine is an explicit maintenance constraint, not a claim to current parser hardening.
+
+Verification: all 216 tests pass, including 33 PDF helper/worker/upload tests. Reintroducing the empty-signature bug and removing the output-size guard each produced the expected failing regression. Preflight, standard typecheck and build pass; lint has zero errors and eight existing Fast Refresh warnings. An extra application-wide typecheck still reports existing errors in untouched functions/tests; none refer to the new PDF files.
+
+A production-build browser run used the production CSP, dummy authentication, real upload handlers and in-memory storage. Cancellation loaded no WASM and wrote nothing. A 7,814,566-byte fixture became a 3,044,935-byte PDF; page count, selectable text, filled form value, link URI and bookmark survived. Concours accepted the equivalent form with an empty signature field; a small PDF remained byte-for-byte unchanged. Signed, password-protected, corrupt and unreducible fixtures made no upload request. No browser warnings/errors or production writes occurred. This verifies fixtures on the desktop browser, not peak memory on older mobile devices. Thermo-nuclear, Ponytail and Matt Pocock Standards/Spec rechecks have no remaining findings; Claude's independent subscription review was unavailable because no subscription login was present.
+
+The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete; next bounded feature step remains the HEIC decoder spike below. Before extending the PDF engine, evaluate a reproducible build on current qpdf and retain the protection/resource-boundary tests. No push or deployment requested.
+
+Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), on `codex/compress-pdf-uploads`. Local merge target is `main`; the primary checkout's separate security-audit branch is left unchanged.
+
 ## Photo uploads — October 2026
 
 - [x] Add confirmation before compressing photos over 5 MiB; cancel sends nothing
@@ -19,7 +35,7 @@ Known pre-existing boundary to address separately: unchanged files extremely clo
 
 ### HEIC acceptance — researched, not accepted for implementation
 
-Next bounded step: a browser compatibility and memory spike with permission-safe 12/24/48 MP iPhone HEIC fixtures, corrupt inputs, rotation/mirrors, HDR and primary/auxiliary images. Try native decoding first, then evaluate a separately lazy-loaded, pinned `heic-to/csp` fallback. Reuse the photo JPEG encoder and keep server HEIC acceptance closed; only generated JPEGs would reach the existing validation/upload path. Small HEIC files also need conversion. No HEIC code, dependency or CSP change is included in the compression feature.
+Next bounded step: a browser compatibility and memory spike with permission-safe 12/24/48 MP iPhone HEIC fixtures, corrupt inputs, rotation/mirrors, HDR and primary/auxiliary images. Try native decoding first, then evaluate a separately lazy-loaded, pinned `heic-to/csp` fallback. Reuse the photo JPEG encoder and keep server HEIC acceptance closed; only generated JPEGs would reach the existing validation/upload path. Small HEIC files also need conversion. No HEIC code, dependency or CSP change is included in the photo compression feature.
 
 The research candidate is `heic-to@1.6.6/csp` (about 3 MB raw, LGPL-3.0), embedding libheif 1.23.6. Recheck exact distributed codecs and versions before implementation: [libheif 1.23.6 is a security release](https://github.com/strukturag/libheif/releases/tag/v1.23.6); the inspected `libheif-js` build still pinned 1.23.5. See [heic-to source](https://github.com/hoppergee/heic-to), [libheif-js build](https://github.com/catdad-experiments/libheif-js/blob/master/scripts/install.js) and [Safari's native HEIC support](https://webkit.org/blog/14445/webkit-features-in-safari-17-0/).
 
