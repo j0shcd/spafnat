@@ -28,6 +28,8 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { CONCOURS_CATEGORIES } from '@/config/concours';
 import { HelpTip } from '@/components/admin/HelpTip';
+import { compressPdf, PDF_UPLOAD_LIMIT_BYTES } from '@/lib/pdf-compression';
+import { PdfCompressionDialog } from '@/components/admin/PdfCompressionDialog';
 import {
   apiListConcours,
   apiUploadConcours,
@@ -51,6 +53,8 @@ export default function AdminConcours() {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ category: ConcoursCategory; item: ConcoursItem } | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<{ category: ConcoursCategory; file: File } | null>(null);
+  const compressionController = useRef<AbortController | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const loadAllCategories = async () => {
@@ -78,22 +82,15 @@ export default function AdminConcours() {
 
   useEffect(() => {
     loadAllCategories();
+    return () => compressionController.current?.abort();
   }, []);
 
   const handleUpload = async (category: ConcoursCategory, file: File) => {
+    if (compressionController.current || pendingUpload) return;
     if (!file.type.includes('pdf')) {
       toast({
         title: 'Erreur',
         description: 'Seuls les fichiers PDF sont acceptés',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'Erreur',
-        description: 'Le fichier ne doit pas dépasser 5 Mo',
         variant: 'destructive',
       });
       return;
@@ -114,32 +111,40 @@ export default function AdminConcours() {
       return;
     }
 
+    if (file.size > PDF_UPLOAD_LIMIT_BYTES) {
+      setPendingUpload({ category, file });
+      return;
+    }
+
+    await uploadDocument(category, file);
+  };
+
+  const uploadDocument = async (category: ConcoursCategory, file: File) => {
+    const controller = new AbortController();
+    compressionController.current = controller;
     // Set uploading state
     setCategories((prev) => ({
       ...prev,
       [category]: { ...prev[category], isUploading: true },
     }));
 
-    const response = await apiUploadConcours(file, category);
-
-    // Clear uploading state
-    setCategories((prev) => ({
-      ...prev,
-      [category]: { ...prev[category], isUploading: false },
-    }));
-
-    if (response.ok) {
-      toast({
-        title: 'Succès',
-        description: 'Document téléversé avec succès',
-      });
-      loadAllCategories();
-    } else {
-      toast({
-        title: 'Erreur',
-        description: response.error || 'Échec du téléversement',
-        variant: 'destructive',
-      });
+    try {
+      const prepared = await compressPdf(file, controller.signal);
+      if (controller.signal.aborted) return;
+      const response = await apiUploadConcours(prepared, category);
+      if (response.ok) {
+        toast({ title: 'Succès', description: 'Document téléversé avec succès' });
+        void loadAllCategories();
+      } else {
+        toast({ title: 'Erreur', description: response.error || 'Échec du téléversement', variant: 'destructive' });
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de préparer le document', variant: 'destructive' });
+      }
+    } finally {
+      compressionController.current = null;
+      setCategories((prev) => ({ ...prev, [category]: { ...prev[category], isUploading: false } }));
     }
   };
 
@@ -211,6 +216,8 @@ export default function AdminConcours() {
             <input
               type="file"
               accept=".pdf"
+              aria-label={`PDF : ${categoryConfig.label}`}
+              disabled={!!pendingUpload || Object.values(categories).some((value) => value.isUploading)}
               ref={(el) => (fileInputRefs.current[category] = el)}
               className="hidden"
               onChange={(e) => {
@@ -224,7 +231,7 @@ export default function AdminConcours() {
             <Button
               variant="default"
               className="min-h-[44px]"
-              disabled={categoryData.isUploading}
+              disabled={!!pendingUpload || Object.values(categories).some((value) => value.isUploading)}
               onClick={() => fileInputRefs.current[category]?.click()}
             >
               <Upload className="h-4 w-4 mr-2" />
@@ -341,6 +348,13 @@ export default function AdminConcours() {
         {renderCategoryTab('palmares-poetique')}
         {renderCategoryTab('palmares-artistique')}
       </Tabs>
+
+      <PdfCompressionDialog open={!!pendingUpload} onCancel={() => setPendingUpload(null)} onConfirm={() => {
+        if (!pendingUpload) return;
+        const { category, file } = pendingUpload;
+        setPendingUpload(null);
+        void uploadDocument(category, file);
+      }} />
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -25,6 +25,8 @@ import { toast } from '@/hooks/use-toast';
 import { DOCUMENTS } from '@/config/documents';
 import { apiListDocuments, apiUploadDocument, apiDeleteDocument, DocumentFile } from '@/lib/admin-api';
 import { generateRevueCoverFromPdf } from '@/lib/revueCoverGenerator';
+import { compressPdf, PDF_UPLOAD_LIMIT_BYTES } from '@/lib/pdf-compression';
+import { PdfCompressionDialog } from '@/components/admin/PdfCompressionDialog';
 
 type DocumentStatus = {
   key: string;
@@ -44,6 +46,8 @@ export default function AdminDocuments() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<DocumentStatus | null>(null);
+  const [pendingUpload, setPendingUpload] = useState<{ key: string; filename: string; file: File } | null>(null);
+  const compressionController = useRef<AbortController | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const loadDocuments = async () => {
@@ -84,9 +88,11 @@ export default function AdminDocuments() {
 
   useEffect(() => {
     loadDocuments();
+    return () => compressionController.current?.abort();
   }, []);
 
   const handleUpload = async (key: string, filename: string, file: File) => {
+    if (compressionController.current || pendingUpload) return;
     if (!file.type.includes('pdf')) {
       toast({
         title: 'Erreur',
@@ -96,47 +102,50 @@ export default function AdminDocuments() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'Erreur',
-        description: 'Le fichier ne doit pas dépasser 5 Mo',
-        variant: 'destructive',
-      });
+    if (file.size > PDF_UPLOAD_LIMIT_BYTES) {
+      setPendingUpload({ key, filename, file });
       return;
     }
 
+    await uploadDocument(key, filename, file);
+  };
+
+  const uploadDocument = async (key: string, filename: string, file: File) => {
+    const controller = new AbortController();
+    compressionController.current = controller;
     setUploadingKey(key);
 
-    let generatedCoverFile: File | undefined;
-    if (key === REVUE_DOCUMENT_KEY) {
-      try {
-        generatedCoverFile = await generateRevueCoverFromPdf(file);
-      } catch (error) {
-        console.warn('Failed to auto-generate revue cover image:', error);
-        toast({
-          title: 'Aperçu non généré',
-          description: "Le PDF sera téléversé, mais l'image de couverture n'a pas pu être créée automatiquement.",
-        });
+    try {
+      const prepared = await compressPdf(file, controller.signal);
+      let generatedCoverFile: File | undefined;
+      if (key === REVUE_DOCUMENT_KEY) {
+        try {
+          generatedCoverFile = await generateRevueCoverFromPdf(prepared);
+        } catch {
+          toast({
+            title: 'Aperçu non généré',
+            description: "Le PDF sera téléversé, mais l'image de couverture n'a pas pu être créée automatiquement.",
+          });
+        }
       }
-    }
 
-    const response = await apiUploadDocument(file, filename, {
-      coverFile: generatedCoverFile,
-    });
-    setUploadingKey(null);
-
-    if (response.ok) {
-      toast({
-        title: 'Succès',
-        description: 'Document téléversé avec succès',
+      if (controller.signal.aborted) return;
+      const response = await apiUploadDocument(prepared, filename, {
+        coverFile: generatedCoverFile,
       });
-      loadDocuments();
-    } else {
-      toast({
-        title: 'Erreur',
-        description: response.error || 'Échec du téléversement',
-        variant: 'destructive',
-      });
+      if (response.ok) {
+        toast({ title: 'Succès', description: 'Document téléversé avec succès' });
+        void loadDocuments();
+      } else {
+        toast({ title: 'Erreur', description: response.error || 'Échec du téléversement', variant: 'destructive' });
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        toast({ title: 'Erreur', description: error instanceof Error ? error.message : 'Impossible de préparer le document', variant: 'destructive' });
+      }
+    } finally {
+      compressionController.current = null;
+      setUploadingKey(null);
     }
   };
 
@@ -222,6 +231,8 @@ export default function AdminDocuments() {
               <input
                 type="file"
                 accept=".pdf"
+                aria-label={`Document : ${doc.label}`}
+                disabled={uploadingKey !== null || !!pendingUpload}
                 ref={(el) => (fileInputRefs.current[doc.key] = el)}
                 className="hidden"
                 onChange={(e) => {
@@ -236,7 +247,7 @@ export default function AdminDocuments() {
               <Button
                 variant="outline"
                 className="w-full min-h-[44px]"
-                disabled={uploadingKey === doc.key}
+                disabled={uploadingKey !== null || !!pendingUpload}
                 onClick={() => fileInputRefs.current[doc.key]?.click()}
               >
                 <Upload className="h-4 w-4 mr-2" />
@@ -271,6 +282,13 @@ export default function AdminDocuments() {
           </Card>
         ))}
       </div>
+
+      <PdfCompressionDialog open={!!pendingUpload} onCancel={() => setPendingUpload(null)} onConfirm={() => {
+        if (!pendingUpload) return;
+        const { key, filename, file } = pendingUpload;
+        setPendingUpload(null);
+        void uploadDocument(key, filename, file);
+      }} />
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
