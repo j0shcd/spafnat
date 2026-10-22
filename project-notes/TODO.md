@@ -1,5 +1,13 @@
 # SPAF Website — Task List
 
+## Predeployment review — 22 October 2026
+
+Reviewed release candidate `64318de` against `fde1dee` (the local `origin/main` reference) with three independent GPT-6.1 Sol agents at medium effort. Thermo-Nuclear and Ponytail found no introduced defects or structural blockers; Matt Pocock Standards and Spec each reported zero introduced findings. A fresh run passed all 216 tests. No production behavior, deployed revision or account-level Cloudflare allowance was verified.
+
+**Hold deployment:** this candidate does not include `a5e2b99`, `4df2764`, `72a7309` and `dea23e3` from the separate `codex/maintainability-security-audit` branch. Those commits contain dependency patches and request/storage/cache/security-header fixes. Fresh npm audit on this candidate reports 34 affected package entries (2 critical development-tool entries, 24 high, 8 moderate); `--omit=dev` reports 12 entries (9 high, 3 moderate), including build-chain packages present in that dependency tree. These counts are dependency advisories, not proof that every issue is exploitable in the deployed site. They predate the compression work.
+
+Next bounded step: integrate the existing security-audit commits into the release branch, preserve the PDF/photo changes and declined HEIC decision, resolve conflicts, then run all required checks and review the combined result before deployment. Read that branch's README audit record for retained KV concurrency/admin-quota limits; integrating it does not establish an account-wide zero-cost guarantee. No implementation changes, security-branch merge, push or deployment were performed in this review.
+
 ## PDF uploads — October 2026
 
 Implemented locally for Documents and Concours: PDFs over 5 MiB prompt "Réduire le document ?" before any preparation or upload. "Réduire et envoyer" runs one disposable browser worker using pinned `@neslinesli93/qpdf-wasm@0.3.0` (qpdf 12.2.0); smaller PDFs remain unchanged. Revue covers use the prepared PDF. No paid conversion service or backend limit increase is involved.
