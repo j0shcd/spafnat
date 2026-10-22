@@ -5,15 +5,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export interface ConcoursItem {
-  r2Key: string;
-  title: string;
-  originalFilename: string;
-  uploadedAt: string;
-  size: number;
-}
-
-export type ConcoursCategory = 'reglements' | 'palmares-poetique' | 'palmares-artistique';
+import type { ConcoursItem, ConcoursCategory } from '@/config/concours';
+export type { ConcoursItem, ConcoursCategory } from '@/config/concours';
 
 export type ConcoursData = Record<ConcoursCategory, ConcoursItem[]>;
 
@@ -53,7 +46,7 @@ export function useConcours(): UseConcoursResult {
       }
       setError(null);
 
-      const response = await fetch('/api/concours?category=all');
+      const response = await fetch('/api/concours?category=all', { cache: 'no-store' });
 
       if (!response.ok) {
         throw new Error('Échec de la récupération des données');
@@ -80,7 +73,7 @@ export function useConcours(): UseConcoursResult {
 
     // Re-fetch on window focus (e.g., after navigating back from admin)
     const handleFocus = () => {
-      void fetchConcours({ background: true });
+      void fetchConcours({ background: true, force: true });
     };
 
     window.addEventListener('focus', handleFocus);

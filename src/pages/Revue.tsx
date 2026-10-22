@@ -1,3 +1,4 @@
+import { REVUE_COVER_FILENAME } from '@/config/documents';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ const PdfCover = lazy(() =>
   import("@/components/PdfCover").then((module) => ({ default: module.PdfCover }))
 );
 
-const REVUE_COVER_BASE_URL = '/api/media/documents/extrait_revue_cover.jpg';
+const REVUE_COVER_BASE_URL = `/api/media/documents/${REVUE_COVER_FILENAME}`;
 
 function extractVersionToken(url: string): string | null {
   const query = url.split('?')[1] ?? '';

@@ -12,16 +12,18 @@ interface GalleryYearResponse {
   year: string;
 }
 
-const galleryYearCache = new Map<number, GalleryYearResponse>();
+const GALLERY_CACHE_TTL_MS = 60_000;
+const galleryYearCache = new Map<number, { data: GalleryYearResponse; checkedAt: number }>();
 const inFlightGalleryRequests = new Map<number, Promise<GalleryYearResponse | null>>();
 const prefetchedImageUrls = new Set<string>();
 
 export function getCachedGalleryYear(year: number): GalleryYearResponse | null {
-  return galleryYearCache.get(year) ?? null;
+  const cached = galleryYearCache.get(year);
+  return cached && Date.now() - cached.checkedAt < GALLERY_CACHE_TTL_MS ? cached.data : null;
 }
 
 export async function fetchGalleryYear(year: number): Promise<GalleryYearResponse | null> {
-  const cached = galleryYearCache.get(year);
+  const cached = getCachedGalleryYear(year);
   if (cached) {
     return cached;
   }
@@ -45,7 +47,6 @@ export async function fetchGalleryYear(year: number): Promise<GalleryYearRespons
         year: data.year || String(year),
       };
 
-      galleryYearCache.set(year, normalized);
       return normalized;
     } catch {
       return null;
@@ -55,10 +56,19 @@ export async function fetchGalleryYear(year: number): Promise<GalleryYearRespons
   inFlightGalleryRequests.set(year, request);
 
   try {
-    return await request;
+    const data = await request;
+    if (data && inFlightGalleryRequests.get(year) === request) {
+      galleryYearCache.set(year, { data, checkedAt: Date.now() });
+    }
+    return data;
   } finally {
-    inFlightGalleryRequests.delete(year);
+    if (inFlightGalleryRequests.get(year) === request) inFlightGalleryRequests.delete(year);
   }
+}
+
+export function invalidateGalleryYear(year: number): void {
+  galleryYearCache.delete(year);
+  inFlightGalleryRequests.delete(year);
 }
 
 export function prefetchGalleryYear(year: number): void {
