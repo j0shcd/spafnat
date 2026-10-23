@@ -1,6 +1,6 @@
 # SPAF Website - Developer Maintenance Guide
 
-**Last Updated:** February 17, 2026
+**Last Updated:** October 23, 2026
 **Current Version:** Phase 4 Complete 
 
 ---
@@ -11,8 +11,8 @@ The **Société des Poètes et Artistes de France (SPAF)** website is a bilingua
 
 ### Tech Stack
 
-- **Frontend:** React 18 + TypeScript + Vite
-- **UI:** shadcn-ui (Radix UI) + TailwindCSS
+- **Frontend:** React 19 + TypeScript + Vite 8 (Node 24 LTS, minimum 24.15.0)
+- **UI:** shadcn-ui (Radix UI) + TailwindCSS 4; Safari 16.4+, Chrome 111+ or Firefox 128+
 - **Deployment:** Cloudflare Pages (static site + edge functions)
 - **Storage:** Cloudflare KV (key-value) + R2 (object storage)
 - **Authentication:** JWT (jose library) with PBKDF2 password hashing
@@ -112,13 +112,21 @@ npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
 ### Validation Loop (Run Before Every Commit)
 
 ```bash
+npm run check        # All five required checks; refuses more than eight lint warnings
+npm run audit:deps   # Full dependency audit, including build tools
+# Individual checks:
 npm run preflight    # Cloudflare compatibility checks
 npm run typecheck    # Strict frontend, Vite configuration and Functions checks
 npm run typecheck:strict  # Strict frontend-only checks
-npm run lint         # ESLint (expect 8 shadcn warnings - safe to ignore)
+npm run lint         # ESLint; eight existing Fast Refresh warnings remain
 npm run test:run     # All tests
 npm run build        # Production build
 ```
+
+Dependency update policy, weekly checks and remote activation requirements are owned
+by [the README](../README.md#dependency-maintenance--23-october-2026). The full
+audit has zero advisories as of 23 October 2026; the main bundle size warning
+remains separate performance work. CI files are local until published and activated.
 
 **Pre-commit Hook:** If you ran `bash scripts/setup-hooks.sh`, `preflight` runs automatically before commits.
 
@@ -322,9 +330,9 @@ The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide
 - Magic bytes verification (server-side, prevents file type spoofing)
 - Max file size: 5 MiB; generated photo and PDF copies target at most 4 MiB. Request limits separately allow multipart framing and an optional revue cover
 - Photo compression runs locally with native browser APIs; it adds no dependency, conversion service or Cloudflare image transformations
-- PDF compression lazy-loads self-hosted `@neslinesli93/qpdf-wasm@0.3.0` (qpdf 12.2.0, about 1.38 MB of worker/WASM assets) after confirmation. It recompresses streams and eligible embedded images at JPEG quality 90, without rasterizing pages or downsampling them. Text, links, forms and page structure remain PDF objects. Small PDFs are passed through unchanged
+- PDF compression lazy-loads self-hosted qpdf 12.4.2 from `@wasm-zoo/qpdf@0.1.1` (about 2.24 MB of worker/WASM assets before transfer compression) after confirmation. A build-time bridge verifies the raw engine hashes and uses our disposable worker, without the package browser SDK. It recompresses streams and eligible embedded images at JPEG quality 90, without rasterizing pages or downsampling them. Text, links, forms and page structure remain PDF objects. Small PDFs are passed through unchanged
 - A single disposable worker processes one PDF at a time, with a 50 MiB input ceiling, 30-second deadline and 4 MiB output ceiling. Navigation aborts preparation and terminates the worker. Signed/encrypted PDFs, malformed structures, qpdf warnings and oversized results fail without upload; some image-heavy PDFs cannot fit these bounds
-- The production CSP permits WebAssembly with `script-src 'wasm-unsafe-eval'`; it does not permit JavaScript `unsafe-eval`. Third-party notices ship at `/licenses/qpdf.txt`. The pinned wrapper embeds an older engine: evaluate a reproducible rebuild on current qpdf before extending this feature, and retain corruption/resource-limit fixtures when upgrading
+- The production CSP permits WebAssembly with `script-src 'wasm-unsafe-eval'`; it does not permit JavaScript `unsafe-eval`. Notices, build information, provenance and SBOM ship under `/pdf-engine/`. Engine upgrades require reviewing these files and the hash pins, then rerunning corruption/resource-limit fixtures. Input is copied into the new engine's filesystem; the 512 MiB WASM maximum does not cap total browser memory. Peak memory on older mobile devices remains unverified
 
 ---
 

@@ -1,6 +1,16 @@
 # SPAF Website — Task List
 
-## Predeployment review — 22 October 2026
+## Dependency maintenance — 23 October 2026
+
+Implemented locally: current stable dependency releases, approved Tailwind 4 migration with the existing design preserved, and qpdf 12.4.2 in our disposable worker (`a3247fb`). PDF.js 6 cleans up failed loads (`f5c9e33`); all admin lists now bypass browser HTTP caching after mutations (`a0712e0`). No HEIC decoder, paid converter or Cloudflare limit increase is added.
+
+Verification: clean install, 354 tests, strict typechecks, preflight, lint and build, full dependency audit (zero advisories) and Functions compilation. Real local browser fixtures preserve PDF text/forms/links/bookmarks and the matching cover; rejected/cancelled PDFs send no upload. Engine hashes, PDF cleanup and admin-cache regressions were proven failing with their fixes removed. Eight existing Fast Refresh warnings and the main bundle size warning remain. See [the README](../README.md#dependency-maintenance--23-october-2026) for supported-version holds and memory limits.
+
+Weekly Dependabot PRs, full audits and CodeQL workflows are configured locally (`ac3a065`); no automatic merging. Next bounded step: publish when authorized, verify repository security settings and require the checks/scanning results before merging. Verify Cloudflare's deployment gate separately. No push, deployment or account changes were performed; remote workflow execution and account allowances remain unverified. The primary checkout's security-audit branch is preserved.
+
+## Historical predeployment review — 22 October 2026
+
+The dependency status below is superseded by the 23 October maintenance record above.
 
 The initial review of `64318de` against `fde1dee` found no introduced compression defects, but blocked deployment because four existing security-audit commits were absent. The owner authorized their integration.
 
@@ -12,17 +22,17 @@ Next bounded step: deploy only when authorized, then verify the deployed revisio
 
 ## PDF uploads — October 2026
 
-Implemented locally for Documents and Concours: PDFs over 5 MiB prompt "Réduire le document ?" before any preparation or upload. "Réduire et envoyer" runs one disposable browser worker using pinned `@neslinesli93/qpdf-wasm@0.3.0` (qpdf 12.2.0); smaller PDFs remain unchanged. Revue covers use the prepared PDF. No paid conversion service or backend limit increase is involved.
+Implemented locally for Documents and Concours: PDFs over 5 MiB prompt "Réduire le document ?" before any preparation or upload. "Réduire et envoyer" runs one disposable browser worker using qpdf 12.4.2 from pinned `@wasm-zoo/qpdf@0.1.1` through our build-time bridge; smaller PDFs remain unchanged. Revue covers use the prepared PDF. No paid conversion service or backend limit increase is involved.
 
-Bounds: 50 MiB input, 30 seconds, 4 MiB output; preserve PDF objects rather than rasterizing pages, use JPEG quality 90 for eligible embedded images, and refuse encrypted/signed/unreadable PDFs, parser warnings and results that remain too large. Empty signature fields are allowed. See `user_guides/MAINTENANCE.md` for deployment CSP, notices, account-usage estimates and the older engine's upgrade follow-up.
+Bounds: 50 MiB input, 30 seconds, 4 MiB output; preserve PDF objects rather than rasterizing pages, use JPEG quality 90 for eligible embedded images, and refuse encrypted/signed/unreadable PDFs, parser warnings and results that remain too large. Empty signature fields are allowed. See `user_guides/MAINTENANCE.md` for deployment CSP, notices, account-usage estimates and current engine/memory boundaries.
 
-Research choice: [qpdf](https://qpdf.readthedocs.io/en/stable/cli.html) preserves existing PDF objects and includes image optimization. The alternatives were a custom image optimizer on [pdf-lib](https://pdf-lib.js.org/), the newer [browser-qpdf wrapper](https://github.com/lipoe/browser-qpdf), [MuPDF](https://mupdfjs.readthedocs.io/en/latest/faq/index.html) and [Ghostscript](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html) with licensing/rewrite tradeoffs, and PDF.js page rasterization, which would lose document features. The selected wrapper is [release 0.3.0](https://github.com/neslinesli93/qpdf-wasm/releases/tag/0.3.0); its older engine is an explicit maintenance constraint, not a claim to current parser hardening.
+Research choice: [qpdf](https://qpdf.readthedocs.io/en/stable/cli.html) preserves existing PDF objects and includes image optimization. The alternatives were a custom image optimizer on [pdf-lib](https://pdf-lib.js.org/), the newer [browser-qpdf wrapper](https://github.com/lipoe/browser-qpdf), [MuPDF](https://mupdfjs.readthedocs.io/en/latest/faq/index.html) and [Ghostscript](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html) with licensing/rewrite tradeoffs, and PDF.js page rasterization, which would lose document features. The initial wrapper was [release 0.3.0](https://github.com/neslinesli93/qpdf-wasm/releases/tag/0.3.0). It was replaced on 23 October by the verified qpdf 12.4.2 engine; the old wrapper and its assets are removed.
 
 Feature verification before security integration: all 216 tests passed, including 33 PDF helper/worker/upload tests. Reintroducing the empty-signature bug and removing the output-size guard each produced the expected failing regression. The combined release verification above supersedes that snapshot; the normal typecheck now covers strict frontend source, Vite configuration and Functions.
 
 A production-build browser run used the production CSP, dummy authentication, real upload handlers and in-memory storage. Cancellation loaded no WASM and wrote nothing. A 7,814,566-byte fixture became a 3,044,935-byte PDF; page count, selectable text, filled form value, link URI and bookmark survived. Concours accepted the equivalent form with an empty signature field; a small PDF remained byte-for-byte unchanged. Signed, password-protected, corrupt and unreducible fixtures made no upload request. No browser warnings/errors or production writes occurred. This verifies fixtures on the desktop browser, not peak memory on older mobile devices. Thermo-nuclear, Ponytail and Matt Pocock Standards/Spec rechecks have no remaining findings; Claude's independent subscription review was unavailable because no subscription login was present.
 
-The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete. HEIC support was subsequently declined below. Before extending the PDF engine, evaluate a reproducible build on current qpdf and retain the protection/resource-boundary tests. No push or deployment requested.
+The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete. HEIC support was subsequently declined below. The 23 October pass upgrades qpdf and verifies its build information, binary hashes and protection/resource-boundary tests. No push or deployment requested.
 
 Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), included in local `main` with the security fixes. The primary checkout's separate security-audit branch is left unchanged.
 

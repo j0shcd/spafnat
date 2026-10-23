@@ -9,7 +9,8 @@ No operating budget. The administration must work for a non-technical team.
 Keep Cloudflare Pages, KV and private R2 storage; no paid service or storage
 migration is authorized. All public and administrative content is in French.
 
-- React 18, React Router, TypeScript, Vite, Tailwind 3 and shadcn/ui.
+- React 19, React Router, TypeScript, Vite 8, Tailwind 4 and shadcn/ui.
+- Browser minimum: Safari 16.4, Chrome 111 or Firefox 128 (approved for Tailwind 4).
 - `src/AppRoutes.tsx` owns routes; `src/components/Layout.tsx` wraps public pages.
 - `functions/api/` contains Cloudflare Pages Functions, using Web Crypto rather
   than Node APIs. `functions/env.d.ts` defines the bindings.
@@ -32,12 +33,17 @@ migration is authorized. All public and administrative content is in French.
 
 ## Development and verification
 
-Use Node 22 or newer and npm 10 or newer. `npm ci` installs the pinned lockfile.
+Use Node 24 LTS, at least 24.15.0, and npm 10 or newer; `.nvmrc` and
+`.node-version` select Node 24. `npm ci --ignore-scripts` installs the pinned lockfile
+without package lifecycle scripts. The manifest also permits Node 26 or newer.
 On an iCloud-synced machine, install outside the synced tree and move the finished
 `node_modules` into place if conflict copies appear. Do not delete Git index
 conflict copies as part of dependency repair.
 
 ```sh
+npm ci --ignore-scripts
+npm run check                  # all five checks below; at most eight lint warnings
+npm run audit:deps             # full tree, including build tools; fails on any advisory
 npm run dev                    # frontend at localhost:8080
 npm run preflight              # Cloudflare compatibility
 npm run typecheck              # strict frontend, Vite config and Functions
@@ -92,7 +98,9 @@ and discovers all API routes. Generated Worker routes include only `/api/*`, so
 this middleware does not turn static page visits into Function invocations.
 Cloudflare documents that [_headers does not cover Function responses](https://developers.cloudflare.com/pages/configuration/headers/).
 
-Document and concours hooks revalidate on focus. Gallery metadata expires after
+All admin API requests bypass the browser HTTP cache, including public list URLs
+used after uploads/deletions. Document and concours hooks revalidate on focus.
+Gallery metadata expires after
 one minute and local photo mutations invalidate the affected year's cache.
 Late requests cannot restore invalidated cache entries or overwrite a different
 selected year. Public gallery HTTP/CDN caching still allows bounded staleness;
@@ -126,7 +134,7 @@ zero operating cost remains a hard constraint.
 | P2 | Object-prototype names such as `constructor` pass concours category checks. | Fixed with one shared own-property category validator at every endpoint. |
 | P2 | API responses lack the static security-header policy. | Fixed centrally, with a discovered-route contract test and no-store auth/admin responses. |
 | P2 | Default contact policy trusts unrelated `*.pages.dev` origins and excludes the actual production domain. | Fixed: defaults permit SPAF domains and its own previews. Explicit allowlists still take priority; Origin is not bot authentication. |
-| Security | Dependency audit reports 34 affected package entries, including two critical development-tool entries. | Updated compatible packages and removed unused Lovable instrumentation/typography. Runtime audit now reports zero; full audit retains seven build-chain entries below. |
+| Security | Dependency audit reports 34 affected package entries, including two critical development-tool entries. | Compatible updates removed most entries; the 23 October migration below removes the remaining seven. The full audit now reports zero. |
 | Maintainability | Domain models are independently declared in multiple consumers; normal typecheck does not inspect frontend source. | Reused canonical models and made the normal check compile strict frontend source, Vite configuration and Functions. |
 
 ### Matt Pocock: Standards
@@ -158,14 +166,10 @@ Standards: **1 retained finding**. Spec: **4 findings fixed**.
 - **Admin quotas:** the documented all-writes throttling target is not met. A valid
   admin token can generate repeated storage operations. No additional account
   rules were installed, and their availability/entitlements were not verified.
-- **Build dependencies:** full npm audit retains five high entries through
-  Tailwind 3's `braces` chain and two moderate entries through its parser chain.
-  The [braces advisory has no patch](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
-  The [parser's upstream advisory](https://github.com/postcss/postcss-selector-parser/security/advisories/GHSA-rj75-hqrm-r3gf)
-  lists installed 6.1.5 as patched, while npm's combined range still flags it.
-  These process repository-controlled build patterns, not public form content.
-  Do not run builds over untrusted source/patterns or use `npm audit fix --force`;
-  a Tailwind 4 migration requires separate scope and visual verification.
+- **Build dependencies:** the seven remaining Tailwind 3 audit entries were
+  removed in the approved Tailwind 4 migration on 23 October. The full audit,
+  including development tools, now reports zero advisories. See the current
+  maintenance status below; the older verification snapshots are historical.
 - **Deployment evidence:** production bindings, permissions, secrets, billing,
   remote archive contents, deployed revision and deployed headers were not audited.
   No production data, mail, accounts or infrastructure were changed. The existing
@@ -203,7 +207,8 @@ collisions and canonical concours reads. A browser run through those handlers
 reduced a 7,814,566-byte PDF to 3,044,935 bytes with text, form, link, bookmark and
 linked cover preserved; a 55,323,807-byte photo became a 3,476,141-byte JPEG,
 and a small photo remained unchanged. The production dependency audit reports
-zero advisories; the full audit retains the seven build-chain entries above.
+zero advisories; at that snapshot the full audit retained seven build-chain
+entries, since resolved by the dependency maintenance pass below.
 
 Next bounded step: release local `main` through the existing Cloudflare process
 when authorized, then verify the deployed revision, headers, admin file
@@ -212,3 +217,72 @@ was performed. Storage changes remain out of scope. HEIC support was declined;
 no decoder dependency or implementation remains. See [the task list](project-notes/TODO.md)
 for release status and [maintenance guidance](user_guides/MAINTENANCE.md) for
 operational instructions.
+
+## Dependency maintenance — 23 October 2026
+
+**Implemented locally; not pushed or deployed.** Direct dependencies are pinned to
+current stable releases checked against npm. React 19, Tailwind 4, Vite 8, ESLint 10,
+Vitest 5 and PDF.js 6 replace their older major versions. The Tailwind migration
+retains the existing design, with desktop/mobile browser checks. Two intentional
+version constraints remain: TypeScript 6.0.3 satisfies typescript-eslint's current
+`<6.1` peer range; `@types/node` 24 follows the Node 24 runtime rather than Node 26.
+Recheck both constraints during updates; do not force incompatible versions.
+
+PDF reduction now uses **qpdf 12.4.2**, from pinned `@wasm-zoo/qpdf@0.1.1`.
+A build-time bridge imports the raw engine into our disposable worker; the package's
+browser SDK is not used. Reviewed JavaScript and WASM hashes are verified by
+`scripts/qpdf-vite-plugin.ts`; an unexpected change fails the build. The browser
+loads only static, self-hosted assets after confirmation, with no Blob worker,
+JavaScript eval, paid service or added CSP permission. Notices, engine build
+information, provenance and SBOM ship under `/pdf-engine/`. The lazy worker/WASM
+assets total about 2.24 MB before transfer compression. The 50 MiB input, 30-second
+deadline and 4 MiB output bounds remain; the new engine copies input into its
+filesystem. Its 512 MiB WASM memory maximum is not a total browser memory guarantee.
+Older mobile-device peak memory remains unverified.
+
+Verification: a clean install, all five checks, the full dependency audit and
+Cloudflare Functions compilation pass. There are 354 passing tests. Regression
+checks reject tampered engine assets, clean up failed PDF.js loads, and enforce
+fresh admin lists; deliberately restoring each defect made its tests fail.
+A local Cloudflare browser run under the production CSP compressed the large PDF
+fixture to 3,044,935 bytes, preserved text/form/link/bookmark and generated its
+matching cover. Cancel, signed, encrypted, corrupt and unreducible cases sent no
+upload. The concours list refreshed immediately after a real local upload. A 48 MP photo
+became a 3,476,141-byte JPEG; small photo/PDF fixtures stayed byte-for-byte unchanged.
+No production data or credentials were used. Eight existing Fast Refresh
+lint warnings and the main JavaScript bundle warning (about 753 kB) remain;
+these are development/performance warnings, not dependency advisories. The hooks
+linter's `set-state-in-effect` rule is explicitly deferred for the existing
+fetch/subscription effects; its other recommended checks run.
+
+### Update and security pipeline
+
+- `.github/workflows/quality.yml` runs clean installation, all checks and Functions
+  compilation for pull requests and `main`; its dependency job audits the entire
+  tree on those events and weekly. Audit/network errors fail the job.
+- `.github/workflows/codeql.yml` runs extended JavaScript/TypeScript security
+  analysis for pull requests, `main` and weekly. Workflow actions use reviewed
+  commit pins and limited permissions; pull requests receive no deployment secrets.
+- Dependabot proposes npm and Actions updates weekly, with a three-day cooldown
+  for ordinary npm releases and coherent groups for coupled major upgrades.
+  It never automatically merges. Security updates depend on repository settings;
+  the scheduled audit independently detects advisories.
+
+Use the standard GitHub-hosted runners for this public repository; no new paid
+service or Cloudflare workload is introduced by the checks. For each update,
+review release notes and compatibility, run `npm run check` and `npm run audit:deps`,
+then exercise affected uploads/pages locally. Engine updates also require reviewing
+provenance/notices, updating the hash pins and rerunning real PDF protection fixtures.
+Do not silence advisories or use `npm audit fix --force` to make the job green.
+
+**Activation still required:** publish these commits when authorized, verify Actions,
+Dependency graph, Dependabot alerts/security updates and code scanning are enabled,
+and disable CodeQL default setup when enabling this advanced workflow. Configure
+branch protection to require `Code and tests`, `Dependency security` and the actual
+CodeQL scanning result; a successful analysis upload alone does not mean no findings.
+These account settings and a remote workflow run were not verified or changed.
+Cloudflare deployment can run independently of GitHub checks: verify its deployment
+branch/build command and the required gates before calling the pipeline a release
+blocker. Next bounded step is that remote activation/verification, followed by the
+existing deployment smoke checks when authorized. KV/admin-quota limitations above
+remain; no account-wide zero-cost guarantee is claimed.

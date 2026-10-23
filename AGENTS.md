@@ -61,7 +61,7 @@ Test framework: Vitest + React Testing Library (configured in Phase 1).
 
 ## Architecture
 
-- **Stack**: Vite + React 18 + TypeScript + TailwindCSS + shadcn-ui + React Router
+- **Stack**: Vite 8 + React 19 + TypeScript + TailwindCSS 4 + shadcn-ui + React Router
 - **Path alias**: `@` maps to `./src` (configured in vite.config.ts and tsconfig)
 - **Layout**: `src/components/Layout.tsx` wraps all routes with `Header` + `Footer`
 - **Routing**: `src/AppRoutes.tsx` owns public and admin routes. Add custom routes above the catch-all `*` route.
@@ -122,3 +122,13 @@ All five must pass clean. The preflight script catches:
 ## Current audit status
 
 `README.md` owns the maintainability/security audit findings, remaining KV/admin-quota limitations and verification evidence. `project-notes/TODO.md` owns release status and accepted future work. Keep historical phase notes distinct from current behavior.
+
+## Dependency maintenance
+
+Use Node 24 LTS (minimum 24.15.0), `npm ci --ignore-scripts`, `npm run check`
+and `npm run audit:deps` for updates. The latter audits build tools too and must
+report zero advisories. Keep the eight existing Fast Refresh warnings from growing.
+The README owns compatibility holds, engine upgrade checks and the GitHub pipeline's
+activation status. qpdf upgrades require reviewing provenance/licenses, updating
+verified engine hashes and exercising real PDF protection fixtures; do not bypass
+the hash guard or expand CSP to accommodate a wrapper.
