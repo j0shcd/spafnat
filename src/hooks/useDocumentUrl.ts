@@ -175,7 +175,7 @@ export function parseMediaHeadMetadata(headers: Headers): MediaHeadMetadata {
     return trimmed;
   };
 
-  let originalFilename: string | null = null;
+  let originalFilename: string | null;
 
   if (encodedFilename) {
     try {

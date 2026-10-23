@@ -6,7 +6,7 @@
  * Large touch targets for elderly user.
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { Upload, Trash2, CheckSquare, Square } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,7 +55,7 @@ export default function AdminPhotos() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedYearRef = useRef(selectedYear);
-  selectedYearRef.current = selectedYear;
+  useLayoutEffect(() => { selectedYearRef.current = selectedYear; }, [selectedYear]);
   const photoRequestId = useRef(0);
 
   const loadPhotos = async (year: string) => {

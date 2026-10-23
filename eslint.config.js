@@ -19,6 +19,9 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // Loading state accompanies existing R2/KV subscriptions and cached reads.
+      // A data-layer rewrite is separate from upgrading the linter/compiler.
+      "react-hooks/set-state-in-effect": "off",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },

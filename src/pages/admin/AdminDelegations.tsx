@@ -216,7 +216,7 @@ export default function AdminDelegations() {
     return (
       <div className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label htmlFor={`${keyPrefix}-region`} className="text-base">
               Région
             </Label>
@@ -228,7 +228,7 @@ export default function AdminDelegations() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label htmlFor={`${keyPrefix}-delegate`} className="text-base">
               Nom du délégué
             </Label>
@@ -240,7 +240,7 @@ export default function AdminDelegations() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label htmlFor={`${keyPrefix}-gender`} className="text-base">
               Titre
             </Label>
@@ -256,7 +256,7 @@ export default function AdminDelegations() {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Label htmlFor={`${keyPrefix}-address`} className="text-base">
             Adresse
           </Label>
@@ -269,7 +269,7 @@ export default function AdminDelegations() {
         </div>
 
         {websiteFieldVisible ? (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label htmlFor={`${keyPrefix}-website`} className="text-base">
               Site web
             </Label>

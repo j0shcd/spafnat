@@ -218,7 +218,7 @@ export default function AdminConcours() {
               accept=".pdf"
               aria-label={`PDF : ${categoryConfig.label}`}
               disabled={!!pendingUpload || Object.values(categories).some((value) => value.isUploading)}
-              ref={(el) => (fileInputRefs.current[category] = el)}
+              ref={(el) => { fileInputRefs.current[category] = el; }}
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];

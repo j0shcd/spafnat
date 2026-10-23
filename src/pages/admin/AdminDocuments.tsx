@@ -233,7 +233,7 @@ export default function AdminDocuments() {
                 accept=".pdf"
                 aria-label={`Document : ${doc.label}`}
                 disabled={uploadingKey !== null || !!pendingUpload}
-                ref={(el) => (fileInputRefs.current[doc.key] = el)}
+                ref={(el) => { fileInputRefs.current[doc.key] = el; }}
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];

@@ -1,5 +1,5 @@
-import createQpdf from '@neslinesli93/qpdf-wasm';
-import wasmUrl from '@neslinesli93/qpdf-wasm/dist/qpdf.wasm?url';
+import createQpdf from 'virtual:spaf-qpdf-core';
+import wasmUrl from '@wasm-zoo/qpdf/qpdf-core.wasm?url';
 import {
   MAX_PDF_INPUT_BYTES, PDF_COMPRESSION_TARGET_BYTES, type PdfCompressionResult,
 } from './pdf-compression-protocol';
@@ -28,10 +28,13 @@ self.addEventListener('message', async ({ data: file }: MessageEvent<File>) => {
       throw new Error('Unsupported input');
     }
 
-    const qpdf = await createQpdf({ locateFile: () => wasmUrl });
+    const qpdf = await createQpdf({
+      locateFile: () => wasmUrl, noInitialRun: true, noExitRuntime: true,
+      print: () => {}, printErr: () => {},
+    });
     qpdf.FS.mkdir('/input');
-    qpdf.FS.mount(qpdf.WORKERFS, { blobs: [{ name: 'document.pdf', data: file }] }, '/input');
     const input = '/input/document.pdf';
+    qpdf.FS.writeFile(input, new Uint8Array(await file.arrayBuffer()));
     const inspection = qpdf.callMain([
       '--json', '--json-key=encrypt', '--json-key=acroform', '--json-key=qpdf',
       input, '/inspection.json',
@@ -39,6 +42,7 @@ self.addEventListener('message', async ({ data: file }: MessageEvent<File>) => {
     if (inspection !== 0) throw new Error('Invalid PDF');
 
     const inspectionBytes = qpdf.FS.readFile('/inspection.json');
+    qpdf.FS.unlink('/inspection.json');
     if (inspectionBytes.length > 4 * 1024 * 1024) throw new Error('PDF structure too large');
     const metadata = JSON.parse(new TextDecoder().decode(inspectionBytes)) as {
       encrypt?: { encrypted?: unknown }; qpdf?: unknown[];
@@ -57,6 +61,7 @@ self.addEventListener('message', async ({ data: file }: MessageEvent<File>) => {
         input, '/output.pdf',
       ]);
       if (exitCode !== 0) throw new Error('Compression failed');
+      qpdf.FS.unlink(input);
       const bytes = new Uint8Array(qpdf.FS.readFile('/output.pdf'));
       if (bytes.length > PDF_COMPRESSION_TARGET_BYTES) {
         result = { ok: false, reason: 'too-large' };

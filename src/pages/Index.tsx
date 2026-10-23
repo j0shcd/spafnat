@@ -203,7 +203,7 @@ const Index = () => {
           
           <div className="w-32 h-1 bg-accent mx-auto mb-8"></div>
           
-          <p className="font-serif-title text-xl md:text-2xl text-secondary italic mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="font-serif-title text-xl md:text-2xl text-secondary italic mb-8 max-w-3xl mx-auto leading-relaxed md:leading-8">
             "L&apos;art est une grande vibration où personne ne dépasse personne."
           </p>
           <p className="font-sans text-sm text-muted-foreground mb-8">
@@ -670,7 +670,7 @@ const Index = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleContactSubmit} className="space-y-4">
+                <form onSubmit={handleContactSubmit} className="space-y-4 pt-4">
                   {/* Honeypot field - hidden from humans, traps bots */}
                   <input
                     type="text"
@@ -683,7 +683,7 @@ const Index = () => {
                     autoComplete="off"
                   />
 
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 [&>label]:leading-6">
                     <Label htmlFor="name" className="font-sans">Nom complet</Label>
                     <Input
                       id="name"
@@ -695,7 +695,7 @@ const Index = () => {
                       maxLength={200}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 [&>label]:leading-6">
                     <Label htmlFor="email" className="font-sans">Email</Label>
                     <Input
                       id="email"
@@ -707,7 +707,7 @@ const Index = () => {
                       disabled={isSubmitting}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 [&>label]:leading-6">
                     <Label htmlFor="subject" className="font-sans">Sujet</Label>
                     <Input
                       id="subject"
@@ -719,7 +719,7 @@ const Index = () => {
                       maxLength={300}
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2 [&>label]:leading-6">
                     <Label htmlFor="message" className="font-sans">Message</Label>
                     <Textarea
                       id="message"

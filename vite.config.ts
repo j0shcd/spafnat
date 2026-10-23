@@ -1,6 +1,8 @@
 import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { qpdfCorePlugin } from "./scripts/qpdf-vite-plugin.ts";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,10 +10,13 @@ export default defineConfig({
     host: "::",
     port: 8080,
   },
-  plugins: [react()],
+  plugins: [react(), tailwindcss(), qpdfCorePlugin()],
+  worker: {
+    plugins: () => [qpdfCorePlugin(false)],
+  },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
   optimizeDeps: {

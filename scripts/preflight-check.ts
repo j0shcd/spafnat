@@ -320,6 +320,7 @@ function checkMissingDependencies(): ValidationResult {
       if (
         importPath.startsWith('.') ||
         importPath.startsWith('@/') ||
+        importPath === 'virtual:spaf-qpdf-core' ||
         importPath.startsWith('node:')
       ) {
         continue;

@@ -115,6 +115,7 @@ describe('PDF worker protection boundary', () => {
   let metadata: { encrypt: { encrypted: boolean }; qpdf: unknown[] };
   let output: Uint8Array;
   let callMain: ReturnType<typeof vi.fn>;
+  let createEngine: ReturnType<typeof vi.fn>;
   let postMessage: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
@@ -129,20 +130,27 @@ describe('PDF worker protection boundary', () => {
       addEventListener: (_name: string, listener: typeof handleMessage) => { handleMessage = listener; },
       postMessage,
     });
-    vi.doMock('@neslinesli93/qpdf-wasm', () => ({ default: async () => ({
-      callMain, WORKERFS: {}, FS: {
-        mkdir: vi.fn(), mount: vi.fn(),
+    createEngine = vi.fn(async () => ({
+      callMain, FS: {
+        mkdir: vi.fn(), writeFile: vi.fn(), unlink: vi.fn(),
         readFile: (path: string) => path === '/inspection.json'
           ? new TextEncoder().encode(JSON.stringify(metadata)) : output,
       },
-    }) }));
+    }));
+    vi.doMock('virtual:spaf-qpdf-core', () => ({ default: createEngine }));
     await import('../lib/pdf-compression.worker');
   });
 
   afterEach(() => {
-    vi.doUnmock('@neslinesli93/qpdf-wasm');
+    vi.doUnmock('virtual:spaf-qpdf-core');
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+  });
+
+  it.each([null, pdf(MAX_PDF_INPUT_BYTES + 1)])('rejects invalid worker input before creating an engine', async file => {
+    await handleMessage({ data: file as File });
+    expect(createEngine).not.toHaveBeenCalled();
+    expect(postMessage).toHaveBeenCalledWith({ ok: false, reason: 'unreadable' }, {});
   });
 
   it.each([
