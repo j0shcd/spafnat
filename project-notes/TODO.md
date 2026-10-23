@@ -6,7 +6,9 @@ Implemented locally: current stable dependency releases, approved Tailwind 4 mig
 
 Verification: clean install, 354 tests, strict typechecks, preflight, lint and build, full dependency audit (zero advisories) and Functions compilation. Real local browser fixtures preserve PDF text/forms/links/bookmarks and the matching cover; rejected/cancelled PDFs send no upload. Engine hashes, PDF cleanup and admin-cache regressions were proven failing with their fixes removed. Eight existing Fast Refresh warnings and the main bundle size warning remain. See [the README](../README.md#dependency-maintenance--23-october-2026) for supported-version holds and memory limits.
 
-Weekly Dependabot PRs, full audits and CodeQL workflows are configured locally (`ac3a065`); no automatic merging. Next bounded step: publish when authorized, verify repository security settings and require the checks/scanning results before merging. Verify Cloudflare's deployment gate separately. No push, deployment or account changes were performed; remote workflow execution and account allowances remain unverified. The primary checkout's security-audit branch is preserved.
+Weekly Dependabot PRs, full audits and CodeQL workflows are configured locally (`ac3a065`); no automatic merging. Next bounded step: publish when authorized, verify repository security settings and require the checks/scanning results before merging. Verify Cloudflare's deployment gate separately. No push, deployment or account changes were performed; remote workflow execution and account allowances remain unverified.
+
+Workspace cleanup: all six implementation branches are merged into local `main` and removed. The normal project folder now uses `main`; the extra worktree is archived. No implementation work remains on a separate branch or in an uncommitted file.
 
 ## Historical predeployment review — 22 October 2026
 
@@ -34,7 +36,7 @@ A production-build browser run used the production CSP, dummy authentication, re
 
 The user guide adds only the PDF confirmation/help instructions; its existing print-to-PDF option includes them automatically. Scope complete. HEIC support was subsequently declined below. The 23 October pass upgrades qpdf and verifies its build information, binary hashes and protection/resource-boundary tests. No push or deployment requested.
 
-Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), included in local `main` with the security fixes. The primary checkout's separate security-audit branch is left unchanged.
+Implementation commits: `ae1015d` (engine and boundary tests) and `91d5a28` (upload confirmation/integration and flow tests), included in local `main` with the security fixes.
 
 ## Maintainability and security audit — 22 October 2026
 
