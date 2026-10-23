@@ -43,9 +43,8 @@ export async function prefetchPdfCover(url: string): Promise<string> {
       // We only need page 1 for the cover preview.
       disableAutoFetch: true,
     });
-    const pdf = await loadingTask.promise;
-
     try {
+      const pdf = await loadingTask.promise;
       const page = await pdf.getPage(1);
       const baseViewport = page.getViewport({ scale: 1 });
       const fittedScale = TARGET_COVER_WIDTH_PX / baseViewport.width;
@@ -71,7 +70,7 @@ export async function prefetchPdfCover(url: string): Promise<string> {
       pdfCoverDataUrlCache.set(url, dataUrl);
       return dataUrl;
     } finally {
-      await pdf.destroy();
+      await loadingTask.destroy();
     }
   })();
 

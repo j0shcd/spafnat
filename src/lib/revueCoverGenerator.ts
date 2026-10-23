@@ -45,9 +45,8 @@ export async function generateRevueCoverFromPdf(pdfFile: File): Promise<File> {
     data: pdfBytes,
     disableAutoFetch: true,
   });
-  const pdf = await loadingTask.promise;
-
   try {
+    const pdf = await loadingTask.promise;
     const page = await pdf.getPage(1);
     const baseViewport = page.getViewport({ scale: 1 });
     const fittedScale = TARGET_COVER_WIDTH_PX / baseViewport.width;
@@ -76,7 +75,7 @@ export async function generateRevueCoverFromPdf(pdfFile: File): Promise<File> {
       lastModified: Date.now(),
     });
   } finally {
-    await pdf.destroy();
+    await loadingTask.destroy();
   }
 }
 
