@@ -87,6 +87,8 @@ async function adminFetch<T = unknown>(
     const response = await fetch(path, {
       ...options,
       headers,
+      // Admin reads must reflect the preceding mutation, including public list URLs.
+      cache: 'no-store',
     });
 
     // If 401 Unauthorized, clear token (session expired)
