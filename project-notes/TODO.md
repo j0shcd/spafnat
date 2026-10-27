@@ -27,7 +27,8 @@ place to cover SPAF's native libraries and monitoring health. It needs the machi
 on/app running; the GitHub checks run independently in the cloud.
 
 Native-engine remediation is implemented and verified on `codex/patch-pdf-engine`;
-production release is pending. The build-only workflow/recipe uses verified source
+[PR #6](https://github.com/j0shcd/spafnat/pull/6) contains the reviewable candidate.
+Production release is pending approval. The build-only workflow/recipe uses verified source
 archives and a pinned SDK container to produce qpdf 12.4.2 with zlib's exact
 CVE-2026-85091 fix. Its reviewed archive is vendored, integrity-locked, and checked
 at the build boundary; the libjpeg SBOM version is corrected to 9f. The README owns
