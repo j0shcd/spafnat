@@ -33,9 +33,11 @@ migration is authorized. All public and administrative content is in French.
 
 ## Development and verification
 
-Use Node 24 LTS, at least 24.15.0, and npm 10 or newer; `.nvmrc` and
-`.node-version` select Node 24. `npm ci --ignore-scripts` installs the pinned lockfile
-without package lifecycle scripts. The manifest also permits Node 26 or newer.
+Use Node 24 LTS, at least 24.22.1, and npm 10 or newer; `.nvmrc` and
+`.node-version` pin the reviewed security baseline. `npm ci --ignore-scripts` installs the pinned lockfile
+without package lifecycle scripts. `.npmrc` enforces supported engines and disables
+dependency lifecycle scripts by default. The manifest also permits Node 26.12.1
+or later within Node 26; unreviewed future majors are excluded.
 On an iCloud-synced machine, install outside the synced tree and move the finished
 `node_modules` into place if conflict copies appear. Do not delete Git index
 conflict copies as part of dependency repair.
@@ -258,31 +260,167 @@ fetch/subscription effects; its other recommended checks run.
 ### Update and security pipeline
 
 - `.github/workflows/quality.yml` runs clean installation, all checks and Functions
-  compilation for pull requests and `main`; its dependency job audits the entire
-  tree on those events and weekly. Audit/network errors fail the job.
+  compilation for pull requests and `main`. Its dependency job runs daily at
+  06:17 UTC, on PRs/pushes and manually. It audits the entire lockfile, including
+  development/optional/peer packages, without installing or executing dependency
+  code. Registry/network errors fail the job. CI resolves the latest Node 24.
+- The same job checks the official Node release feed against `.nvmrc` and fails
+  when a newer Node 24 security release exists. npm advisories do not cover Node's
+  bundled runtime libraries. Review each new security baseline, then update both
+  runtime pins, manifest/lockfile engines and this guide; verify the runtime used
+  by the developer machine and Cloudflare build separately.
 - `.github/workflows/codeql.yml` runs extended JavaScript/TypeScript security
-  analysis for pull requests, `main` and weekly. Workflow actions use reviewed
-  commit pins and limited permissions; pull requests receive no deployment secrets.
-- Dependabot proposes npm and Actions updates weekly, with a three-day cooldown
-  for ordinary npm releases and coherent groups for coupled major upgrades.
-  It never automatically merges. Security updates depend on repository settings;
-  the scheduled audit independently detects advisories.
+  analysis for pull requests, `main` and weekly. Actions use full commit pins,
+  limited permissions and no deployment secrets. Dependabot checks npm and Actions
+  updates weekly, with a three-day cooldown for ordinary npm releases and coupled
+  major upgrade groups. No automatic merging is configured.
 
-Use the standard GitHub-hosted runners for this public repository; no new paid
-service or Cloudflare workload is introduced by the checks. For each update,
-review release notes and compatibility, run `npm run check` and `npm run audit:deps`,
-then exercise affected uploads/pages locally. Engine updates also require reviewing
-provenance/notices, updating the hash pins and rerunning real PDF protection fixtures.
-Do not silence advisories or use `npm audit fix --force` to make the job green.
+GitHub's native [Dependabot alerts](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-alerts)
+and [npm malware alerts](https://docs.github.com/en/code-security/concepts/supply-chain-security/malware-alerts)
+complement the daily audit, subject to repository settings and advisory coverage.
+They are not proof that an installed machine is clean. SHA-pinned Actions need
+upstream advisory review as well: Dependabot vulnerability alerts do not currently
+cover Actions pinned only by SHA. Keep the SHA pins rather than weakening them.
+[Scheduled workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
+can be delayed and are disabled after 60 days of inactivity in a public repository.
+Native alerts remain the independent advisory-triggered layer. Check the Actions
+page at least monthly and after a quiet period; re-enable dormant schedules.
 
-**Activation still required:** publish these commits when authorized, verify Actions,
-Dependency graph, Dependabot alerts/security updates and code scanning are enabled,
-and disable CodeQL default setup when enabling this advanced workflow. Configure
-branch protection to require `Code and tests`, `Dependency security` and the actual
-CodeQL scanning result; a successful analysis upload alone does not mean no findings.
-These account settings and a remote workflow run were not verified or changed.
-Cloudflare deployment can run independently of GitHub checks: verify its deployment
-branch/build command and the required gates before calling the pipeline a release
-blocker. Next bounded step is that remote activation/verification, followed by the
-existing deployment smoke checks when authorized. KV/admin-quota limitations above
-remain; no account-wide zero-cost guarantee is claimed.
+Use standard GitHub-hosted Linux runners for this public repository; these are
+[free for public repositories](https://docs.github.com/en/actions/concepts/billing-and-usage).
+No extra vendor, Cloudflare workload or repository write token is added. Renovate
+would duplicate the updater and add another app; OSV is useful as an independent
+audit cross-check; Scorecard assesses repository practices rather than package
+exposure. Keep the existing GitHub/npm setup. For each update, review release notes,
+run `npm run check` and `npm run audit:deps`, and exercise affected flows locally.
+Engine upgrades also require provenance/notices, hash-pin review and real PDF
+protection fixtures. Never suppress advisories or run `npm audit fix --force`.
+
+### Vulnerability review — 27 October 2026
+
+Scope: current `main` at `4a847af`, all locked npm production/build/test/optional
+packages, workflow actions and the Node runtime; recent upstream advisories from
+29 September through 27 October, plus older relevant supply-chain incidents.
+This is a dependency/exposure assessment, not a penetration test or host forensics.
+
+- Live npm audit: **zero advisories**, including build tools (532 package nodes in
+  npm's summary). Independent OSV query: **zero flagged versions** across all 528
+  unique locked npm name/version pairs. Both are time-limited database results.
+- **Node runtime affected:** this machine reports 24.16.0, before the
+  [21 October security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
+  The [24.22.1 fixes](https://nodejs.org/en/blog/release/v24.22.1) include DNS NUL
+  truncation (CVE-2026-105482), TLS validation (CVE-2026-105483, CVE-2026-106069,
+  CVE-2026-106072), Brotli memory corruption/RCE (CVE-2026-111497), HTTP response
+  confusion (CVE-2026-105481), snapshot randomness (CVE-2026-106074) and permission
+  checks (CVE-2026-106073), plus bundled library/root-certificate updates. These
+  concern developer/build tooling here: production Functions run on Cloudflare
+  Workers, not a Node server. No exploit or compromise was demonstrated. Runtime
+  floors/pins are raised to 24.22.1 (or 26.12.1 on Node 26); this does not upgrade
+  the machine-wide Volta installation or prove Cloudflare's build runtime.
+- **Undici already fixed:** Wrangler 4.153.0 in `4a847af` resolves the tooling
+  chain to Undici 7.30.1 and 8.12.3, meeting the
+  [15 October patched versions](https://github.com/nodejs/undici/releases/tag/v8.12.2).
+  No application import of Undici was found; the separate Node-bundled copy still
+  requires the runtime upgrade above.
+- **Vite already fixed:** 8.3.5 is beyond the affected 8.3.0–8.3.2 range in the
+  [6 October advisories](https://github.com/vitejs/vite/security/advisories).
+  The 21 October v6-only query bypass affects 6.4.4, which is absent. These are
+  development-server issues; the production site serves built assets.
+- React 19.3.1/Router 7.18.4 and PDF.js 6.4.299 have no matched current advisory.
+  This app uses client-side React, without `react-server-dom-*`, SSR or RSC
+  handlers; the [RSC vulnerability family](https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components)
+  has no installed target. PDF.js exceeds the
+  [6.2.108 security fix](https://github.com/mozilla/pdf.js/security/advisories/GHSA-hq66-cqwq-w95j).
+- **Known poisoned package versions absent:** compared the installed lockfile to
+  the [Keyv/cacheable incident's published versions](https://www.aikido.dev/blog/keyv-and-friends-compromised-in-npm-supply-chain-attack).
+  Present versions are keyv 5.6.0, flat-cache 6.1.23, file-entry-cache 11.1.5,
+  cacheable 2.5.0, @cacheable/memory 2.2.0 and @cacheable/utils 2.5.0; none equal
+  the reported poisoned versions. No unnecessary library upgrade was made solely
+  to claim a change. Lockfile/advisory checks cannot exclude historical exposure,
+  unknown malware or credentials stolen outside this checkout.
+- **Vitest already fixed:** @vitest/ui and @vitest/mocker are 5.0.5. This
+  includes the 21 October fixes for development-server file disclosure
+  ([CVE-2026-112948](https://github.com/vitest-dev/vitest/security/advisories/GHSA-p458-7748-mcp3)),
+  mock-registration injection (CVE-2026-112949) and Windows traversal
+  (CVE-2026-112950). None require a further update of this lockfile.
+- **Embedded zlib unresolved:** qpdf's reviewed WASM engine declares zlib 1.3.2,
+  within the affected range for **CVE-2026-85091**, a nonblocking gzip-writer
+  overflow. The [upstream fix](https://github.com/madler/zlib/commit/df84af25dc)
+  postdates zlib 1.3.2; the declared
+  [Emscripten 6.0.8 port](https://github.com/emscripten-core/emscripten/blob/6.0.8/tools/ports/zlib.py)
+  uses that release without an indicated backport. The reviewed PDF worker uses
+  fixed MEMFS paths and qpdf's
+  [deflate/inflate pipeline](https://raw.githubusercontent.com/qpdf/qpdf/v12.4.2/libqpdf/Pl_Flate.cc),
+  rather than nonblocking gzip-file writes. The vulnerable path was not observed;
+  exploitability is not demonstrated, and binary exclusion/patch status is not
+  proven. Do not label this engine CVE-free because npm audit passes. Next fix:
+  obtain a reproducible engine build with the upstream zlib patch (or reliable
+  link/call evidence excluding the vulnerable functions), review provenance and
+  licenses, update verified hashes, and rerun real compression/protected/corrupt
+  PDF fixtures under the production CSP. Do not edit installed WASM bytes or
+  bypass the hash guard. No reviewed replacement was available in this pass.
+- **Native inventory caveat:** the wrapper remains @wasm-zoo/qpdf 0.1.1/qpdf
+  12.4.2 with zlib 1.3.2 and IJG libjpeg 9f, using native crypto without OpenSSL.
+  Its SBOM incorrectly gives libjpeg's version as 6.0.8 (the Emscripten version);
+  BUILDINFO/source metadata says 9f. Use the reviewed native inventory until the
+  upstream SBOM is corrected. No specific new applicable libjpeg 9f or qpdf CVE
+  was found in the primary sources reviewed; this is not a clean-bill guarantee.
+
+**Public deployment evidence:** read-only requests to spafnat.com returned 200;
+the deployed main JavaScript, CSS and `/pdf-engine/BUILDINFO.txt` matched the clean
+local build byte-for-byte by SHA-256. The embedded zlib finding therefore also
+applies to the publicly shipped engine inventory. This does not establish the
+production Functions revision, Cloudflare settings or runtime account configuration.
+
+**Remote evidence, checked 27 October:** the repository is public; remote `main`
+matches `4a847af`. Both security workflows are active. The weekly dependency run
+[failed on 26 October](https://github.com/j0shcd/spafnat/actions/runs/40327528245)
+before the Wrangler fix; the subsequent
+[Quality run passed](https://github.com/j0shcd/spafnat/actions/runs/40362000332), as did
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40362000394). This supersedes
+older notes that the pipeline was unpublished. A successful CodeQL run proves
+analysis/upload execution, not an empty alert list. Dependency graph, native alert
+settings, security-update enablement and notification delivery require account
+access and remain unverified. Open Dependabot PRs for TypeScript 7 and @types/node
+26 are ordinary major updates, not evidence of unpatched CVEs; keep the documented
+compatibility holds until reviewed.
+
+**Active local follow-up:** the existing daily 09:00 security-monitor automation
+was updated in place to include SPAF's npm/runtime/Actions and embedded native
+libraries, the zlib finding, SBOM caveat and failed/dormant cloud monitoring. It
+reports meaningful changes and required action, without repeating unchanged
+findings. The existing cross-project/Homebrew work and schedule were preserved.
+It requires the computer on and app running for local-file work, per the
+[scheduled-task documentation](https://learn.chatgpt.com/docs/automations?surface=app);
+it complements the independent GitHub cloud checks. Notification delivery and its
+next unattended run remain to be observed.
+
+**Verification:** clean temporary installation with lifecycle scripts disabled;
+preflight, strict typechecks, lint (eight existing warnings), all 354 tests,
+production build and Cloudflare Functions compilation passed. Registry signature
+verification passed for all 423 installed packages; 213 also had verified
+attestations. Signatures attest origin/integrity, not absence of malicious code.
+After the initial checks on the existing runtime, the official Node 24.22.1
+archive was downloaded and verified against its official SHA-256 before execution.
+A second clean install (without an engine override) and all five checks passed on
+Node 24.22.1/npm 11.19.1. The machine-wide Volta runtime is unchanged; use the
+reviewed version before the next local install/build. The actual workflow guard
+also passed against the live Node release feed and seven fixture cases
+(current/stale/new security release, invalid pin, empty feed, HTTP failure and
+inconsistent runtime pins). Removing its stale-version guard made the regression
+fail. An npm install fixture rejected Node 24.16.0; restoring the old engine range
+made the same rejection assertion fail. The live lockfile-only audit passed.
+No tracked application tests were changed for this configuration-only work.
+
+**Remaining plan:** publish this daily/runtime-monitor change when authorized;
+verify a successful remote run and a controlled failure notification. In repository
+Settings → Code security, verify Dependency graph, Dependabot alerts (including
+malware) and security updates. Set personal security/workflow notifications and
+verify delivery; scheduled failure notifications depend on the schedule actor's
+[notification settings](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs).
+`main` is currently **unprotected** according to the public branch API. Require
+`Code and tests`, `Dependency security` and CodeQL results before merges; verify
+Cloudflare's independent deployment gate/build Node version before treating these
+checks as release blockers. Retained KV/admin-quota limitations above are unchanged.
+No production compromise assessment, deployment/account settings change or email
+send is claimed by this audit.

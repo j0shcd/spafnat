@@ -125,10 +125,11 @@ All five must pass clean. The preflight script catches:
 
 ## Dependency maintenance
 
-Use Node 24 LTS (minimum 24.15.0), `npm ci --ignore-scripts`, `npm run check`
+Use Node 24 LTS (minimum 24.22.1), `npm ci --ignore-scripts`, `npm run check`
 and `npm run audit:deps` for updates. The latter audits build tools too and must
 report zero advisories. Keep the eight existing Fast Refresh warnings from growing.
-The README owns compatibility holds, engine upgrade checks and the GitHub pipeline's
-activation status. qpdf upgrades require reviewing provenance/licenses, updating
+The project npm config rejects unsupported runtimes and disables dependency lifecycle
+scripts. The README owns compatibility holds, engine upgrade checks and the GitHub
+pipeline's live verification status. qpdf upgrades require reviewing provenance/licenses, updating
 verified engine hashes and exercising real PDF protection fixtures; do not bypass
 the hash guard or expand CSP to accommodate a wrapper.

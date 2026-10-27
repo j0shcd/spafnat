@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "engines": {
-    "node": "^24.15.0 || >=26.0.0",
+    "node": "^24.22.1 || ^26.12.1",
     "npm": ">=10.0.0"
   },
   "scripts": {
@@ -21,7 +21,7 @@
     "typecheck:functions": "tsc -p functions/tsconfig.json --noEmit",
     "preflight": "tsx scripts/preflight-check.ts",
     "check": "npm run preflight && npm run typecheck && npm run lint -- --max-warnings 8 && npm run test:run && npm run build",
-    "audit:deps": "npm audit --audit-level=low"
+    "audit:deps": "npm audit --package-lock-only --include=dev --include=optional --include=peer --audit-level=low"
   },
   "dependencies": {
     "@hookform/resolvers": "6.0.0",
