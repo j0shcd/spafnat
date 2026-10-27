@@ -344,28 +344,36 @@ This is a dependency/exposure assessment, not a penetration test or host forensi
   ([CVE-2026-112948](https://github.com/vitest-dev/vitest/security/advisories/GHSA-p458-7748-mcp3)),
   mock-registration injection (CVE-2026-112949) and Windows traversal
   (CVE-2026-112950). None require a further update of this lockfile.
-- **Embedded zlib unresolved:** qpdf's reviewed WASM engine declares zlib 1.3.2,
-  within the affected range for **CVE-2026-85091**, a nonblocking gzip-writer
-  overflow. The [upstream fix](https://github.com/madler/zlib/commit/df84af25dc)
-  postdates zlib 1.3.2; the declared
-  [Emscripten 6.0.8 port](https://github.com/emscripten-core/emscripten/blob/6.0.8/tools/ports/zlib.py)
-  uses that release without an indicated backport. The reviewed PDF worker uses
-  fixed MEMFS paths and qpdf's
-  [deflate/inflate pipeline](https://raw.githubusercontent.com/qpdf/qpdf/v12.4.2/libqpdf/Pl_Flate.cc),
-  rather than nonblocking gzip-file writes. The vulnerable path was not observed;
-  exploitability is not demonstrated, and binary exclusion/patch status is not
-  proven. Do not label this engine CVE-free because npm audit passes. Next fix:
-  obtain a reproducible engine build with the upstream zlib patch (or reliable
-  link/call evidence excluding the vulnerable functions), review provenance and
-  licenses, update verified hashes, and rerun real compression/protected/corrupt
-  PDF fixtures under the production CSP. Do not edit installed WASM bytes or
-  bypass the hash guard. No reviewed replacement was available in this pass.
-- **Native inventory caveat:** the wrapper remains @wasm-zoo/qpdf 0.1.1/qpdf
-  12.4.2 with zlib 1.3.2 and IJG libjpeg 9f, using native crypto without OpenSSL.
-  Its SBOM incorrectly gives libjpeg's version as 6.0.8 (the Emscripten version);
-  BUILDINFO/source metadata says 9f. Use the reviewed native inventory until the
-  upstream SBOM is corrected. No specific new applicable libjpeg 9f or qpdf CVE
-  was found in the primary sources reviewed; this is not a clean-bill guarantee.
+- **Embedded zlib fixed in the verified candidate; production release pending:**
+  the original @wasm-zoo/qpdf 0.1.1 engine declared unpatched zlib 1.3.2, affected
+  by CVE-2026-85091. It is replaced by the repository-owned
+  `@spaf/qpdf-engine@12.4.2-spaf.1` archive in `vendor/`, keeping qpdf 12.4.2,
+  libjpeg 9f, native crypto and the existing worker API/CSP/resource limits.
+  [Build 40523551893](https://github.com/j0shcd/spafnat/actions/runs/40523551893)
+  compiled verified source archives with the exact
+  [upstream fix](https://github.com/madler/zlib/commit/df84af25dc1942490e1d1c899a07619152a46148)
+  in the digest-pinned Emscripten 6.0.8 SDK. The 710,651-byte vendored archive has
+  SHA-256 `32e2019c575b512b7127585532a6c2a9a24e763213c479f50537ed13427e3a77`;
+  the reviewed WASM SHA-256 is
+  `c15716e69adfa3d3aab74e30c95b5aa5fac69ecd45dc1103efad5fd13b8de176`.
+  No other locked library versions changed. The bridge verifies runtime hashes,
+  the patch receipt and native inventory before bundling. Missing patch metadata,
+  inconsistent codec versions or hashes, and the previous engine binary fail its
+  boundary tests. The incorrect upstream libjpeg SBOM version is corrected to 9f.
+  Build receipts are explicitly unsigned; they are not represented as SLSA
+  attestations. Each rebuilt binary still needs hash/provenance/license review.
+- **Rebuilding and native monitoring:** `.github/workflows/pdf-engine.yml` runs
+  manually or on the dedicated build branch, using `scripts/build-pdf-engine.sh`.
+  It uses a fresh container/output directory, refuses host execution or existing
+  output, verifies source/patch digests, and emits review artifacts with link maps
+  and a file ownership manifest. It has read-only repository permissions and no
+  deployment secrets; it never installs, publishes or deploys its output. Keep
+  the reviewed archive in Git because workflow artifacts expire. Rebuild inputs
+  are pinned, but byte-for-byte reproduction of a later run is not claimed.
+  Dependabot/npm audit do not patch or fully scan embedded native code; continue
+  upstream qpdf/zlib/libjpeg monitoring and run real PDF fixtures for every engine
+  update. No new specific applicable qpdf/libjpeg CVE was found in the reviewed
+  primary sources.
 
 **Public deployment evidence:** read-only requests to spafnat.com returned 200;
 the deployed main JavaScript, CSS and `/pdf-engine/BUILDINFO.txt` matched the clean
@@ -421,15 +429,46 @@ fail. An npm install fixture rejected Node 24.16.0; restoring the old engine ran
 made the same rejection assertion fail. The live lockfile-only audit passed.
 No tracked application tests were changed for this configuration-only work.
 
-**Tool-specific runtime follow-up:** `volta list --default` still shows installed
-Codex 0.161.0 and pnpm 11.5.1 attached to Node 24.16.0. Updating Volta's default does
-not rebind those installed tools. They are outside SPAF's npm build/test process;
-their separate runtimes remain an open host-tooling item. Rebind/reinstall the same
-tool versions under a patched runtime and verify each launcher before claiming
-that all local Node consumers are patched. Their versions and pins were not changed.
+**Tool-specific runtimes fixed:** reinstalling the same Codex 0.161.0 and pnpm
+11.5.1 versions through Volta rebound both to Node 24.22.1/npm 12.2.0.
+`volta list --default`, their installed platform records and successful version
+commands confirm the change. The default Node upgrade alone had not changed them.
 
-**Remaining plan:** observe the first daily invocation and verify a controlled
-failure notification. In repository
+**Candidate verification:** all 360 tests and required checks pass after a clean
+install; the full lockfile audit and Functions compilation pass. The real worker
+reduced an 11,558,019-byte PDF to 2,770,849 bytes. Independent extraction preserved
+one page, selectable text, a filled form value, link and bookmark; rendered output
+was inspected. Signed, encrypted, corrupt and unreducible fixtures were refused,
+and original fixture hashes were unchanged. The real browser worker produced the
+same output under the existing production CSP. Removing the native-patch guard or
+substituting the previous WASM made the new boundary regressions fail; restoring
+both passed. Eight existing lint warnings remain. These fixture checks do not
+establish peak memory on older phones.
+
+**Dependabot security patches:** compatible minor/patch fixes have a separate
+`security-fixes` group using `applies-to: security-updates`. Major security fixes
+remain individually reviewable; they are not suppressed. The ordinary weekly
+version-update schedule and three-day cooldown remain; GitHub's security updates
+[do not use that cooldown](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-version-updates).
+There is no auto-merge. Configuration takes effect on the default branch, and
+native [security-update enablement](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)
+still requires Dependency graph, Dependabot alerts and security updates enabled
+in repository Settings → Advanced Security. The connected GitHub tool currently
+exposes repository/check APIs but not those settings or personal notifications;
+configuration alone is not evidence that security PRs are enabled.
+
+**Build runtime evidence:** Vite now emits `build-info.json` with only the Node
+version and public commit hash (Cloudflare's `CF_PAGES_COMMIT_SHA` or GitHub's
+`GITHUB_SHA`, otherwise null). After release, fetch it without relying on SPA
+fallback, check it is JSON, compare the commit, and verify the Node security floor.
+This complements `.nvmrc`, `.node-version` and enforced npm engines. It does not
+prove account bindings, billing or deployment gates. The Cloudflare plugin was
+made visible during this follow-up but its backend returned `Unknown tool` for
+read-only discovery/identity calls; no account verification or changes succeeded.
+
+**Remaining plan:** release the verified engine/security-patch configuration when
+authorized, then verify deployed engine/build receipts. Observe the first daily
+invocation and verify a controlled failure notification. In repository
 Settings → Code security, verify Dependency graph, Dependabot alerts (including
 malware) and security updates. Set personal security/workflow notifications and
 verify delivery; scheduled failure notifications depend on the schedule actor's

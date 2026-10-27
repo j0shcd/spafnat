@@ -12,7 +12,13 @@ zlib_digest=16fea4df307a68cf0035858abe2fd550250618a97590e202037acd18a666f57afc10
 jpeg_digest=7f733d79cf176c690dcf127352f9aa7ec48000455944f286faae606cdeada6f6865b4a3f9f01bda8947b5b1089bb3e52d2b56879b6e871279ec5cbd1829304dc
 
 [[ -f /.dockerenv ]] || { echo 'Use the pinned SDK container; no host installation is supported' >&2; exit 1; }
-[[ "$(emcc -dumpversion)" == 6.0.8 ]] && emcc --version | grep -Fq "$sdk_commit"
+verify_sdk() {
+  if [[ "$(emcc -dumpversion)" != 6.0.8 ]] || ! emcc --version | grep -Fq "$sdk_commit"; then
+    echo 'Unreviewed Emscripten SDK' >&2
+    return 1
+  fi
+}
+verify_sdk
 [[ -d /out && ! -L /out ]] || { echo '/out must be a new mounted output directory' >&2; exit 1; }
 [[ -z "$(find /out -mindepth 1 -maxdepth 1 -print -quit)" ]] || { echo 'Refusing to overwrite existing output' >&2; exit 1; }
 work="$(mktemp -d /tmp/spaf-qpdf.XXXXXXXX)"
