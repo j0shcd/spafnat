@@ -446,6 +446,26 @@ substituting the previous WASM made the new boundary regressions fail; restoring
 both passed. Eight existing lint warnings remain. These fixture checks do not
 establish peak memory on older phones.
 
+**Dependency PR review — 27 October:** compatible updates from
+[PR #7](https://github.com/j0shcd/spafnat/pull/7) (React Hook Form 7.91.0) and
+[PR #8](https://github.com/j0shcd/spafnat/pull/8) (Workers types 5.20261024.1) are
+integrated into `main`. Their only additional lockfile entries describe six
+already-bundled optional Tailwind WASI dependencies; no new native engine or
+runtime change is included. Their individual cloud Quality/CodeQL checks passed.
+A fresh combined install passed all 360 tests, the five required checks, full
+audit (zero advisories), Functions compilation and registry signature verification
+(422 registry packages; 212 with attestations). Three isolated login-form smoke
+checks also passed: empty validation, validated submission/navigation and error
+recovery, using mocked authentication without production requests.
+
+[PR #5](https://github.com/j0shcd/spafnat/pull/5) stays open: TypeScript 7.0.2 fails
+`npm ci` with ERESOLVE because typescript-eslint 8.72.0 requires `>=4.8.4 <6.1.0`.
+Do not bypass peer checks; revisit when the ESLint toolchain supports TypeScript 7.
+[PR #4](https://github.com/j0shcd/spafnat/pull/4) stays open: Node 26 types would
+allow APIs unavailable on the pinned Node 24 runtime. Keep types on major 24 until
+a separately reviewed runtime migration. Neither hold represents an unpatched CVE.
+The open major-upgrade branches are active PRs and are excluded from cleanup.
+
 **Dependabot security patches:** compatible minor/patch fixes have a separate
 `security-fixes` group using `applies-to: security-updates`. Major security fixes
 remain individually reviewable; they are not suppressed. The ordinary weekly

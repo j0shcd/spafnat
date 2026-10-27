@@ -68,6 +68,20 @@ security PRs when an advisory applies, verify
 notification delivery and protect `main` with required checks. No Cloudflare
 billing, storage, account settings or production uploads were changed.
 
+## Dependency PR review — 27 October 2026
+
+Compatible PRs [#7](https://github.com/j0shcd/spafnat/pull/7) (React Hook Form
+7.91.0) and [#8](https://github.com/j0shcd/spafnat/pull/8) (Workers types
+5.20261024.1) are integrated into `main`. Their combined clean install passes all
+360 tests, the five gates, full audit, signatures and Functions compilation;
+three additional isolated login-form smoke checks pass without real API calls.
+The canonical README owns the detailed review and compatibility holds.
+
+Major PRs #4/#5 remain open deliberately: retain Node 24 types for the Node 24
+runtime; TypeScript 7 fails installation against the current ESLint peer range.
+Next bounded step: revisit TypeScript 7 when typescript-eslint supports it; review
+Node type majors together with a runtime migration. Do not auto-merge either hold.
+
 ## Dependency maintenance — 23 October 2026
 
 Implemented locally: current stable dependency releases, approved Tailwind 4 migration with the existing design preserved, and qpdf 12.4.2 in our disposable worker (`a3247fb`). PDF.js 6 cleans up failed loads (`f5c9e33`); all admin lists now bypass browser HTTP caching after mutations (`a0712e0`). No HEIC decoder, paid converter or Cloudflare limit increase is added.
