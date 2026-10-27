@@ -1,0 +1,41 @@
+name: PDF engine rebuild
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/patch-pdf-engine]
+    paths:
+      - .github/workflows/pdf-engine.yml
+      - scripts/build-pdf-engine.sh
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pdf-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build with the reviewed SDK and patched zlib
+        run: |
+          mkdir "$RUNNER_TEMP/pdf-engine"
+          docker run --rm \
+            -e BUILD_COMMIT="$GITHUB_SHA" \
+            -e BUILD_RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            -v "$PWD/scripts/build-pdf-engine.sh:/recipe.sh:ro" \
+            -v "$RUNNER_TEMP/pdf-engine:/out" \
+            emscripten/emsdk:6.0.8@sha256:f174124ff798a3ead1abef247d9a849c270b642d552fea500a42565ff210f765 \
+            bash /recipe.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reviewed-pdf-engine
+          path: ${{ runner.temp }}/pdf-engine/
+          if-no-files-found: error
+          retention-days: 14

@@ -26,6 +26,14 @@ The existing daily 09:00 local security automation is active and was updated in
 place to cover SPAF's native libraries and monitoring health. It needs the machine
 on/app running; the GitHub checks run independently in the cloud.
 
+Native-engine remediation in progress: `.github/workflows/pdf-engine.yml` and
+`scripts/build-pdf-engine.sh` build qpdf 12.4.2 with the exact zlib security patch
+in a digest-pinned Emscripten container, without a host SDK installation. The
+build-only branch is `codex/patch-pdf-engine`; outputs are review artifacts, with
+source/patch digests, licenses, a corrected native SBOM and link evidence. They are
+not installed or deployed automatically. No security closure is claimed until the
+artifact is checked and the real PDF fixtures pass.
+
 Unresolved embedded-library finding: qpdf's zlib 1.3.2 is in CVE-2026-85091's
 affected range. The nonblocking gzip-writer path was not observed in the reviewed
 MEMFS PDF flow, but binary exclusion/patch status is unproven. Next bounded engine
