@@ -26,34 +26,42 @@ The existing daily 09:00 local security automation is active and was updated in
 place to cover SPAF's native libraries and monitoring health. It needs the machine
 on/app running; the GitHub checks run independently in the cloud.
 
-Native-engine remediation in progress: `.github/workflows/pdf-engine.yml` and
-`scripts/build-pdf-engine.sh` build qpdf 12.4.2 with the exact zlib security patch
-in a digest-pinned Emscripten container, without a host SDK installation. The
-build-only branch is `codex/patch-pdf-engine`; outputs are review artifacts, with
-source/patch digests, licenses, a corrected native SBOM and link evidence. They are
-not installed or deployed automatically. No security closure is claimed until the
-artifact is checked and the real PDF fixtures pass.
+Native-engine remediation is implemented and verified on `codex/patch-pdf-engine`;
+production release is pending. The build-only workflow/recipe uses verified source
+archives and a pinned SDK container to produce qpdf 12.4.2 with zlib's exact
+CVE-2026-85091 fix. Its reviewed archive is vendored, integrity-locked, and checked
+at the build boundary; the libjpeg SBOM version is corrected to 9f. The README owns
+the build run, source/patch hashes and binary identity. No other library versions
+changed, and the UI/CSP/worker limits remain unchanged.
 
-Unresolved embedded-library finding: qpdf's zlib 1.3.2 is in CVE-2026-85091's
-affected range. The nonblocking gzip-writer path was not observed in the reviewed
-MEMFS PDF flow, but binary exclusion/patch status is unproven. Next bounded engine
-step: verified rebuild containing the upstream fix, provenance/license/hash review
-and real protected/corrupt/compression fixture checks. The wrapper's libjpeg SBOM
-version is also incorrect; monitor reviewed BUILDINFO (9f) until corrected.
+Verification: 360 tests and all five checks pass, along with the full dependency
+audit and Functions compilation. A real 11.56 MB PDF becomes 2.77 MB, preserving
+text/forms/link/bookmark; protected/corrupt/unreducible fixtures are refused. The
+same browser worker result passes under production CSP. Native-patch and binary
+identity regressions failed when the safeguards were removed/substituted, then
+passed after restoration. Existing lint warnings remain at eight.
 
-Verification: all five checks and 354 tests pass after a clean install on verified
-Node 24.22.1; Functions compilation and the live lockfile audit also pass. Workflow
-and install-boundary fixtures failed with their guards removed. No application/test
-files changed. Separate host-tooling follow-up: installed Codex/pnpm retain their
-own Node 24.16.0 pins despite the new global default; rebind their existing versions
-under a patched runtime and verify the launchers before claiming host-wide coverage.
+Host runtimes are fixed: Codex 0.161.0 and pnpm 11.5.1 retain their versions and
+now use Node 24.22.1/npm 12.2.0 through Volta; launcher and platform-record checks
+pass. The default Node installation was already patched.
 
-Next bounded step: observe the first daily run, verify native Dependabot/malware/
-security-update settings and notification delivery, and protect `main` with required
-checks. Public API reports no branch protection. Verify the Cloudflare deployment
-gate/build runtime separately. The approved push is complete; Cloudflare deployment
-and repository-security/account settings were not verified or changed. The README
-owns details, evidence and coverage limits.
+Dependabot now has an explicit compatible security-fix group; ordinary updates
+retain their weekly schedule/cooldown, and nothing auto-merges. Repository-level
+Dependency graph/alerts/security-update enablement and notification delivery still
+need verification: the GitHub connector does not expose those settings. Major
+security updates are not ignored. Native library fixes continue through the engine
+build recipe rather than Dependabot.
+
+Vite emits a minimal `build-info.json` receipt so the next deployment's actual Node
+version and public revision can be checked read-only. Cloudflare's plugin appeared
+but its read-only calls returned `Unknown tool`; account build settings and the
+deployment gate remain unverified. Browser sign-in was blocked by automatic
+approval review; it was not bypassed.
+
+Next bounded step: publish the verified candidate when authorized, check deployed
+build/engine receipts, enable or confirm native Dependabot security PRs, verify
+notification delivery and protect `main` with required checks. No Cloudflare
+billing, storage, account settings or production uploads were changed.
 
 ## Dependency maintenance — 23 October 2026
 

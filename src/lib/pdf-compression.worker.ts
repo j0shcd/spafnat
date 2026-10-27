@@ -1,5 +1,5 @@
 import createQpdf from 'virtual:spaf-qpdf-core';
-import wasmUrl from '@wasm-zoo/qpdf/qpdf-core.wasm?url';
+import wasmUrl from '@spaf/qpdf-engine/qpdf-core.wasm?url';
 import {
   MAX_PDF_INPUT_BYTES, PDF_COMPRESSION_TARGET_BYTES, type PdfCompressionResult,
 } from './pdf-compression-protocol';

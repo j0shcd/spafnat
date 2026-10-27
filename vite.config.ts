@@ -10,7 +10,19 @@ export default defineConfig({
     host: "::",
     port: 8080,
   },
-  plugins: [react(), tailwindcss(), qpdfCorePlugin()],
+  plugins: [react(), tailwindcss(), qpdfCorePlugin(), {
+    name: 'spaf-build-receipt',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'build-info.json',
+        source: JSON.stringify({
+          node: process.versions.node,
+          commit: process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? null,
+        }),
+      });
+    },
+  }],
   worker: {
     plugins: () => [qpdfCorePlugin(false)],
   },
