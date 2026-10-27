@@ -298,7 +298,7 @@ protection fixtures. Never suppress advisories or run `npm audit fix --force`.
 
 ### Vulnerability review — 27 October 2026
 
-Scope: current `main` at `4a847af`, all locked npm production/build/test/optional
+Scope: dependency baseline `4a847af`, all locked npm production/build/test/optional
 packages, workflow actions and the Node runtime; recent upstream advisories from
 29 September through 27 October, plus older relevant supply-chain incidents.
 This is a dependency/exposure assessment, not a penetration test or host forensics.
@@ -306,7 +306,7 @@ This is a dependency/exposure assessment, not a penetration test or host forensi
 - Live npm audit: **zero advisories**, including build tools (532 package nodes in
   npm's summary). Independent OSV query: **zero flagged versions** across all 528
   unique locked npm name/version pairs. Both are time-limited database results.
-- **Node runtime affected:** this machine reports 24.16.0, before the
+- **Node runtime fixed:** at audit start this machine reported 24.16.0, before the
   [21 October security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
   The [24.22.1 fixes](https://nodejs.org/en/blog/release/v24.22.1) include DNS NUL
   truncation (CVE-2026-105482), TLS validation (CVE-2026-105483, CVE-2026-106069,
@@ -315,8 +315,9 @@ This is a dependency/exposure assessment, not a penetration test or host forensi
   checks (CVE-2026-106073), plus bundled library/root-certificate updates. These
   concern developer/build tooling here: production Functions run on Cloudflare
   Workers, not a Node server. No exploit or compromise was demonstrated. Runtime
-  floors/pins are raised to 24.22.1 (or 26.12.1 on Node 26); this does not upgrade
-  the machine-wide Volta installation or prove Cloudflare's build runtime.
+  floors/pins are raised to 24.22.1 (or 26.12.1 on Node 26). After approval,
+  `volta install node@24.22.1` updated the global default; `node --version` and
+  `volta which node` confirm it. Cloudflare's build runtime remains unverified.
 - **Undici already fixed:** Wrangler 4.153.0 in `4a847af` resolves the tooling
   chain to Undici 7.30.1 and 8.12.3, meeting the
   [15 October patched versions](https://github.com/nodejs/undici/releases/tag/v8.12.2).
@@ -372,8 +373,16 @@ local build byte-for-byte by SHA-256. The embedded zlib finding therefore also
 applies to the publicly shipped engine inventory. This does not establish the
 production Functions revision, Cloudflare settings or runtime account configuration.
 
-**Remote evidence, checked 27 October:** the repository is public; remote `main`
-matches `4a847af`. Both security workflows are active. The weekly dependency run
+**Remote evidence, checked 27 October:** the repository is public. The baseline
+was `4a847af`; the owner then authorized publishing security commit `8246089`.
+Both security workflows are active. On that exact commit,
+[Quality](https://github.com/j0shcd/spafnat/actions/runs/40520509521) passed both
+`Code and tests` and `Dependency security`, and
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40520509928) passed. The daily
+06:17 UTC dependency/Node scan is published on the default branch; its first
+scheduled invocation and notification delivery have not yet been observed.
+The unauthenticated API rate limit was respected; the completed run summaries were
+verified through the public Actions page. The weekly dependency run
 [failed on 26 October](https://github.com/j0shcd/spafnat/actions/runs/40327528245)
 before the Wrangler fix; the subsequent
 [Quality run passed](https://github.com/j0shcd/spafnat/actions/runs/40362000332), as did
@@ -403,8 +412,8 @@ attestations. Signatures attest origin/integrity, not absence of malicious code.
 After the initial checks on the existing runtime, the official Node 24.22.1
 archive was downloaded and verified against its official SHA-256 before execution.
 A second clean install (without an engine override) and all five checks passed on
-Node 24.22.1/npm 11.19.1. The machine-wide Volta runtime is unchanged; use the
-reviewed version before the next local install/build. The actual workflow guard
+Node 24.22.1/npm 11.19.1. The global Volta default was then upgraded to Node
+24.22.1, with the existing npm 12.2.0 default retained. The actual workflow guard
 also passed against the live Node release feed and seven fixture cases
 (current/stale/new security release, invalid pin, empty feed, HTTP failure and
 inconsistent runtime pins). Removing its stale-version guard made the regression
@@ -412,8 +421,15 @@ fail. An npm install fixture rejected Node 24.16.0; restoring the old engine ran
 made the same rejection assertion fail. The live lockfile-only audit passed.
 No tracked application tests were changed for this configuration-only work.
 
-**Remaining plan:** publish this daily/runtime-monitor change when authorized;
-verify a successful remote run and a controlled failure notification. In repository
+**Tool-specific runtime follow-up:** `volta list --default` still shows installed
+Codex 0.161.0 and pnpm 11.5.1 attached to Node 24.16.0. Updating Volta's default does
+not rebind those installed tools. They are outside SPAF's npm build/test process;
+their separate runtimes remain an open host-tooling item. Rebind/reinstall the same
+tool versions under a patched runtime and verify each launcher before claiming
+that all local Node consumers are patched. Their versions and pins were not changed.
+
+**Remaining plan:** observe the first daily invocation and verify a controlled
+failure notification. In repository
 Settings → Code security, verify Dependency graph, Dependabot alerts (including
 malware) and security updates. Set personal security/workflow notifications and
 verify delivery; scheduled failure notifications depend on the schedule actor's
@@ -422,5 +438,7 @@ verify delivery; scheduled failure notifications depend on the schedule actor's
 `Code and tests`, `Dependency security` and CodeQL results before merges; verify
 Cloudflare's independent deployment gate/build Node version before treating these
 checks as release blockers. Retained KV/admin-quota limitations above are unchanged.
-No production compromise assessment, deployment/account settings change or email
-send is claimed by this audit.
+No production compromise assessment, Cloudflare deployment verification,
+repository-security/account setting change or email send is claimed by this audit.
+The approved push may trigger the existing Cloudflare deployment independently.
+The audit/publication outcome is recorded here and in the task list.

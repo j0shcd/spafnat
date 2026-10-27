@@ -2,21 +2,26 @@
 
 ## Vulnerability monitoring — 27 October 2026
 
-Audited baseline/remote `4a847af` has zero live npm advisories; OSV independently reports
+Audited dependency baseline `4a847af` has zero live npm advisories; OSV independently reports
 zero matches for 528 unique locked package/version pairs. The October Undici fixes
 are already present through Wrangler 4.153.0. Recent Vite fixes and inspected
 Keyv/cacheable poisoned-version exclusions are recorded in the
 [maintainer audit](../README.md#vulnerability-review--27-october-2026).
 
 Found: local Node 24.16.0 predates the 21 October security release. Project pins and
-enforced engine minimums now require 24.22.1 (or 26.12.1 within Node 26). The global
-Volta installation and Cloudflare build Node version still need upgrading/verifying.
+enforced engine minimums now require 24.22.1 (or 26.12.1 within Node 26). After owner
+approval, Volta's global default was upgraded and verified as Node 24.22.1; npm
+12.2.0 remains the default. Cloudflare's build Node version remains unverified.
 Daily lockfile-only npm audits plus a check for newer Node security releases replace
 the weekly dependency scan. No automatic merging or dependency execution in that job.
 
 Remote checks are already active: the weekly audit caught the issue on 26 October,
 and Quality/CodeQL passed after `4a847af`. Earlier unpublished-pipeline notes below
-are historical. This audit's daily/runtime-monitor changes still need publishing.
+are historical. Owner-approved security commit `8246089` is now published.
+[Quality](https://github.com/j0shcd/spafnat/actions/runs/40520509521) passed both
+code/tests and dependency security on that commit;
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40520509928) also passed.
+The daily 06:17 UTC cloud schedule is published; its first scheduled run is pending.
 The existing daily 09:00 local security automation is active and was updated in
 place to cover SPAF's native libraries and monitoring health. It needs the machine
 on/app running; the GitHub checks run independently in the cloud.
@@ -30,14 +35,17 @@ version is also incorrect; monitor reviewed BUILDINFO (9f) until corrected.
 
 Verification: all five checks and 354 tests pass after a clean install on verified
 Node 24.22.1; Functions compilation and the live lockfile audit also pass. Workflow
-and install-boundary fixtures failed with their guards removed. The machine-wide
-Node installation is unchanged. No application/test files changed.
+and install-boundary fixtures failed with their guards removed. No application/test
+files changed. Separate host-tooling follow-up: installed Codex/pnpm retain their
+own Node 24.16.0 pins despite the new global default; rebind their existing versions
+under a patched runtime and verify the launchers before claiming host-wide coverage.
 
-Next bounded step: publish when authorized, observe a remote run, verify native
-Dependabot/malware/security-update settings and notification delivery, and protect
-`main` with required checks. Public API reports no branch protection. Verify the
-Cloudflare deployment gate separately. No push, deployment or account setting change
-is included in this audit; the README owns details, evidence and coverage limits.
+Next bounded step: observe the first daily run, verify native Dependabot/malware/
+security-update settings and notification delivery, and protect `main` with required
+checks. Public API reports no branch protection. Verify the Cloudflare deployment
+gate/build runtime separately. The approved push is complete; Cloudflare deployment
+and repository-security/account settings were not verified or changed. The README
+owns details, evidence and coverage limits.
 
 ## Dependency maintenance — 23 October 2026
 
