@@ -11,7 +11,8 @@ Keyv/cacheable poisoned-version exclusions are recorded in the
 Found: local Node 24.16.0 predates the 21 October security release. Project pins and
 enforced engine minimums now require 24.22.1 (or 26.12.1 within Node 26). After owner
 approval, Volta's global default was upgraded and verified as Node 24.22.1; npm
-12.2.0 remains the default. Cloudflare's build Node version remains unverified.
+12.2.0 remains the default. Cloudflare's deployed build receipt now confirms Node
+24.22.1 on merged remediation revision `0c64c0a`.
 Daily lockfile-only npm audits plus a check for newer Node security releases replace
 the weekly dependency scan. No automatic merging or dependency execution in that job.
 
@@ -26,9 +27,11 @@ The existing daily 09:00 local security automation is active and was updated in
 place to cover SPAF's native libraries and monitoring health. It needs the machine
 on/app running; the GitHub checks run independently in the cloud.
 
-Native-engine remediation is implemented and verified on `codex/patch-pdf-engine`;
-[PR #6](https://github.com/j0shcd/spafnat/pull/6) contains the reviewable candidate.
-Production release is pending approval. The build-only workflow/recipe uses verified source
+Native-engine remediation and Dependabot security grouping merged through
+[PR #6](https://github.com/j0shcd/spafnat/pull/6) into `main` at `0c64c0a`.
+Exact-head and main-branch Quality/CodeQL passed. Cloudflare Pages deployed
+successfully; public build/engine receipts match `0c64c0a`, Node 24.22.1 and the
+reviewed patched WASM hash. The build-only workflow/recipe uses verified source
 archives and a pinned SDK container to produce qpdf 12.4.2 with zlib's exact
 CVE-2026-85091 fix. Its reviewed archive is vendored, integrity-locked, and checked
 at the build boundary; the libjpeg SBOM version is corrected to 9f. The README owns
@@ -48,19 +51,20 @@ pass. The default Node installation was already patched.
 
 Dependabot now has an explicit compatible security-fix group; ordinary updates
 retain their weekly schedule/cooldown, and nothing auto-merges. Repository-level
-Dependency graph/alerts/security-update enablement and notification delivery still
-need verification: the GitHub connector does not expose those settings. Major
+Dependency graph, alerts and security updates were confirmed enabled by the owner
+on 27 October. The connector does not expose those settings; this is owner
+confirmation. Security alert/PR and notification delivery still need observation. Major
 security updates are not ignored. Native library fixes continue through the engine
 build recipe rather than Dependabot.
 
-Vite emits a minimal `build-info.json` receipt so the next deployment's actual Node
-version and public revision can be checked read-only. Cloudflare's plugin appeared
-but its read-only calls returned `Unknown tool`; account build settings and the
-deployment gate remain unverified. Browser sign-in was blocked by automatic
+Vite emits a minimal `build-info.json` receipt; its deployed Node/revision and the
+served engine binary were verified read-only. Cloudflare's plugin appeared but its
+read-only calls returned `Unknown tool`; account settings and the deployment gate
+remain unverified. Browser sign-in was blocked by automatic
 approval review; it was not bypassed.
 
-Next bounded step: publish the verified candidate when authorized, check deployed
-build/engine receipts, enable or confirm native Dependabot security PRs, verify
+Next bounded step: observe the first daily cloud invocation and native Dependabot
+security PRs when an advisory applies, verify
 notification delivery and protect `main` with required checks. No Cloudflare
 billing, storage, account settings or production uploads were changed.
 

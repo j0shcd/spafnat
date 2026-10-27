@@ -344,7 +344,7 @@ This is a dependency/exposure assessment, not a penetration test or host forensi
   ([CVE-2026-112948](https://github.com/vitest-dev/vitest/security/advisories/GHSA-p458-7748-mcp3)),
   mock-registration injection (CVE-2026-112949) and Windows traversal
   (CVE-2026-112950). None require a further update of this lockfile.
-- **Embedded zlib fixed in [PR #6](https://github.com/j0shcd/spafnat/pull/6); production release pending:**
+- **Embedded zlib fixed in merged [PR #6](https://github.com/j0shcd/spafnat/pull/6):**
   the original @wasm-zoo/qpdf 0.1.1 engine declared unpatched zlib 1.3.2, affected
   by CVE-2026-85091. It is replaced by the repository-owned
   `@spaf/qpdf-engine@12.4.2-spaf.1` archive in `vendor/`, keeping qpdf 12.4.2,
@@ -375,7 +375,7 @@ This is a dependency/exposure assessment, not a penetration test or host forensi
   update. No new specific applicable qpdf/libjpeg CVE was found in the reviewed
   primary sources.
 
-**Public deployment evidence:** read-only requests to spafnat.com returned 200;
+**Public deployment evidence before remediation:** read-only requests to spafnat.com returned 200;
 the deployed main JavaScript, CSS and `/pdf-engine/BUILDINFO.txt` matched the clean
 local build byte-for-byte by SHA-256. The embedded zlib finding therefore also
 applies to the publicly shipped engine inventory. This does not establish the
@@ -397,14 +397,15 @@ before the Wrangler fix; the subsequent
 [CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40362000394). This supersedes
 older notes that the pipeline was unpublished. A successful CodeQL run proves
 analysis/upload execution, not an empty alert list. Dependency graph, native alert
-settings, security-update enablement and notification delivery require account
-access and remain unverified. Open Dependabot PRs for TypeScript 7 and @types/node
-26 are ordinary major updates, not evidence of unpatched CVEs; keep the documented
+settings and notification delivery require account access. The owner confirmed
+Dependency graph, Dependabot alerts and security updates enabled on 27 October;
+this is owner confirmation, not API verification or proof of notification delivery.
+Open Dependabot PRs for TypeScript 7 and @types/node 26 are ordinary major updates, not evidence of unpatched CVEs; keep the documented
 compatibility holds until reviewed.
 
 **Active local follow-up:** the existing daily 09:00 security-monitor automation
 was updated in place to include SPAF's npm/runtime/Actions and embedded native
-libraries, the zlib finding, SBOM caveat and failed/dormant cloud monitoring. It
+libraries, the patched native-engine baseline and failed/dormant cloud monitoring. It
 reports meaningful changes and required action, without repeating unchanged
 findings. The existing cross-project/Homebrew work and schedule were preserved.
 It requires the computer on and app running for local-file work, per the
@@ -434,7 +435,7 @@ No tracked application tests were changed for this configuration-only work.
 `volta list --default`, their installed platform records and successful version
 commands confirm the change. The default Node upgrade alone had not changed them.
 
-**Candidate verification:** all 360 tests and required checks pass after a clean
+**Remediation verification:** all 360 tests and required checks pass after a clean
 install; the full lockfile audit and Functions compilation pass. The real worker
 reduced an 11,558,019-byte PDF to 2,770,849 bytes. Independent extraction preserved
 one page, selectable text, a filled form value, link and bookmark; rendered output
@@ -450,34 +451,49 @@ establish peak memory on older phones.
 remain individually reviewable; they are not suppressed. The ordinary weekly
 version-update schedule and three-day cooldown remain; GitHub's security updates
 [do not use that cooldown](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-version-updates).
-There is no auto-merge. Configuration takes effect on the default branch, and
-native [security-update enablement](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)
-still requires Dependency graph, Dependabot alerts and security updates enabled
-in repository Settings → Advanced Security. The connected GitHub tool currently
-exposes repository/check APIs but not those settings or personal notifications;
-configuration alone is not evidence that security PRs are enabled.
+There is no auto-merge. Configuration is merged into the default branch. The owner
+confirmed Dependency graph, Dependabot alerts and native
+[security updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-security-updates)
+enabled in repository Settings → Advanced Security on 27 October. The connected
+GitHub tool currently exposes repository/check APIs but not those settings or personal notifications.
+GitHub accepted `.github/dependabot.yml`, and npm/Actions update jobs started on
+the merged commit. No current advisory requires a security-patch PR, so creation
+and delivery of such a PR have not been exercised.
 
-**Build runtime evidence:** Vite now emits `build-info.json` with only the Node
+**Build runtime evidence:** Vite emits `build-info.json` with only the Node
 version and public commit hash (Cloudflare's `CF_PAGES_COMMIT_SHA` or GitHub's
-`GITHUB_SHA`, otherwise null). After release, fetch it without relying on SPA
-fallback, check it is JSON, compare the commit, and verify the Node security floor.
-This complements `.nvmrc`, `.node-version` and enforced npm engines. It does not
-prove account bindings, billing or deployment gates. The Cloudflare plugin was
+`GITHUB_SHA`, otherwise null). The public JSON receipt confirms Node 24.22.1 and
+merged revision `0c64c0af04f9f39ccf1ab20cafc9d8d8cb7a6c60`. This complements
+`.nvmrc`, `.node-version` and enforced npm engines. It does not prove account
+bindings, billing or deployment gates. The Cloudflare plugin was
 made visible during this follow-up but its backend returned `Unknown tool` for
 read-only discovery/identity calls; no account verification or changes succeeded.
 
-**Remaining plan:** release the verified engine/security-patch configuration when
-authorized, then verify deployed engine/build receipts. Observe the first daily
-invocation and verify a controlled failure notification. In repository
-Settings → Code security, verify Dependency graph, Dependabot alerts (including
-malware) and security updates. Set personal security/workflow notifications and
+**Publication:** PR #6 merged into `main` at `0c64c0a`. Its exact head passed
+[Quality](https://github.com/j0shcd/spafnat/actions/runs/40533764369) and
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40533764731) before merge.
+On that main revision,
+[Quality](https://github.com/j0shcd/spafnat/actions/runs/40534447239) and
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40534447226) also passed.
+Cloudflare Pages reported a successful deployment. Public
+[`build-info.json`](https://spafnat.com/build-info.json),
+[`BUILDINFO.txt`](https://spafnat.com/pdf-engine/BUILDINFO.txt), and
+[`manifest.json`](https://spafnat.com/pdf-engine/manifest.json) confirm the revision,
+patched zlib and reviewed engine identity. The actual 2,196,454-byte served WASM
+hashes to `c15716e69adfa3d3aab74e30c95b5aa5fac69ecd45dc1103efad5fd13b8de176`,
+matching the reviewed artifact. This supersedes the old-engine deployment evidence
+above; no production upload or mutation was used for verification.
+
+**Remaining plan:** observe the first daily cloud
+invocation and verify a controlled failure notification. Inspect the native alert
+list when account APIs are available. Set personal security/workflow notifications and
 verify delivery; scheduled failure notifications depend on the schedule actor's
 [notification settings](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs).
 `main` is currently **unprotected** according to the public branch API. Require
 `Code and tests`, `Dependency security` and CodeQL results before merges; verify
-Cloudflare's independent deployment gate/build Node version before treating these
-checks as release blockers. Retained KV/admin-quota limitations above are unchanged.
-No production compromise assessment, Cloudflare deployment verification,
-repository-security/account setting change or email send is claimed by this audit.
-The approved push may trigger the existing Cloudflare deployment independently.
+Cloudflare's independent deployment gate before treating these checks as release
+blockers. The deployed build Node version is verified above. Retained KV/admin-quota limitations above are unchanged.
+No production compromise assessment, repository-security/account setting change
+or email send is claimed by this audit. The existing Cloudflare deployment ran
+independently after publication; its public artifact/runtime verification is above.
 The audit/publication outcome is recorded here and in the task list.
