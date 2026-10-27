@@ -11,6 +11,10 @@ updates:
     cooldown:
       default-days: 3
     groups:
+      security-fixes:
+        applies-to: security-updates
+        patterns: ['*']
+        update-types: [minor, patch]
       compatible-production:
         dependency-type: production
         update-types: [minor, patch]
