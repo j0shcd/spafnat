@@ -344,7 +344,7 @@ This is a dependency/exposure assessment, not a penetration test or host forensi
   ([CVE-2026-112948](https://github.com/vitest-dev/vitest/security/advisories/GHSA-p458-7748-mcp3)),
   mock-registration injection (CVE-2026-112949) and Windows traversal
   (CVE-2026-112950). None require a further update of this lockfile.
-- **Embedded zlib fixed in the verified candidate; production release pending:**
+- **Embedded zlib fixed in [PR #6](https://github.com/j0shcd/spafnat/pull/6); production release pending:**
   the original @wasm-zoo/qpdf 0.1.1 engine declared unpatched zlib 1.3.2, affected
   by CVE-2026-85091. It is replaced by the repository-owned
   `@spaf/qpdf-engine@12.4.2-spaf.1` archive in `vendor/`, keeping qpdf 12.4.2,
