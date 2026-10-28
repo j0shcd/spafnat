@@ -509,10 +509,13 @@ invocation and verify a controlled failure notification. Inspect the native aler
 list when account APIs are available. Set personal security/workflow notifications and
 verify delivery; scheduled failure notifications depend on the schedule actor's
 [notification settings](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs).
-`main` is currently **unprotected** according to the public branch API. Require
-`Code and tests`, `Dependency security` and CodeQL results before merges; verify
-Cloudflare's independent deployment gate before treating these checks as release
-blockers. The deployed build Node version is verified above. Retained KV/admin-quota limitations above are unchanged.
+**Merge protection verified on 28 October:** the public branch API reports `main`
+protected, with `Code and tests`, `Dependency security` and
+`Analyze JavaScript and TypeScript` required from GitHub Actions and enforcement
+set to `everyone`. The full protection endpoint returns 403 for this integration,
+so pull-request, up-to-date and bypass details were not independently read back.
+Cloudflare's independent deployment gate still needs verification. The deployed
+build Node version is verified above. Retained KV/admin-quota limitations above are unchanged.
 No production compromise assessment, repository-security/account setting change
 or email send is claimed by this audit. The existing Cloudflare deployment ran
 independently after publication; its public artifact/runtime verification is above.

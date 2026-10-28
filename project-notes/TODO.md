@@ -65,8 +65,11 @@ approval review; it was not bypassed.
 
 Next bounded step: observe the first daily cloud invocation and native Dependabot
 security PRs when an advisory applies, verify
-notification delivery and protect `main` with required checks. No Cloudflare
-billing, storage, account settings or production uploads were changed.
+notification delivery and Cloudflare's deployment gate. On 28 October the public
+branch API confirmed `main` protected with all three required GitHub Actions checks
+enforced for everyone. Full protection details remain inaccessible to the connector;
+the owner configured protection directly. No Cloudflare billing, storage or
+production uploads were changed.
 
 ## Dependency PR review — 27 October 2026
 
