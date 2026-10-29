@@ -22,7 +22,9 @@ are historical. Owner-approved security commit `8246089` is now published.
 [Quality](https://github.com/j0shcd/spafnat/actions/runs/40520509521) passed both
 code/tests and dependency security on that commit;
 [CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40520509928) also passed.
-The daily 06:17 UTC cloud schedule is published; its first scheduled run is pending.
+The first daily scheduled cloud audit passed on 28 October (verified 29 October);
+the [README audit](../README.md#vulnerability-review--27-october-2026) owns run
+identity and the remaining notification-delivery check.
 The existing daily 09:00 local security automation is active and was updated in
 place to cover SPAF's native libraries and monitoring health. It needs the machine
 on/app running; the GitHub checks run independently in the cloud.

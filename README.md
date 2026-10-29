@@ -387,8 +387,12 @@ Both security workflows are active. On that exact commit,
 [Quality](https://github.com/j0shcd/spafnat/actions/runs/40520509521) passed both
 `Code and tests` and `Dependency security`, and
 [CodeQL](https://github.com/j0shcd/spafnat/actions/runs/40520509928) passed. The daily
-06:17 UTC dependency/Node scan is published on the default branch; its first
-scheduled invocation and notification delivery have not yet been observed.
+06:17 UTC dependency/Node scan is published on the default branch. Its first
+daily [scheduled run](https://github.com/j0shcd/spafnat/actions/runs/40690985390)
+was verified on 29 October: the dependency-security job passed at revision
+`2df6ec59148d798a4dd0ee6d9455bddae25fffd7`, with event `schedule` on 28 October.
+It started at 12:49 UTC; the code/test job was correctly skipped for the audit-only
+schedule. Failure-notification delivery remains unverified.
 The unauthenticated API rate limit was respected; the completed run summaries were
 verified through the public Actions page. The weekly dependency run
 [failed on 26 October](https://github.com/j0shcd/spafnat/actions/runs/40327528245)
@@ -504,8 +508,8 @@ hashes to `c15716e69adfa3d3aab74e30c95b5aa5fac69ecd45dc1103efad5fd13b8de176`,
 matching the reviewed artifact. This supersedes the old-engine deployment evidence
 above; no production upload or mutation was used for verification.
 
-**Remaining plan:** observe the first daily cloud
-invocation and verify a controlled failure notification. Inspect the native alert
+**Remaining plan:** observe continued daily cloud
+invocations and verify a controlled failure notification. Inspect the native alert
 list when account APIs are available. Set personal security/workflow notifications and
 verify delivery; scheduled failure notifications depend on the schedule actor's
 [notification settings](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs).
