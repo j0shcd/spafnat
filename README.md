@@ -393,6 +393,22 @@ was verified on 29 October: the dependency-security job passed at revision
 `2df6ec59148d798a4dd0ee6d9455bddae25fffd7`, with event `schedule` on 28 October.
 It started at 12:49 UTC; the code/test job was correctly skipped for the audit-only
 schedule. Failure-notification delivery remains unverified.
+On 2 November, the [daily scan](https://github.com/j0shcd/spafnat/actions/runs/41310482058)
+and [Dependabot Quality run](https://github.com/j0shcd/spafnat/actions/runs/41401193118)
+failed the dependency audit. The latter passed code/tests and Functions compilation.
+The audit reproduced locally with 12 moderate findings, all traced to
+[GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)
+in `minimatch` 10.2.6. A temporary npm override pins `minimatch` to patched
+11.0.1 across ESLint, config-array and typescript-estree; the lockfile also adds
+its nonrecursive matcher dependency. These are development dependencies.
+Local verification passed `npm run check` (including the existing eight lint
+warnings), the zero-advisory audit and Cloudflare Functions compilation.
+The existing audit is the regression gate: it failed before the dependency
+change and passed afterward. No audit threshold or workflow was relaxed.
+Publication and a hosted run of this fix remain pending. Next: publish the fix
+after owner approval and verify Quality on its exact commit. Remove the override
+when all three upstream consumers support a patched release without it, then
+repeat the audit and full checks.
 The unauthenticated API rate limit was respected; the completed run summaries were
 verified through the public Actions page. The weekly dependency run
 [failed on 26 October](https://github.com/j0shcd/spafnat/actions/runs/40327528245)
