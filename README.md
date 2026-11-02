@@ -405,8 +405,14 @@ Local verification passed `npm run check` (including the existing eight lint
 warnings), the zero-advisory audit and Cloudflare Functions compilation.
 The existing audit is the regression gate: it failed before the dependency
 change and passed afterward. No audit threshold or workflow was relaxed.
-Publication and a hosted run of this fix remain pending. Next: publish the fix
-after owner approval and verify Quality on its exact commit. Remove the override
+[PR #13](https://github.com/j0shcd/spafnat/pull/13) merged as `828d73d` on
+2 November. On exact head `222e4a3`, hosted
+[Quality](https://github.com/j0shcd/spafnat/actions/runs/41471513727) passed
+code/tests and dependency security, and
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/41471513753) passed.
+The merged commit also passed code/tests, dependency security, CodeQL analysis
+and Cloudflare Pages. Production runtime behavior was not exercised. The merged fix branch was deleted and local
+main synchronized. Remove the override
 when all three upstream consumers support a patched release without it, then
 repeat the audit and full checks.
 The unauthenticated API rate limit was respected; the completed run summaries were
