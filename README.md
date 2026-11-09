@@ -166,6 +166,83 @@ behavior, credentials and Cloudflare settings are unchanged. Historical audit ga
 release. The merged branch was deleted locally and remotely; pre-existing
 untracked files were preserved.
 
+## Native and CI dependency validation — 9 November 2026
+
+This focused follow-up preserves Cloudflare Pages, KV, private R2 and the existing
+engine bytes. Resend configuration remains intentionally unverified at the owner's
+request. It does not establish complete native memory safety or a clean CI supply chain.
+
+**Native evidence recovered:** the original
+[engine build](https://github.com/j0shcd/spafnat/actions/runs/40523551893) still
+retained its link map, extraction report and ownership manifest. The downloaded
+ZIP and all four entries were checked against GitHub/build-log hashes; its engine
+archive exactly matches the vendored package. The three reports now survive
+workflow-artifact expiry in
+[`vendor/spaf-qpdf-engine-12.4.2-spaf.1-evidence.zip`](vendor/spaf-qpdf-engine-12.4.2-spaf.1-evidence.zip).
+The adjacent [evidence record](vendor/spaf-qpdf-engine-12.4.2-spaf.1-evidence.json)
+binds their hashes to the engine, source inputs and unsigned build receipt. These
+review files are not emitted to Cloudflare.
+
+The extraction report ties `Pl_Flate.cc.o` to the verified workspace's `libz.a`.
+The map omits `inflateGetDictionary`, `inflateSync`, both prime APIs, `inflateBack`
+and the inspected gzip APIs. It retains `deflateResetKeep`; the inspected
+[qpdf path](https://github.com/qpdf/qpdf/blob/v12.4.2/libqpdf/Pl_Flate.cc)
+uses initialization, ordinary inflate/deflate and stream end, without the vulnerable
+midstream reset sequence. Initialization does reach reset logic internally.
+Symbol membership is not a complete call graph, and optimization can inline code.
+[Zlib 1.4](https://www.zlib.net/) includes additional security fixes beyond the
+installed 1.3.2 backport; it is not claimed installed or universally irrelevant.
+A future refresh must retain reviewed hashes, licenses, receipts and real PDF
+protection fixtures. No specific applicable JPEG 9f defect was established.
+
+The build boundary now rejects substituted SDK/image/source receipts and a missing
+or misreported zlib version, in addition to patch and runtime-byte checks. Six
+regressions failed with the old checker restored in a disposable copy. Small real
+worker fixtures reduced a 198,165-byte PDF to 60,641 bytes using native JPEG
+recompression, preserving one page, text, a form value, link and bookmark.
+Encrypted and signature-bearing fixtures were refused; malformed input was
+unreadable. These checks use the actual worker and hash-verified WASM, not a browser
+or a new peak-memory test. The explicit owner-approved sandbox exception replaces
+an unavailable OS hard-memory cap with per-check heap/WASM bounds; networking and
+host writes remain restricted. Earlier browser/CSP evidence remains separate.
+
+**CI action inventory:** CodeQL init/analyze now pin
+[`v4.39.3` at `33d7b85`](https://github.com/github/codeql-action/releases/tag/v4.39.3).
+The shipped shared bundle was hashed and inspected, including all main/post entry
+wrappers. It contains Undici 7.30.1, minimatch 11.0.2 and patched brace-expansion
+branches. Its remaining minimatch 10.2.5 caller uses default optimization level 1;
+the [current advisory](https://github.com/advisories/GHSA-g3hv-75wg-m249) requires
+level 2 or higher. This is retained affected-version inventory, not a claim of no
+advisories. Project npm overrides cannot patch separately downloaded actions.
+
+| Action, latest release checked | Retained dependencies and inspected exposure |
+| --- | --- |
+| checkout 7.0.1 | Undici 6.27.0 remains. No lower-trust control of the inspected GitHub response destination was established. |
+| setup-node 7.1.0 | Undici 6.29.0 and minimatch 10.2.6 remain. Main GitHub API fetch uses Undici; post cache upload uses native HTTP, with Undici used for its proxy agent. Glob calls use `nobrace` and default optimization level 1. |
+| upload-artifact 7.0.2 | Older Undici/minimatch/brace branches remain. This repository supplies a fixed output directory and runs it only in the manual/dedicated-branch engine build. |
+
+Those three pins already match their latest releases; no patched upstream-main
+replacement was available. The inspected
+[Undici advisory](https://github.com/advisories/GHSA-xjj6-f33q-929c) requires an
+affected fetch path and malicious response behavior. No such response control was
+demonstrated here. Recheck upstream patched releases before changing pins; do not
+silently suppress advisories or describe these bundles as fully clear.
+
+The existing hosted CodeQL job independently reported CLI 2.27.4 and extractor
+Node 24.22.2; the action update is not credited with installing a newer CLI.
+Runner 2.338.2's source packaging pins action Node 24.22.1, a different runtime.
+Public release metadata does not expose a complete CodeQL evaluator/native SBOM;
+the actual JRE/shared-library inventory and downloaded-byte attestation remain
+unverified. Published JRE release notes are a baseline, not observed execution.
+The older build also did not print exact Clang/LLVM/linker versions, and mutable
+apt inputs prevent a reproducible-toolchain claim.
+
+The leftover password JSDoc example now invokes the hidden-input helper. The next
+bounded dependency work is an approved zlib-only engine refresh or a patched
+upstream action release; neither needs a storage migration, paid service or Resend
+access. Full verification and publication status belong to the checks/PR for the
+revision containing this record; historical release snapshots below remain dated.
+
 ## Maintainability and security audit, 22 October 2026
 
 Scope: the entire checkout, not only recent changes. Three independent read-only

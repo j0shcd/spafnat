@@ -1,5 +1,23 @@
 # SPAF Website — Task List
 
+## Native and CI dependency validation — 9 November 2026
+
+- [x] Recover and retain the matching engine link/extraction reports with verified hashes.
+- [x] Check the linked zlib API prerequisites and exercise real normal, encrypted,
+  signature-bearing and malformed PDFs through the existing worker.
+- [x] Enforce the complete reviewed SDK/source receipt and zlib version at the build boundary;
+  prove the new regressions fail with the former checker.
+- [x] Update CodeQL's main/post bundle to the verified 4.39.3 pin and review remaining
+  checkout/setup-node/upload-artifact dependency exposure.
+- [x] Replace the remaining inline password example with the hidden-input helper.
+
+The [README record](../README.md#native-and-ci-dependency-validation--9-november-2026)
+owns evidence and exact limits. Full CodeQL native inventory, native memory safety
+and reproducible toolchain evidence are not claimed. Next bounded maintenance is
+a reviewed zlib-only refresh or patched upstream action release. Keep zero-cost
+Cloudflare and KV unchanged; **leave Resend unverified**. Publication is tracked by
+the checks/PR for this revision, separately from these implementation assertions.
+
 ## PDF cover safety — 9 November 2026
 
 Implemented and merged through [PR #20](https://github.com/j0shcd/spafnat/pull/20): shared canvas dimension/pixel bounds, 15-second rendering

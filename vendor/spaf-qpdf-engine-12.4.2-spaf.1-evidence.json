@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "reviewedDate": "2026-11-09",
+  "purpose": "Retain matching native linker evidence before GitHub artifact expiry; source-only, never emitted to Cloudflare.",
+  "build": {
+    "commit": "88c5465218a7f2d9be4a83f21ed9b08328d9a99b",
+    "run": "https://github.com/j0shcd/spafnat/actions/runs/40523551893",
+    "artifactId": 12743335959,
+    "originalZipSha256": "23a0e7ca839ea4da4620b6378ec7e87f7d83c94c3f29e7d6584ff7bcfd5b9cf2",
+    "receipt": "Unsigned build receipt, not SLSA attestation or a reproducible-build proof."
+  },
+  "engineArchive": {
+    "path": "vendor/spaf-qpdf-engine-12.4.2-spaf.1.tgz",
+    "bytes": 710651,
+    "sha256": "32e2019c575b512b7127585532a6c2a9a24e763213c479f50537ed13427e3a77"
+  },
+  "engineFiles": {
+    "qpdf-core.js": {
+      "sha256": "0ead3c7e15498a0af4a59008952d9e59cee847733b612eb3b25da6957ee05138",
+      "bytes": 62933
+    },
+    "qpdf-core.wasm": {
+      "sha256": "c15716e69adfa3d3aab74e30c95b5aa5fac69ecd45dc1103efad5fd13b8de176",
+      "bytes": 2196454
+    }
+  },
+  "buildInputs": {
+    "SDK_COMMIT": "aeb67926e7de656da38bc807d83050af93578758",
+    "SDK_IMAGE_DIGEST": "f174124ff798a3ead1abef247d9a849c270b642d552fea500a42565ff210f765",
+    "ZLIB_PATCH_COMMIT": "df84af25dc1942490e1d1c899a07619152a46148",
+    "ZLIB_PATCH_SHA256": "110ff14375733173d8aa54574473424fbd7dfe4b81f1ca34a759c6fe14b15b14",
+    "QPDF_SOURCE_SHA256": "8a58af5b6141319287c1883bec8bd1bd545b7567b7fc5e6ce5d25a1c85f36397",
+    "ZLIB_SOURCE_SHA512": "16fea4df307a68cf0035858abe2fd550250618a97590e202037acd18a666f57afc10f8836cbbd472d54a0e76539d0e558cb26f059d53de52ff90634bbf4f47d4",
+    "LIBJPEG_SOURCE_SHA512": "7f733d79cf176c690dcf127352f9aa7ec48000455944f286faae606cdeada6f6865b4a3f9f01bda8947b5b1089bb3e52d2b56879b6e871279ec5cbd1829304dc"
+  },
+  "retainedArchive": {
+    "path": "vendor/spaf-qpdf-engine-12.4.2-spaf.1-evidence.zip",
+    "bytes": 281930,
+    "sha256": "07fdead2d0f4cc0beafff7f7cad402411ffdb76bc8fefe93a0e8b2a97721772e",
+    "files": {
+      "ownership.json": {
+        "bytes": 336,
+        "sha256": "2154e1739a54601831e08f914cb6508b3ec3e0802e9d23202b6550260e1cecaf"
+      },
+      "qpdf-link.map": {
+        "bytes": 3932807,
+        "sha256": "6cda4c0096c1bf013715008af5f89e4b4b148355a67498fe8d731164a6725da8"
+      },
+      "qpdf-extractions.txt": {
+        "bytes": 59494,
+        "sha256": "0aab2b4118e5d7680ce2898ded9741cbdf41dcc07948e03080464c267f4fa134"
+      }
+    }
+  },
+  "nativeAssessment": {
+    "zlibSource": "1.3.2 plus df84af25 gzwrite fix",
+    "absentFromMatchingLinkMap": [
+      "inflateGetDictionary",
+      "inflateSync",
+      "inflatePrime",
+      "deflatePrime",
+      "inflateBack",
+      "gzseek",
+      "gzdopen",
+      "gzwrite"
+    ],
+    "presentInMatchingLinkMap": [
+      "deflateResetKeep",
+      "inflateReset2",
+      "inflate",
+      "deflate"
+    ],
+    "sourceSequence": "qpdf Pl_Flate initializes once, processes with ordinary inflate/deflate and ends; initialization internally reaches resets, without the listed malformed-header/recovery or midstream-reset sequences.",
+    "objectProvenance": "Matching extraction report attributes deflateInit_ and inflateInit_ to libqpdf.a(Pl_Flate.cc.o) pulling the verified build workspace zlib/libz.a.",
+    "limits": "Linker membership is not a complete call graph or proof of native memory safety. Absence of a function name is not a general proof that equivalent/inlined code is absent. No newer zlib release is claimed installed.",
+    "primarySources": [
+      "https://www.zlib.net/",
+      "https://github.com/qpdf/qpdf/blob/v12.4.2/libqpdf/Pl_Flate.cc",
+      "https://github.com/madler/zlib/blob/v1.3.2/inflate.c",
+      "https://github.com/madler/zlib/blob/v1.3.2/deflate.c"
+    ]
+  },
+  "observedBuildPackages": {
+    "cmake": "3.28.3-1build7",
+    "make": "4.3-4.1build2",
+    "patch": "2.7.6-7build3",
+    "python3": "3.12.3-0ubuntu2.1",
+    "curl": "8.5.0-2ubuntu10.16",
+    "ca-certificates": "20260816ubuntu0.24.04.1"
+  },
+  "unrecordedBuildVersions": [
+    "explicit Clang/LLVM/wasm-ld versions",
+    "executable --version output for CMake/Python/make"
+  ],
+  "maintenance": "zlib1.4 is a future engine refresh; current gzwrite backport does not include all1.4 fixes. Review exact API prerequisites, hashes, receipts/licenses and real protected-PDF fixtures for any refresh."
+}

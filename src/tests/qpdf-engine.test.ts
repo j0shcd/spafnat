@@ -52,6 +52,30 @@ describe('reviewed PDF engine identity', () => {
     expect(() => verifyQpdfBuild(wrongCodec, receipt)).toThrow('Unreviewed PDF engine build inputs');
   });
 
+  it.each(Object.keys(receipt.inputs))('rejects a substituted build input: %s', name => {
+    const substituted = structuredClone(receipt);
+    substituted.inputs[name] = 'unreviewed';
+    expect(() => verifyQpdfBuild(manifest, substituted)).toThrow('Unreviewed PDF engine build inputs');
+  });
+
+  it('rejects a missing or misreported zlib version', () => {
+    for (const version of [undefined, '1.4']) {
+      const misreported = structuredClone(manifest);
+      misreported.nativeDependencies.zlib.version = version;
+      expect(() => verifyQpdfBuild(misreported, receipt)).toThrow('Unreviewed PDF engine build inputs');
+    }
+  });
+
+  it('retains matching linker evidence for the exact engine archive', () => {
+    const name = 'vendor/spaf-qpdf-engine-12.4.2-spaf.1-evidence';
+    const evidence = JSON.parse(readFileSync(`${name}.json`, 'utf8'));
+    const sha = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex');
+    expect(sha(`${name}.zip`)).toBe(evidence.retainedArchive.sha256);
+    expect(sha('vendor/spaf-qpdf-engine-12.4.2-spaf.1.tgz')).toBe(evidence.engineArchive.sha256);
+    expect(evidence.engineFiles).toEqual(manifest.files);
+    expect(evidence.buildInputs).toEqual(receipt.inputs);
+  });
+
   it('ships matching patch evidence and native SBOM versions', () => {
     const sbom = JSON.parse(readFileSync(join(root, 'sbom.cdx.json'), 'utf8'));
     expect(sbom.components).toEqual(expect.arrayContaining([

@@ -85,7 +85,7 @@ export async function verifyPassword(
  *
  * Example usage:
  * ```bash
- * node -e "import('./functions/lib/password.ts').then(m => m.hashPassword('your-password').then(console.log))"
+ * node --import tsx/esm scripts/generate-password-hash.ts
  * ```
  */
 export async function hashPassword(password: string): Promise<string> {
