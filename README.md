@@ -113,7 +113,7 @@ Public consumers share in-flight covers. Leaving one view releases its interest;
 only the last cancellation stops shared work. Failed/cancelled work is not cached.
 Admin navigation aborts cover preparation and prevents a subsequent upload or
 fallback toast. The existing no-cover fallback still applies to ordinary rendering
-failures. No Worker, storage, quota or KV architecture changes are involved.
+failures. No Cloudflare Workers, storage, quota or KV architecture changes are involved.
 
 Public concours reads fetch the three canonical category keys in parallel.
 The retired `concours:all` KV key is ignored and can be left in place. Public
@@ -140,6 +140,31 @@ one minute and local photo mutations invalidate the affected year's cache.
 Late requests cannot restore invalidated cache entries or overwrite a different
 selected year. Public gallery HTTP/CDN caching still allows bounded staleness;
 local invalidation does not promise immediate cross-device updates.
+
+## PDF cover and setup safety release, 9 November 2026
+
+Commits `002aae6` (bounded PDF cover work) and `3c5813b` (safe password setup)
+merged through [PR #20](https://github.com/j0shcd/spafnat/pull/20) as `f857e49`.
+The PR and exact merge passed code/tests, dependency security and CodeQL:
+[main Quality](https://github.com/j0shcd/spafnat/actions/runs/42606778280),
+[main CodeQL](https://github.com/j0shcd/spafnat/actions/runs/42606778317).
+Local verification passed all five checks and 395 tests with eight existing lint
+warnings. Real local PDF.js rendering under production CSP, direct termination of
+stalled workers, hidden terminal input and six deliberate regression reversions
+were verified before publication. No production login, upload or email send ran.
+
+The Cloudflare Pages check reported success for `f857e49`, with
+[deployment receipt](https://dash.cloudflare.com/?to=/0efeed038b2c548dda7e2022753d6131/pages/view/spafnat/de214aea-a209-4378-98d6-12bfec49472d).
+The initial automated receipt request returned HTTP 403. Follow-up read-only GETs
+with a normal browser user agent returned HTTP 200 from both
+[spafnat.com/build-info.json](https://spafnat.com/build-info.json) and
+[spafnat.pages.dev/build-info.json](https://spafnat.pages.dev/build-info.json), each
+reporting the exact merge SHA `f857e49b95c33034d7e6c66792ce6f8cfc2c63d9` and
+Node 24.22.1. This verifies the public static revision; authenticated Functions and
+production PDF interactions were not exercised. The zero-cost architecture, KV
+behavior, credentials and Cloudflare settings are unchanged. Historical audit gaps are not closed by this
+release. The merged branch was deleted locally and remotely; pre-existing
+untracked files were preserved.
 
 ## Maintainability and security audit, 22 October 2026
 
