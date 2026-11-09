@@ -2,7 +2,7 @@
 
 ## PDF cover safety — 9 November 2026
 
-Implemented locally: shared canvas dimension/pixel bounds, 15-second rendering
+Implemented and merged through [PR #20](https://github.com/j0shcd/spafnat/pull/20): shared canvas dimension/pixel bounds, 15-second rendering
 and encoding deadline, public last-consumer cancellation and admin-navigation
 cancellation. Regression checks cover extreme/invalid geometry, stalled phases,
 late task cleanup, shared ownership and cancellation without upload.
@@ -11,13 +11,13 @@ PDF.js rendering under the production CSP passed. The browser produced 460×613 
 900×1,200 covers; cancellation and the 15-second deadline left zero live workers.
 Temporarily restoring geometry, deadline, cancellation, worker-termination and admin
 cancellation failures made their regression tests fail. All five checks passed
-(preflight, typecheck, lint, tests and build). Publication is pending explicit push approval; no deployment
-or KV/storage migration is part of this change.
+(preflight, typecheck, lint, tests and build). Publication and deployment evidence
+is recorded below; no KV/storage migration was made.
 
 
 ## Safe setup examples — 9 November 2026
 
-Implemented locally: the offline password helper rejects argv secrets, reads hidden
+Implemented and merged: the offline password helper rejects argv secrets, reads hidden
 terminal input or bounded stdin and refuses passwords shorter than 16 characters.
 Examples use the pinned runtime and `npm ci --ignore-scripts`, preserve an existing
 `.dev.vars`, replace single secret entries and contain no shared default password.
@@ -29,10 +29,17 @@ restoration, including the argv-password regression. A real PTY check confirmed
 that the hidden prompt does not echo its dummy password. Independent source review
 accepted the final PDF worker ownership and setup changes.
 
-Release status: two atomic local commits on main; publication requires explicit
-push approval. Next step is approval to push those commits, followed by hosted CI
-verification. No production deployment, credentials, Cloudflare settings, KV
-architecture or storage migration changed in this task.
+Release status: approved commits `002aae6` and `3c5813b` merged through
+[PR #20](https://github.com/j0shcd/spafnat/pull/20) as `f857e49`.
+[Quality](https://github.com/j0shcd/spafnat/actions/runs/42606778280) and
+[CodeQL](https://github.com/j0shcd/spafnat/actions/runs/42606778317) passed on that
+exact merge. Cloudflare Pages reported a successful deployment for the same SHA.
+Local main was synchronized and the merged local/remote branch removed; existing
+untracked conflict copies were preserved. Public build receipts on both configured
+domains returned the exact merge SHA and Node 24.22.1. README owns the deployment
+evidence and the distinction from production interaction testing. Credentials, Cloudflare settings and KV
+architecture remain unchanged. The broader audit's runtime/native/deployment gaps
+remain separate from these completed fixes.
 
 ## Vulnerability monitoring — 27 October 2026
 
