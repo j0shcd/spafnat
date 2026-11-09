@@ -120,8 +120,9 @@ export default function AdminDocuments() {
       let generatedCoverFile: File | undefined;
       if (key === REVUE_DOCUMENT_KEY) {
         try {
-          generatedCoverFile = await generateRevueCoverFromPdf(prepared);
+          generatedCoverFile = await generateRevueCoverFromPdf(prepared, controller.signal);
         } catch {
+          if (controller.signal.aborted) return;
           toast({
             title: 'Aperçu non généré',
             description: "Le PDF sera téléversé, mais l'image de couverture n'a pas pu être créée automatiquement.",

@@ -1,5 +1,20 @@
 # SPAF Website — Task List
 
+## PDF cover safety — 9 November 2026
+
+Implemented locally: shared canvas dimension/pixel bounds, 15-second rendering
+and encoding deadline, public last-consumer cancellation and admin-navigation
+cancellation. Regression checks cover extreme/invalid geometry, stalled phases,
+late task cleanup, shared ownership and cancellation without upload.
+Local verification: focused regressions, independent source review and real headless
+PDF.js rendering under the production CSP passed. The browser produced 460×613 and
+900×1,200 covers; cancellation and the 15-second deadline left zero live workers.
+Temporarily restoring geometry, deadline, cancellation, worker-termination and admin
+cancellation failures made their regression tests fail. All five checks passed
+(preflight, typecheck, lint, tests and build). Publication is pending explicit push approval; no deployment
+or KV/storage migration is part of this change.
+
+
 ## Vulnerability monitoring — 27 October 2026
 
 Audited dependency baseline `4a847af` has zero live npm advisories; OSV independently reports

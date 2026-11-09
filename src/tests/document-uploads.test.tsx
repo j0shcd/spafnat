@@ -111,6 +111,29 @@ describe('document compression before upload', () => {
     fireEvent.change(await screen.findByLabelText('Document : Extrait de la Revue'), { target: { files: [large] } });
     await userEvent.click(await screen.findByRole('button', { name: 'Réduire et envoyer' }));
     await waitFor(() => expect(api.apiUploadDocument).toHaveBeenCalledWith(small, 'extrait_revue.pdf', { coverFile: cover }));
-    expect(generateRevueCoverFromPdf).toHaveBeenCalledWith(small);
+    expect(generateRevueCoverFromPdf).toHaveBeenCalledWith(small, expect.any(AbortSignal));
   });
+});
+
+
+it('cancels revue cover work on unmount without uploading or showing an error', async () => {
+  vi.clearAllMocks();
+  vi.mocked(api.apiListDocuments).mockResolvedValue({ ok: true, data: [] });
+  vi.mocked(compressPdf).mockImplementation(async file => file);
+  let signal: AbortSignal | undefined;
+  vi.mocked(generateRevueCoverFromPdf).mockImplementation((_file, nextSignal) => {
+    signal = nextSignal;
+    return new Promise((_resolve, reject) => nextSignal?.addEventListener('abort', () =>
+      reject(new DOMException('Cancelled', 'AbortError')), { once: true }));
+  });
+  const view = render(<AdminDocuments />);
+  fireEvent.change(await screen.findByLabelText('Document : Extrait de la Revue'), {
+    target: { files: [pdf(false)] },
+  });
+  await waitFor(() => expect(signal).toBeDefined());
+  view.unmount();
+  expect(signal?.aborted).toBe(true);
+  await Promise.resolve();
+  expect(api.apiUploadDocument).not.toHaveBeenCalled();
+  expect(toast).not.toHaveBeenCalled();
 });
