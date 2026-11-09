@@ -1,6 +1,8 @@
 # SPAF Website - Developer Maintenance Guide
 
-**Last Updated:** October 23, 2026
+**Setup examples updated:** 9 November 2026
+
+[README.md](../README.md#development-and-verification) owns current runtime, installation and security constraints. Older phase notes below are historical; use the setup instructions here with the README.
 **Current Version:** Phase 4 Complete 
 
 ---
@@ -11,7 +13,7 @@ The **Société des Poètes et Artistes de France (SPAF)** website is a bilingua
 
 ### Tech Stack
 
-- **Frontend:** React 19 + TypeScript + Vite 8 (Node 24 LTS, minimum 24.15.0)
+- **Frontend:** React 19 + TypeScript + Vite 8 (Node 24 LTS, minimum 24.22.1)
 - **UI:** shadcn-ui (Radix UI) + TailwindCSS 4; Safari 16.4+, Chrome 111+ or Firefox 128+
 - **Deployment:** Cloudflare Pages (static site + edge functions)
 - **Storage:** Cloudflare KV (key-value) + R2 (object storage)
@@ -32,7 +34,7 @@ The **Société des Poètes et Artistes de France (SPAF)** website is a bilingua
 ### Prerequisites
 
 ```bash
-node >= 22.0.0 (do not use v.25, it is not stable with Cloudflare)
+Node 24 LTS, minimum 24.22.1 (use .nvmrc)
 npm >= 10.0.0
 ```
 
@@ -40,19 +42,21 @@ npm >= 10.0.0
 
 ```bash
 # 1. Install dependencies
-npm install
+npm ci --ignore-scripts
 
 # 2. Install git hooks (runs preflight checks before commits)
 bash scripts/setup-hooks.sh
 
 # 3. Set up environment variables
-cp .dev.vars.example .dev.vars
+cp -n .dev.vars.example .dev.vars
 
 # 4. Generate JWT secret
-echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars
+openssl rand -base64 32
+# Replace the single JWT_SECRET placeholder in .dev.vars with this result.
 
-# 5. Generate admin password hash (password: admin123)
-npx tsx scripts/generate-password-hash.ts admin123
+# 5. Use a unique password of at least 16 characters from your password manager.
+# Enter it at the hidden prompt; never include it in the command.
+node --import tsx/esm scripts/generate-password-hash.ts
 # Copy the output and add to .dev.vars manually:
 # ADMIN_PASSWORD_HASH=<paste-hash-here>
 
@@ -103,7 +107,7 @@ npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
 - You must rebuild (`npm run build`) after every code change
 - KV and R2 data is stored locally in `.wrangler/` (gitignored)
 - Local bindings are ephemeral (cleared when you restart)
-- Test credentials: **username:** `admin` | **password:** `admin123`
+- Username: `admin`. Use a distinct password configured in your local `.dev.vars`; there is no shared default password.
 
 **Faster iteration:** Use `npm run build:dev` for faster dev builds (skips minification)
 
@@ -222,7 +226,7 @@ Set under **Settings > Environment Variables > Production**:
 | Variable               | Purpose                        | How to Generate                                      |
 |------------------------|--------------------------------|-----------------------------------------------------|
 | `JWT_SECRET`           | JWT signing key                | `openssl rand -base64 32`                          |
-| `ADMIN_PASSWORD_HASH`  | Admin password (PBKDF2)        | `npx tsx scripts/generate-password-hash.ts <pass>` |
+| `ADMIN_PASSWORD_HASH`  | Admin password (PBKDF2)        | `node --import tsx/esm scripts/generate-password-hash.ts` (hidden prompt) |
 | `RESEND_API_KEY`       | Email sending (contact form)   | Get from https://resend.com/api-keys               |
 | `CONTACT_RECIPIENT`    | Contact form destination email | `plecordier@free.fr` (production)                  |
 | `ALLOWED_ORIGINS`      | Allowed origins for contact API/CORS checks | Comma-separated list (e.g. `https://spafnat.com,https://www.spafnat.com`) |
@@ -283,11 +287,12 @@ ADMIN_PASSWORD_HASH=salt:hash
 
 ```bash
 # 1. Generate new hash
-npx tsx scripts/generate-password-hash.ts newpassword123
+node --import tsx/esm scripts/generate-password-hash.ts
+# Enter a new unique password at the hidden prompt.
 
 # 2. Update environment
-# Local: Add to .dev.vars
-echo "ADMIN_PASSWORD_HASH=<new-hash>" >> .dev.vars
+# Local: replace the existing single ADMIN_PASSWORD_HASH entry in .dev.vars.
+# Do not append a duplicate key; keep this file untracked.
 
 # Production: Update in Cloudflare Dashboard
 # Settings > Environment Variables > Production > Edit ADMIN_PASSWORD_HASH
@@ -299,7 +304,7 @@ echo "ADMIN_PASSWORD_HASH=<new-hash>" >> .dev.vars
 
 The user-facing guide lives in `src/pages/admin/AdminGuide.tsx` at `/admin/guide`. Its "Imprimer ou enregistrer en PDF" button opens the browser print window; choose a printer or the PDF destination. Print styles omit admin navigation and include all FAQ answers, even when collapsed on screen. Keep user instructions in that guide; no separate PDF source needs maintaining.
 
-1. **Login:** Visit `/admin` with credentials (admin/admin123 in dev)
+1. **Login:** Visit `/admin` with username `admin` and your locally configured password
 2. **Documents:**
    - Navigate to "Documents" tab
    - Click "Téléverser" on the document card
@@ -886,10 +891,10 @@ vi.mock('pdfjs-dist', () => ({
 ### Admin Login Returns "Invalid credentials" (but password is correct)
 
 **Cause 1:** `ADMIN_PASSWORD_HASH` not set in environment
-**Fix:** Generate hash with `npx tsx scripts/generate-password-hash.ts <password>`, add to `.dev.vars` or Dashboard
+**Fix:** Generate hash with `node --import tsx/esm scripts/generate-password-hash.ts` (hidden prompt), add to `.dev.vars` or Dashboard
 
 **Cause 2:** JWT_SECRET not set
-**Fix:** Generate with `echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars`, add to Dashboard
+**Fix:** Generate with `openssl rand -base64 32` and replace the existing JWT_SECRET entry, add to Dashboard
 
 **Cause 3:** Rate limited (5 attempts per 15 min)
 **Fix:** Wait 15 minutes or clear KV: `npx wrangler kv:key delete "rate:login:YOUR_IP" --binding SPAF_KV --local`

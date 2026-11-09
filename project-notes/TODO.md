@@ -1,5 +1,39 @@
 # SPAF Website — Task List
 
+## PDF cover safety — 9 November 2026
+
+Implemented locally: shared canvas dimension/pixel bounds, 15-second rendering
+and encoding deadline, public last-consumer cancellation and admin-navigation
+cancellation. Regression checks cover extreme/invalid geometry, stalled phases,
+late task cleanup, shared ownership and cancellation without upload.
+Local verification: focused regressions, independent source review and real headless
+PDF.js rendering under the production CSP passed. The browser produced 460×613 and
+900×1,200 covers; cancellation and the 15-second deadline left zero live workers.
+Temporarily restoring geometry, deadline, cancellation, worker-termination and admin
+cancellation failures made their regression tests fail. All five checks passed
+(preflight, typecheck, lint, tests and build). Publication is pending explicit push approval; no deployment
+or KV/storage migration is part of this change.
+
+
+## Safe setup examples — 9 November 2026
+
+Implemented locally: the offline password helper rejects argv secrets, reads hidden
+terminal input or bounded stdin and refuses passwords shorter than 16 characters.
+Examples use the pinned runtime and `npm ci --ignore-scripts`, preserve an existing
+`.dev.vars`, replace single secret entries and contain no shared default password.
+README owns current setup; the older maintenance guide links to it.
+
+Verification: 395 tests and all five checks pass; eight existing Fast Refresh
+warnings remain. Six temporary fault injections made their regressions fail before
+restoration, including the argv-password regression. A real PTY check confirmed
+that the hidden prompt does not echo its dummy password. Independent source review
+accepted the final PDF worker ownership and setup changes.
+
+Release status: two atomic local commits on main; publication requires explicit
+push approval. Next step is approval to push those commits, followed by hosted CI
+verification. No production deployment, credentials, Cloudflare settings, KV
+architecture or storage migration changed in this task.
+
 ## Vulnerability monitoring — 27 October 2026
 
 Audited dependency baseline `4a847af` has zero live npm advisories; OSV independently reports

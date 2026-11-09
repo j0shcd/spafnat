@@ -69,6 +69,24 @@ production configuration. Keep `.dev.vars` untracked. Set `ALLOWED_ORIGINS`
 explicitly per deployment; production should use
 `https://spafnat.com,https://www.spafnat.com`.
 
+## Local secrets and password setup
+
+Keep `.dev.vars` untracked and use separate Production/Preview credentials.
+`cp -n .dev.vars.example .dev.vars` preserves an existing local file.
+Generate a JWT key with `openssl rand -base64 32` and replace the existing single
+`JWT_SECRET` entry; do not append duplicate keys.
+
+```sh
+node --import tsx/esm scripts/generate-password-hash.ts
+```
+
+Use a unique password of at least 16 characters saved in your password manager.
+The helper uses a hidden terminal prompt and prints only `ADMIN_PASSWORD_HASH=...`.
+Replace the existing single hash entry locally or in the intended Dashboard
+environment. Never put a password in command arguments. Automation may supply
+stdin; the helper removes one trailing newline and caps input at 1,024 UTF-8 bytes.
+PBKDF2 settings and server authentication behavior are unchanged.
+
 ## Storage and security boundaries
 
 JSON bodies are limited while streaming. Multipart bodies have a bounded total
@@ -81,6 +99,21 @@ mismatched or legacy unversioned covers, allowing the existing PDF-rendering
 fallback. A new PDF removes its old cover first; failed cover generation or
 storage cannot silently reuse the previous issue's image. Normal replacement
 uploads create versioned covers. Existing PDFs need no migration.
+
+Both public fallback covers and admin-generated covers use `src/lib/pdf-cover-renderer.ts`.
+Canvas dimensions are at most 2,048 pixels per side and 2,000,000 pixels in total,
+with no minimum scale that defeats those limits. A 15-second elapsed deadline spans
+loading, first-page rendering and encoding. Cancellation cancels the render task,
+destroys the PDF.js loading task, directly terminates its dedicated native browser
+worker and clears the canvas; asynchronous teardown cannot hold the
+caller open indefinitely. These are application bounds, not a total PDF decoder
+memory guarantee or a preemptive browser CPU limit.
+
+Public consumers share in-flight covers. Leaving one view releases its interest;
+only the last cancellation stops shared work. Failed/cancelled work is not cached.
+Admin navigation aborts cover preparation and prevents a subsequent upload or
+fallback toast. The existing no-cover fallback still applies to ordinary rendering
+failures. No Worker, storage, quota or KV architecture changes are involved.
 
 Public concours reads fetch the three canonical category keys in parallel.
 The retired `concours:all` KV key is ignored and can be left in place. Public

@@ -1,84 +1,53 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import { renderPdfCover } from './pdf-cover-renderer';
 
 const pdfCoverDataUrlCache = new Map<string, string>();
-const inFlightPdfCoverRender = new Map<string, Promise<string>>();
-const MIN_RENDER_SCALE = 0.65;
-const MAX_RENDER_SCALE = 1;
+type CoverJob = { controller: AbortController; promise: Promise<string>; users: number };
+const inFlightPdfCoverRender = new Map<string, CoverJob>();
 const TARGET_COVER_WIDTH_PX = 460;
-
-let isPdfWorkerConfigured = false;
-
-function ensurePdfWorkerConfigured() {
-  if (isPdfWorkerConfigured) {
-    return;
-  }
-
-  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url
-  ).toString();
-  isPdfWorkerConfigured = true;
-}
 
 export function getCachedPdfCover(url: string): string | null {
   return pdfCoverDataUrlCache.get(url) ?? null;
 }
 
-export async function prefetchPdfCover(url: string): Promise<string> {
+/** Consumers share work; only the last cancellation tears down its PDF.js task. */
+export async function prefetchPdfCover(url: string, signal?: AbortSignal): Promise<string> {
+  signal?.throwIfAborted();
   const cached = pdfCoverDataUrlCache.get(url);
-  if (cached) {
-    return cached;
-  }
-
-  const inFlight = inFlightPdfCoverRender.get(url);
-  if (inFlight) {
-    return inFlight;
-  }
-
-  const renderPromise = (async () => {
-    ensurePdfWorkerConfigured();
-
-    const loadingTask = pdfjsLib.getDocument({
-      url,
-      // We only need page 1 for the cover preview.
-      disableAutoFetch: true,
-    });
-    try {
-      const pdf = await loadingTask.promise;
-      const page = await pdf.getPage(1);
-      const baseViewport = page.getViewport({ scale: 1 });
-      const fittedScale = TARGET_COVER_WIDTH_PX / baseViewport.width;
-      const scale = Math.max(MIN_RENDER_SCALE, Math.min(MAX_RENDER_SCALE, fittedScale));
-      const viewport = page.getViewport({ scale });
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-
-      if (!context) {
-        throw new Error('Could not get canvas context');
-      }
-
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-
-      await page.render({
-        canvas,
-        canvasContext: context,
-        viewport,
-      }).promise;
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  if (cached) return cached;
+  let job = inFlightPdfCoverRender.get(url);
+  if (!job) {
+    const controller = new AbortController();
+    const promise = renderPdfCover(
+      worker => pdfjsLib.getDocument({ url, disableAutoFetch: true, worker }), TARGET_COVER_WIDTH_PX,
+      canvas => canvas.toDataURL('image/jpeg', 0.82), controller.signal,
+    ).then(dataUrl => {
+      controller.signal.throwIfAborted();
       pdfCoverDataUrlCache.set(url, dataUrl);
       return dataUrl;
-    } finally {
-      await loadingTask.destroy();
-    }
-  })();
-
-  inFlightPdfCoverRender.set(url, renderPromise);
-
-  try {
-    return await renderPromise;
-  } finally {
-    inFlightPdfCoverRender.delete(url);
+    });
+    job = { controller, promise, users: 0 };
+    inFlightPdfCoverRender.set(url, job);
   }
+  const current = job;
+  current.users++;
+  return new Promise<string>((resolve, reject) => {
+    let released = false;
+    const release = () => {
+      if (released) return;
+      released = true;
+      signal?.removeEventListener('abort', onAbort);
+      if (--current.users === 0) {
+        if (inFlightPdfCoverRender.get(url) === current) inFlightPdfCoverRender.delete(url);
+        current.controller.abort();
+      }
+    };
+    const onAbort = () => {
+      release();
+      reject(new DOMException('Préparation annulée', 'AbortError'));
+    };
+    signal?.addEventListener('abort', onAbort, { once: true });
+    current.promise.then(value => { release(); resolve(value); }, error => { release(); reject(error); });
+    if (signal?.aborted) onAbort();
+  });
 }

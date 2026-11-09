@@ -23,6 +23,7 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
 
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
     const cachedCover = getCachedPdfCover(url);
 
     if (cachedCover) {
@@ -31,6 +32,7 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
       setIsLoading(false);
       return () => {
         isMounted = false;
+        controller.abort();
       };
     }
 
@@ -38,21 +40,22 @@ export function PdfCover({ url, alt = 'PDF Cover', className = '' }: PdfCoverPro
     setIsLoading(true);
     setHasError(false);
 
-    prefetchPdfCover(url)
+    prefetchPdfCover(url, controller.signal)
       .then((nextCoverSrc) => {
         if (!isMounted) return;
         setCoverSrc(nextCoverSrc);
         setIsLoading(false);
       })
       .catch((error) => {
-        console.error('Failed to render PDF cover:', error);
         if (!isMounted) return;
+        console.error('Failed to render PDF cover:', error);
         setHasError(true);
         setIsLoading(false);
       });
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
   }, [url]);
 

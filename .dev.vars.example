@@ -23,19 +23,21 @@ ALLOWED_ORIGINS=http://localhost:8080,https://spafnat.com,https://www.spafnat.co
 # =======================================
 
 # JWT Secret - Generate with:
-#   echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars
+#   openssl rand -base64 32
+# Paste the result into the single JWT_SECRET entry in .dev.vars.
 JWT_SECRET=your-jwt-secret-here
 
 # Admin Password Hash - Generate with:
-#   npx tsx scripts/generate-password-hash.ts your-password
+#   node --import tsx/esm scripts/generate-password-hash.ts
+# Use a unique password of at least 16 characters from your password manager.
 # Format: salt:hash (both base64-encoded)
 ADMIN_PASSWORD_HASH=your-password-hash-here
 
 
 # Quick Setup Commands
 # ====================
-# 1. Copy this file: cp .dev.vars.example .dev.vars
+# 1. Copy this file: cp -n .dev.vars.example .dev.vars
 # 2. Add your Resend API key from https://resend.com/api-keys
-# 3. Generate JWT secret: echo "JWT_SECRET=$(openssl rand -base64 32)" >> .dev.vars
-# 4. Generate password hash: npx tsx scripts/generate-password-hash.ts admin123
+# 3. Run openssl rand -base64 32 and replace the JWT_SECRET placeholder (do not append a second entry).
+# 4. Run node --import tsx/esm scripts/generate-password-hash.ts (hidden prompt; no password argument).
 # 5. Copy the hash output and add to .dev.vars manually
