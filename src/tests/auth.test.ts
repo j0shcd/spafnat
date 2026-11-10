@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { verifyPassword, hashPassword } from '../../functions/lib/password';
 import { isLocalRequest, onRequestPost as loginHandler } from '../../functions/api/auth/login';
 
@@ -54,93 +54,6 @@ describe('Password Hashing (PBKDF2)', () => {
     const hash = await hashPassword('');
     const valid = await verifyPassword('', hash);
     expect(valid).toBe(true);
-  });
-});
-
-describe('Auth API Mocking', () => {
-  // Mock environment
-  let mockEnv: {
-    JWT_SECRET: string;
-    ADMIN_PASSWORD_HASH: string;
-    SPAF_KV: {
-      get: ReturnType<typeof vi.fn>;
-      put: ReturnType<typeof vi.fn>;
-      delete: ReturnType<typeof vi.fn>;
-    };
-  };
-
-  beforeEach(async () => {
-    // Generate a test password hash
-    const testHash = await hashPassword('admin123');
-
-    mockEnv = {
-      JWT_SECRET: 'test-jwt-secret-key',
-      ADMIN_PASSWORD_HASH: testHash,
-      SPAF_KV: {
-        get: vi.fn(),
-        put: vi.fn(),
-        delete: vi.fn(),
-      },
-    };
-  });
-
-  it('should mock login flow with rate limiting', async () => {
-    // First attempt: no rate limit
-    mockEnv.SPAF_KV.get.mockResolvedValueOnce(null); // No previous attempts
-
-    const rateKey = 'rate:login:127.0.0.1';
-    expect(mockEnv.SPAF_KV.get).toBeDefined();
-
-    // Simulate successful login: rate limit should be cleared
-    mockEnv.SPAF_KV.delete.mockResolvedValueOnce(undefined);
-
-    // Session should be stored
-    mockEnv.SPAF_KV.put.mockResolvedValueOnce(undefined);
-
-    expect(mockEnv.SPAF_KV.put).toBeDefined();
-    expect(mockEnv.SPAF_KV.delete).toBeDefined();
-  });
-
-  it('should mock rate limit exceeded scenario', async () => {
-    // 5 failed attempts already
-    mockEnv.SPAF_KV.get.mockResolvedValueOnce('5');
-
-    const attempts = await mockEnv.SPAF_KV.get('rate:login:127.0.0.1');
-    expect(parseInt(attempts || '0', 10)).toBe(5);
-    // Login should be blocked
-  });
-
-  it('should mock session storage for JWT', async () => {
-    const jti = 'test-uuid-1234';
-    const sessionKey = `session:${jti}`;
-
-    // Store session
-    mockEnv.SPAF_KV.put.mockResolvedValueOnce(undefined);
-    await mockEnv.SPAF_KV.put(sessionKey, '1', { expirationTtl: 86400 });
-
-    expect(mockEnv.SPAF_KV.put).toHaveBeenCalledWith(sessionKey, '1', {
-      expirationTtl: 86400,
-    });
-
-    // Verify session exists
-    mockEnv.SPAF_KV.get.mockResolvedValueOnce('1');
-    const session = await mockEnv.SPAF_KV.get(sessionKey);
-    expect(session).toBe('1');
-  });
-
-  it('should mock logout (session deletion)', async () => {
-    const jti = 'test-uuid-5678';
-    const sessionKey = `session:${jti}`;
-
-    mockEnv.SPAF_KV.delete.mockResolvedValueOnce(undefined);
-    await mockEnv.SPAF_KV.delete(sessionKey);
-
-    expect(mockEnv.SPAF_KV.delete).toHaveBeenCalledWith(sessionKey);
-
-    // After deletion, session should not exist
-    mockEnv.SPAF_KV.get.mockResolvedValueOnce(null);
-    const session = await mockEnv.SPAF_KV.get(sessionKey);
-    expect(session).toBeNull();
   });
 });
 
@@ -214,7 +127,7 @@ describe('Login Endpoint Security', () => {
 /**
  * NOTE: Full integration tests for login/logout/verify endpoints
  * require live server with wrangler dev. These unit tests cover
- * the password hashing logic and mock KV interactions.
+ * the password hashing logic and login rate-limit behavior.
  *
  * For integration testing:
  * 1. Run: npx wrangler pages dev dist --kv SPAF_KV --r2 SPAF_MEDIA
