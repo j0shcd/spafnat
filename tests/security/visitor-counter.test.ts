@@ -23,6 +23,7 @@ describe('Visitor Counter Security Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(mockEnv.SPAF_KV.put).mockReset().mockResolvedValue(undefined);
   });
 
   const createGetRequest = () =>
@@ -58,88 +59,26 @@ describe('Visitor Counter Security Tests', () => {
   }
 
   describe('Deduplication', () => {
-    it('should count same IP+UserAgent only once per day', async () => {
-      // Arrange: Counter starts at 100, no previous visit
-      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
-        if (key === 'counter:visitors') return '100';
-        if (key.startsWith('rate:visit:')) return null; // No previous visit
-        return null;
+    it('persists one daily visit per IP even when its User-Agent changes', async () => {
+      const values = new Map<string, string>([['counter:visitors', '100']]);
+      vi.mocked(mockEnv.SPAF_KV.get).mockImplementation(async key => values.get(key) ?? null);
+      vi.mocked(mockEnv.SPAF_KV.put).mockImplementation(async (key, value) => {
+        values.set(key, value as string);
       });
+      const visit = async (ip: string, userAgent: string) => {
+        const response = await onRequestPost({
+          request: new Request('http://localhost/api/visit', {
+            method: 'POST', headers: { 'CF-Connecting-IP': ip, 'User-Agent': userAgent },
+          }), env: mockEnv,
+        } as Parameters<typeof onRequestPost>[0]);
+        expect(response.status).toBe(200);
+        return response.json();
+      };
 
-      const request = new Request('http://localhost/api/visit', {
-        method: 'POST',
-        headers: {
-          'CF-Connecting-IP': '1.2.3.4',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        },
-      });
-
-      // Act: First visit increments
-      const response1 = await onRequestPost({ request, env: mockEnv } as any);
-      const data1 = await response1.json();
-
-      expect(response1.status).toBe(200);
-      expect(data1.count).toBe(101);
-      expect(data1.incremented).toBe(true);
-
-      // Arrange: Second request with same IP+UA
-      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
-        if (key === 'counter:visitors') return '101';
-        if (key.startsWith('rate:visit:')) return '1'; // Already visited today
-        return null;
-      });
-
-      // Act: Second visit doesn't increment
-      const response2 = await onRequestPost({ request, env: mockEnv } as any);
-      const data2 = await response2.json();
-
-      expect(response2.status).toBe(200);
-      expect(data2.count).toBe(101); // No increment
-      expect(data2.incremented).toBe(false);
-    });
-
-    it('should count different User-Agents from same IP separately', async () => {
-      // Arrange: Counter starts at 100
-      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
-        if (key === 'counter:visitors') return '100';
-        return null; // No previous visits
-      });
-
-      // Act: Visit from laptop
-      const laptopRequest = new Request('http://localhost/api/visit', {
-        method: 'POST',
-        headers: {
-          'CF-Connecting-IP': '1.2.3.4',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0',
-        },
-      });
-
-      const response1 = await onRequestPost({ request: laptopRequest, env: mockEnv } as any);
-      const data1 = await response1.json();
-
-      expect(data1.count).toBe(101);
-      expect(data1.incremented).toBe(true);
-
-      // Arrange: Update counter after first increment
-      (mockEnv.SPAF_KV.get as any).mockImplementation(async (key: string) => {
-        if (key === 'counter:visitors') return '101';
-        return null; // Different UA = different hash = no dedup
-      });
-
-      // Act: Visit from phone (same IP, different User-Agent)
-      const phoneRequest = new Request('http://localhost/api/visit', {
-        method: 'POST',
-        headers: {
-          'CF-Connecting-IP': '1.2.3.4',
-          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
-        },
-      });
-
-      const response2 = await onRequestPost({ request: phoneRequest, env: mockEnv } as any);
-      const data2 = await response2.json();
-
-      expect(data2.count).toBe(102); // Incremented (different UA)
-      expect(data2.incremented).toBe(true);
+      expect(await visit('203.0.113.1', 'Mozilla/5.0 Chrome')).toMatchObject({ count: 101, incremented: true });
+      expect(await visit('203.0.113.1', 'Mozilla/5.0 Safari')).toMatchObject({ count: 101, incremented: false });
+      expect(await visit('203.0.113.2', 'Mozilla/5.0 Safari')).toMatchObject({ count: 102, incremented: true });
+      expect(values.get('counter:visitors')).toBe('102');
     });
 
     it('should not count known bot user agents', async () => {

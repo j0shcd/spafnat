@@ -28,6 +28,8 @@ describe('Contact Form Security Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(mockEnv.SPAF_KV.get).mockReset().mockResolvedValue(null);
+    vi.mocked(mockEnv.SPAF_KV.put).mockReset().mockResolvedValue(undefined);
     delete mockEnv.ALLOWED_ORIGINS;
 
     // Mock successful Resend API response by default
@@ -117,96 +119,34 @@ describe('Contact Form Security Tests', () => {
   });
 
   describe('Rate Limiting', () => {
-    it('should block rapid submissions from same IP', async () => {
-      // Arrange: First submission succeeds
-      const payload = {
-        name: 'Test User',
-        email: 'test@example.com',
-        subject: 'Test',
-        message: 'Message',
-        website: '',
-      };
-
-      // No rate limit initially
-      (mockEnv.SPAF_KV.get as any).mockResolvedValue(null);
-
-      const request1 = new Request('http://localhost/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'http://localhost:8080',
-          'CF-Connecting-IP': '1.2.3.4',
-        },
-        body: JSON.stringify(payload),
+    it('persists the limit before sending, blocks the same IP and permits another IP', async () => {
+      const values = new Map<string, string>();
+      vi.mocked(mockEnv.SPAF_KV.get).mockImplementation(async key => values.get(key) ?? null);
+      vi.mocked(mockEnv.SPAF_KV.put).mockImplementation(async (key, value) => {
+        values.set(key, value as string);
       });
-
-      // Act: First submission
-      const response1 = await onRequestPost({ request: request1, env: mockEnv } as any);
-      expect(response1.status).toBe(200);
-
-      // Arrange: Second request with rate limit active
-      (mockEnv.SPAF_KV.get as any).mockResolvedValue('1'); // Rate limit exists
-
-      const request2 = new Request('http://localhost/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'http://localhost:8080',
-          'CF-Connecting-IP': '1.2.3.4',
-        },
-        body: JSON.stringify(payload),
+      vi.mocked(global.fetch).mockImplementation(async () => {
+        // Reserving before the provider call also protects against retry storms.
+        expect(values.size).toBeGreaterThan(0);
+        return Response.json({ id: 'mock-email-id' });
       });
+      const submit = (ip: string) => onRequestPost({
+        request: new Request('http://localhost/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Origin: 'http://localhost:8080', 'CF-Connecting-IP': ip },
+          body: JSON.stringify({ name: 'Test User', email: 'test@example.com', subject: 'Test', message: 'Message', website: '' }),
+        }), env: mockEnv,
+      } as Parameters<typeof onRequestPost>[0]);
 
-      // Act: Second submission (should be blocked)
-      const response2 = await onRequestPost({ request: request2, env: mockEnv } as any);
-      const data2 = await response2.json();
-
-      // Assert: Second request should return 429
-      expect(response2.status).toBe(429);
-      expect(data2.error).toContain('5 minutes');
-    });
-
-    it('should enforce rate limit per IP, not globally', async () => {
-      // Arrange: No rate limits
-      (mockEnv.SPAF_KV.get as any).mockResolvedValue(null);
-
-      const payload = {
-        name: 'Test User',
-        email: 'test@example.com',
-        subject: 'Test',
-        message: 'Message',
-        website: '',
-      };
-
-      // Act: Submit from IP1
-      const request1 = new Request('http://localhost/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'http://localhost:8080',
-          'CF-Connecting-IP': '1.2.3.4',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const response1 = await onRequestPost({ request: request1, env: mockEnv } as any);
-      expect(response1.status).toBe(200);
-
-      // Act: Submit from IP2 (different IP)
-      const request2 = new Request('http://localhost/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'http://localhost:8080',
-          'CF-Connecting-IP': '5.6.7.8',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const response2 = await onRequestPost({ request: request2, env: mockEnv } as any);
-
-      // Expected: Both should succeed (different IPs)
-      expect(response2.status).toBe(200);
+      expect((await submit('203.0.113.1')).status).toBe(200);
+      const repeated = await submit('203.0.113.1');
+      expect(repeated.status).toBe(429);
+      expect((await repeated.json()).error).toContain('5 minutes');
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect((await submit('203.0.113.2')).status).toBe(200);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(values.size).toBe(2);
+      expect(mockEnv.SPAF_KV.put).toHaveBeenCalledWith(expect.any(String), '1', { expirationTtl: 300 });
     });
   });
 
@@ -389,32 +329,6 @@ describe('Contact Form Security Tests', () => {
   });
 
   describe('Origin Validation', () => {
-    it('should accept requests from localhost (development)', async () => {
-      const payload = {
-        name: 'Test',
-        email: 'test@example.com',
-        subject: 'Test',
-        message: 'Message',
-        website: '',
-      };
-
-      (mockEnv.SPAF_KV.get as any).mockResolvedValue(null);
-
-      const request = new Request('http://localhost/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'http://localhost:8080',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const response = await onRequestPost({ request, env: mockEnv } as any);
-
-      // Expected: Should accept
-      expect(response.status).toBe(200);
-    });
-
     it('should accept requests from Cloudflare Pages preview', async () => {
       const payload = {
         name: 'Test',
