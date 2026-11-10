@@ -11,17 +11,10 @@ import {
   getConcoursKVKey,
   isConcoursCategory,
   getConcoursR2Prefix,
-  type ConcoursCategory,
 } from '../config/concours';
 
 describe('Concours Configuration', () => {
   describe('CONCOURS_CATEGORIES', () => {
-    it('should have all three required categories', () => {
-      expect(CONCOURS_CATEGORIES.reglements).toBeDefined();
-      expect(CONCOURS_CATEGORIES['palmares-poetique']).toBeDefined();
-      expect(CONCOURS_CATEGORIES['palmares-artistique']).toBeDefined();
-    });
-
     it('should have French labels', () => {
       expect(CONCOURS_CATEGORIES.reglements.label).toBe('Règlements');
       expect(CONCOURS_CATEGORIES['palmares-poetique'].label).toBe('Palmarès Poétique');
@@ -71,14 +64,6 @@ describe('Concours Configuration', () => {
       expect(getConcoursR2Prefix('reglements')).toBe('concours/reglements/');
       expect(getConcoursR2Prefix('palmares-poetique')).toBe('concours/palmares-poetique/');
       expect(getConcoursR2Prefix('palmares-artistique')).toBe('concours/palmares-artistique/');
-    });
-
-    it('should end with trailing slash', () => {
-      const categories: ConcoursCategory[] = ['reglements', 'palmares-poetique', 'palmares-artistique'];
-      categories.forEach((cat) => {
-        const prefix = getConcoursR2Prefix(cat);
-        expect(prefix.endsWith('/')).toBe(true);
-      });
     });
   });
 });

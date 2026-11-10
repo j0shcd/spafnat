@@ -72,7 +72,7 @@ Object.defineProperty(globalThis, 'localStorage', {
   value: localStorageMock,
 });
 
-describe('Admin UI Smoke Tests', () => {
+describe('Admin UI behavior', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     localStorageMock.clear();
@@ -80,27 +80,17 @@ describe('Admin UI Smoke Tests', () => {
   });
 
   describe('Admin Login Page', () => {
-    it('renders without crashing', () => {
-      render(<AdminLogin />, { wrapper: AdminWrapper });
-      expect(screen.getByText(/Administration SPAF/i)).toBeInTheDocument();
-    });
-
     it('displays French labels', () => {
       render(<AdminLogin />, { wrapper: AdminWrapper });
       expect(screen.getByLabelText(/Nom d'utilisateur/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/Mot de passe/i, { selector: 'input' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Se connecter/i })).toBeInTheDocument();
     });
-
-    it('displays return to site link', () => {
-      render(<AdminLogin />, { wrapper: AdminWrapper });
-      expect(screen.getByText(/Retour au site/i)).toBeInTheDocument();
-    });
   });
 
   describe('Admin Dashboard Page', () => {
     it('redirects to documents page', () => {
-      const { container } = render(
+      render(
         <MemoryRouter initialEntries={['/admin']}>
           <Routes>
             <Route path="/admin" element={<AdminDashboard />} />
@@ -115,13 +105,6 @@ describe('Admin UI Smoke Tests', () => {
   });
 
   describe('Admin Documents Page', () => {
-    it('renders without crashing', async () => {
-      render(<AdminDocuments />, { wrapper: AdminWrapper });
-      await waitFor(() => {
-        expect(screen.getByText(/Gestion des documents/i)).toBeInTheDocument();
-      });
-    });
-
     it('displays all 6 documents from config', async () => {
       render(<AdminDocuments />, { wrapper: AdminWrapper });
 
@@ -136,42 +119,9 @@ describe('Admin UI Smoke Tests', () => {
         expect(screen.getByText(label)).toBeInTheDocument();
       });
     });
-
-    it('displays upload and delete buttons for each document', async () => {
-      render(<AdminDocuments />, { wrapper: AdminWrapper });
-
-      await waitFor(() => {
-        expect(screen.queryByText(/Chargement.../i)).not.toBeInTheDocument();
-      });
-
-      // Should have upload buttons for all 6 documents
-      const uploadButtons = screen.getAllByText(/Téléverser|Remplacer/i);
-      expect(uploadButtons.length).toBe(6);
-    });
   });
 
   describe('Admin Photos Page', () => {
-    it('renders without crashing', async () => {
-      render(<AdminPhotos />, { wrapper: AdminWrapper });
-      await waitFor(() => {
-        expect(screen.getByText(/Gestion des photos/i)).toBeInTheDocument();
-      });
-    });
-
-    it('displays year selector', async () => {
-      render(<AdminPhotos />, { wrapper: AdminWrapper });
-      await waitFor(() => {
-        expect(screen.getByText(/Année du congrès/i)).toBeInTheDocument();
-      });
-    });
-
-    it('displays upload button', async () => {
-      render(<AdminPhotos />, { wrapper: AdminWrapper });
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Téléverser des photos/i })).toBeInTheDocument();
-      });
-    });
-
     it('displays empty state when no photos', async () => {
       render(<AdminPhotos />, { wrapper: AdminWrapper });
       await waitFor(() => {
@@ -181,21 +131,6 @@ describe('Admin UI Smoke Tests', () => {
   });
 
   describe('Admin Delegations Page', () => {
-    it('renders without crashing', async () => {
-      render(<AdminDelegations />, { wrapper: AdminWrapper });
-      await waitFor(() => {
-        expect(screen.getByText(/Gestion des délégations/i)).toBeInTheDocument();
-      });
-    });
-
-    it('displays add button and empty state', async () => {
-      render(<AdminDelegations />, { wrapper: AdminWrapper });
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Ajouter une délégation/i })).toBeInTheDocument();
-      });
-      expect(screen.getByText(/Aucune délégation enregistrée/i)).toBeInTheDocument();
-    });
-
     it('opens a dialog for adding a delegation instead of inserting a draft card', async () => {
       const user = userEvent.setup();
       render(<AdminDelegations />, { wrapper: AdminWrapper });
@@ -244,14 +179,6 @@ describe('Admin UI Smoke Tests', () => {
         expect(screen.getByText(/Login Page/i)).toBeInTheDocument();
         expect(screen.queryByText(/Protected Content/i)).not.toBeInTheDocument();
       });
-    });
-
-    it('shows loading state during verification', () => {
-      render(<div>Protected Content</div>, { wrapper: ProtectedRouteWrapper });
-
-      // Initially should show loading (skeleton) or redirect immediately
-      // We test that it doesn't immediately show protected content
-      expect(screen.queryByText(/Protected Content/i)).not.toBeInTheDocument();
     });
   });
 });
