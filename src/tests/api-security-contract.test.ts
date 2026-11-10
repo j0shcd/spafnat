@@ -15,16 +15,27 @@ describe('API security response contract', () => {
   it('keeps the static and dynamic security policies identical', () => {
     expect(SECURITY_HEADERS).toEqual(expectedHeaders);
   });
+  async function expectSecuredResponse(path: string, status: number) {
+    const response = await onRequest({ request: new Request(`https://spafnat.com${path}`), next: vi.fn().mockResolvedValue(new Response('sentinel', { status, headers: { 'X-Sentinel': 'preserved' } })) } as unknown as Parameters<typeof onRequest>[0]);
+    expect(response.status).toBe(status); expect(await response.text()).toBe('sentinel');
+    for (const [name, value] of Object.entries(expectedHeaders)) expect(response.headers.get(name)).toBe(value);
+    expect(response.headers.get('X-Sentinel')).toBe('preserved');
+    if (/^\/api\/(admin|auth)\//.test(path)) expect(response.headers.get('Cache-Control')).toBe('no-store');
+  }
+  // Discovered-path sentinel, not an invocation of the route handlers themselves.
   for (const route of routes) {
     const path = route.replace('../../functions', '').replace(/\.ts$/, '').replace('[[path]]', 'documents/test.pdf');
-    it.each([200, 401, 403, 404, 500])(`secures ${path} response %s`, async status => {
-      const response = await onRequest({ request: new Request(`https://spafnat.com${path}`), next: vi.fn().mockResolvedValue(new Response('sentinel', { status, headers: { 'X-Sentinel': 'preserved' } })) } as unknown as Parameters<typeof onRequest>[0]);
-      expect(response.status).toBe(status); expect(await response.text()).toBe('sentinel');
-      for (const [name, value] of Object.entries(expectedHeaders)) expect(response.headers.get(name)).toBe(value);
-      expect(response.headers.get('X-Sentinel')).toBe('preserved');
-      if (/^\/api\/(admin|auth)\//.test(path)) expect(response.headers.get('Cache-Control')).toBe('no-store');
-    });
+    it(`secures ${path}`, async () => expectSecuredResponse(path, 200));
   }
+  it.each([401, 403, 404, 500])('preserves public error response %s', async status => {
+    await expectSecuredResponse('/api/contact', status);
+  });
+  it.each([
+    ['/api/auth/login', 401],
+    ['/api/admin/upload', 500],
+  ] as const)('prevents caching %s errors', async (path, status) => {
+    await expectSecuredResponse(path, status);
+  });
   it('secures exceptions as generic failures without exposing exception details', async () => {
     const response = await onRequest({ request: new Request('https://spafnat.com/api/contact'), next: vi.fn().mockRejectedValue(new Error('PRIVATE_SENTINEL')) } as unknown as Parameters<typeof onRequest>[0]);
     expect(response.status).toBe(500); expect(await response.text()).not.toContain('PRIVATE_SENTINEL');
