@@ -33,7 +33,7 @@ migration is authorized. All public and administrative content is in French.
 
 ## Development and verification
 
-Use Node 24 LTS, at least 24.22.1, and npm 10 or newer; `.nvmrc` and
+Use Node 24 LTS, at least 24.22.3, and npm 10 or newer; `.nvmrc` and
 `.node-version` pin the reviewed security baseline. `npm ci --ignore-scripts` installs the pinned lockfile
 without package lifecycle scripts. `.npmrc` enforces supported engines and disables
 dependency lifecycle scripts by default. The manifest also permits Node 26.12.1
@@ -165,6 +165,15 @@ production PDF interactions were not exercised. The zero-cost architecture, KV
 behavior, credentials and Cloudflare settings are unchanged. Historical audit gaps are not closed by this
 release. The merged branch was deleted locally and remotely; pre-existing
 untracked files were preserved.
+
+12 November 2026 local security candidate: runtime pins/floors now require the
+November security patches (Node 24.22.3; already supported 22/26 lines use
+22.23.5/26.13.1). No supported major was added or global default changed. The
+official Node release fixes high-severity HTTP/2 and TLS issues; application
+reachability and managed-provider patch status remain separate. Verification
+uses a checksum-verified disposable official runtime. Publication/hosting and
+actual selected runtime require separate verification; this candidate is local.
+Evidence: /Users/josh/Documents/Codex/2026-10-27/new-chat/work/monitor-20261112.
 
 ## Native and CI dependency validation — 9 November 2026
 
